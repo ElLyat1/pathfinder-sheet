@@ -199,6 +199,28 @@
       button { display: none !important; }
       h1, h2, h3, h4 { color: #333; }
     }
+
+    @media (max-width: 900px) {
+      .grid-6 { grid-template-columns: repeat(3, 1fr); }
+      .grid-5 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .grid-6 { grid-template-columns: repeat(2, 1fr); }
+      .grid-5 { grid-template-columns: 1fr 1fr; }
+      .grid-4 { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .tab-btn { padding: 8px 10px; font-size: 12px; }
+      table { font-size: 11px; }
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #1a1410; }
+    ::-webkit-scrollbar-thumb { background: #6b4c1e; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #c9a84c; }
   </style>
 </head>
 <body>
