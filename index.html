@@ -131,6 +131,8 @@
     /* Grid layouts */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
 
     /* Table styling */
@@ -283,7 +285,252 @@
       </div>
     </div>
 
-    <!-- Combat sections will be added in Task 4 -->
+    <!-- Hit Points -->
+    <div class="panel">
+      <div class="panel-title">Hit Points</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Current HP</label>
+          <input type="number" data-bind="combat.hp.current">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Max HP</label>
+          <input type="number" data-bind="combat.hp.max">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Temp HP</label>
+          <input type="number" data-bind="combat.hp.temp">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nonlethal</label>
+          <input type="number" data-bind="combat.hp.nonlethal">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Status</label>
+          <span class="derived" data-display="combat.hp.status">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Armor Class -->
+    <div class="panel">
+      <div class="panel-title">Armor Class</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Total AC</label>
+          <span class="derived" data-display="combat.ac.total" style="font-size:24px;">10</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Touch AC</label>
+          <span class="derived" data-display="combat.ac.touch">10</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Flat-Footed</label>
+          <span class="derived" data-display="combat.ac.flatFooted">10</span>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:10px;">
+        <div class="field-group">
+          <label class="field-label">Armor Bonus</label>
+          <input type="number" data-bind="combat.ac.armor">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Shield Bonus</label>
+          <input type="number" data-bind="combat.ac.shield">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Natural Armor</label>
+          <input type="number" data-bind="combat.ac.natural">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Deflection</label>
+          <input type="number" data-bind="combat.ac.deflection">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Dodge</label>
+          <input type="number" data-bind="combat.ac.dodge">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Size</label>
+          <select data-bind="combat.ac.size">
+            <option value="8">Fine (+8)</option>
+            <option value="4">Diminutive (+4)</option>
+            <option value="2">Tiny (+2)</option>
+            <option value="1">Small (+1)</option>
+            <option value="0" selected>Medium (0)</option>
+            <option value="-1">Large (-1)</option>
+            <option value="-2">Huge (-2)</option>
+            <option value="-4">Gargantuan (-4)</option>
+            <option value="-8">Colossal (-8)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Misc</label>
+          <input type="number" data-bind="combat.ac.misc">
+        </div>
+      </div>
+    </div>
+
+    <!-- Initiative -->
+    <div class="panel">
+      <div class="panel-title">Initiative</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Total</label>
+          <span class="derived" data-display="combat.initiative.total" style="font-size:20px;">+0</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">DEX Mod</label>
+          <span class="derived" data-display="combat.initiative.dexMod">+0</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Misc</label>
+          <input type="number" data-bind="combat.initiative.misc">
+        </div>
+      </div>
+    </div>
+
+    <!-- CMB / CMD -->
+    <div class="panel">
+      <div class="panel-title">CMB / CMD</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">CMB</label>
+          <span class="derived" data-display="combat.cmb.total" style="font-size:20px;">+0</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">CMD</label>
+          <span class="derived" data-display="combat.cmd.total" style="font-size:20px;">10</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">BAB</label>
+          <input type="number" data-bind="combat.bab.value">
+        </div>
+        <div class="field-group">
+          <label class="field-label">CMB Misc</label>
+          <input type="number" data-bind="combat.cmb.misc">
+        </div>
+        <div class="field-group">
+          <label class="field-label">CMD Misc</label>
+          <input type="number" data-bind="combat.cmd.misc">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Size</label>
+          <select data-bind="combat.cmb.size">
+            <option value="-8">Fine (-8)</option>
+            <option value="-4">Diminutive (-4)</option>
+            <option value="-2">Tiny (-2)</option>
+            <option value="-1">Small (-1)</option>
+            <option value="0" selected>Medium (0)</option>
+            <option value="1">Large (+1)</option>
+            <option value="2">Huge (+2)</option>
+            <option value="4">Gargantuan (+4)</option>
+            <option value="8">Colossal (+8)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saves -->
+    <div class="panel">
+      <div class="panel-title">Saves</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Fortitude</label>
+          <span class="derived" data-display="combat.saves.fort.total" style="font-size:20px;">+0</span>
+          <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.fort.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.fort.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.fort.misc" style="width:40px;"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Reflex</label>
+          <span class="derived" data-display="combat.saves.ref.total" style="font-size:20px;">+0</span>
+          <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.ref.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.ref.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.ref.misc" style="width:40px;"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Will</label>
+          <span class="derived" data-display="combat.saves.will.total" style="font-size:20px;">+0</span>
+          <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.will.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.will.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.will.misc" style="width:40px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Attack -->
+    <div class="panel">
+      <div class="panel-title">Attack Progression</div>
+      <div class="grid-2">
+        <div class="field-group">
+          <label class="field-label">Melee Attacks</label>
+          <span class="derived" data-display="combat.bab.meleeString">+0</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Ranged Attacks</label>
+          <span class="derived" data-display="combat.bab.rangedString">+0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speed -->
+    <div class="panel">
+      <div class="panel-title">Speed</div>
+      <div class="grid-4">
+        <div class="field-group">
+          <label class="field-label">Ground (ft)</label>
+          <input type="number" data-bind="combat.speed.ground">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Climb (ft)</label>
+          <input type="number" data-bind="combat.speed.climb">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Swim (ft)</label>
+          <input type="number" data-bind="combat.speed.swim">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Fly (ft)</label>
+          <input type="number" data-bind="combat.speed.fly">
+        </div>
+      </div>
+    </div>
+
+    <!-- DR, Fast Healing, SR, Energy Resistances -->
+    <div class="panel">
+      <div class="panel-title">Defensive Abilities</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Damage Reduction</label>
+          <input type="text" data-bind="combat.dr" placeholder="e.g. 5/-">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Fast Healing</label>
+          <input type="number" data-bind="combat.fastHealing">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Spell Resistance</label>
+          <input type="number" data-bind="combat.sr">
+        </div>
+      </div>
+      <div class="grid-5" style="margin-top:8px;">
+        <div class="field-group">
+          <label class="field-label">Fire Resist</label>
+          <input type="text" data-bind="combat.energyResist.fire">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Cold Resist</label>
+          <input type="text" data-bind="combat.energyResist.cold">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Elec Resist</label>
+          <input type="text" data-bind="combat.energyResist.electricity">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Acid Resist</label>
+          <input type="text" data-bind="combat.energyResist.acid">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Sonic Resist</label>
+          <input type="text" data-bind="combat.energyResist.sonic">
+        </div>
+      </div>
+    </div>
   </div>
   <div id="tab-skills" class="tab-panel">
     <p style="color: #8b6914; padding: 20px;">Skills tab — coming in Task 6.</p>
@@ -540,20 +787,86 @@
     }
 
     function recalculate() {
-      ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(ab => {
-        const base = state.abilityScores[ab].base || 10;
-        state.abilityScores[ab].mod = Math.floor((base - 10) / 2);
+      // Ability modifiers
+      const ab = {};
+      ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(a => {
+        const base = state.abilityScores[a].base || 10;
+        state.abilityScores[a].mod = Math.floor((base - 10) / 2);
+        ab[a] = state.abilityScores[a].mod;
       });
 
-      document.querySelectorAll('[data-display]').forEach(el => {
-        const value = getNestedValue(state, el.dataset.display);
-        if (value !== undefined) {
-          el.textContent = typeof value === 'number' && el.dataset.display.includes('.mod')
-            ? (value >= 0 ? '+' + value : String(value))
-            : String(value);
+      // Max Dex from equipped armor
+      const equippedArmor = (state.armor || []).filter(a => a.equipped);
+      let maxDexCap = 999;
+      equippedArmor.forEach(a => {
+        if (a.maxDex !== '' && a.maxDex !== undefined && a.maxDex !== null) {
+          const cap = Number(a.maxDex);
+          if (!isNaN(cap) && cap < maxDexCap) maxDexCap = cap;
         }
       });
+      const effectiveDex = maxDexCap === 999 ? ab.dex : Math.min(ab.dex, maxDexCap);
 
+      // AC
+      state.combat.ac.dex = effectiveDex;
+      state.combat.ac.total = 10 + (state.combat.ac.armor || 0) + (state.combat.ac.shield || 0)
+        + (state.combat.ac.natural || 0) + effectiveDex + (Number(state.combat.ac.size) || 0)
+        + (state.combat.ac.deflection || 0) + (state.combat.ac.dodge || 0) + (state.combat.ac.misc || 0);
+      state.combat.ac.touch = 10 + effectiveDex + (Number(state.combat.ac.size) || 0)
+        + (state.combat.ac.deflection || 0) + (state.combat.ac.dodge || 0) + (state.combat.ac.misc || 0);
+      state.combat.ac.flatFooted = state.combat.ac.total - ab.dex - (state.combat.ac.dodge || 0);
+
+      // CMB / CMD
+      const bab = state.combat.bab.value || 0;
+      const cmbSize = Number(state.combat.cmb.size) || 0;
+      state.combat.cmb.strMod = ab.str;
+      state.combat.cmb.total = bab + ab.str + cmbSize + (state.combat.cmb.misc || 0);
+      state.combat.cmd.strMod = ab.str;
+      state.combat.cmd.dexMod = ab.dex;
+      state.combat.cmd.size = cmbSize;
+      state.combat.cmd.total = 10 + bab + ab.str + ab.dex + cmbSize + (state.combat.cmd.misc || 0);
+
+      // Saves
+      state.combat.saves.fort.conMod = ab.con;
+      state.combat.saves.fort.total = (state.combat.saves.fort.base || 0) + ab.con
+        + (state.combat.saves.fort.resistance || 0) + (state.combat.saves.fort.misc || 0);
+      state.combat.saves.ref.dexMod = ab.dex;
+      state.combat.saves.ref.total = (state.combat.saves.ref.base || 0) + ab.dex
+        + (state.combat.saves.ref.resistance || 0) + (state.combat.saves.ref.misc || 0);
+      state.combat.saves.will.wisMod = ab.wis;
+      state.combat.saves.will.total = (state.combat.saves.will.base || 0) + ab.wis
+        + (state.combat.saves.will.resistance || 0) + (state.combat.saves.will.misc || 0);
+
+      // Initiative
+      state.combat.initiative.dexMod = ab.dex;
+      state.combat.initiative.total = ab.dex + (state.combat.initiative.misc || 0);
+
+      // Full Attack Progression
+      const meleeMod = ab.str;
+      const rangedMod = ab.dex;
+      const meleeAttacks = [bab];
+      const rangedAttacks = [bab];
+      if (bab >= 6) { meleeAttacks.push(bab - 5); rangedAttacks.push(bab - 5); }
+      if (bab >= 11) { meleeAttacks.push(bab - 10); rangedAttacks.push(bab - 10); }
+      if (bab >= 16) { meleeAttacks.push(bab - 15); rangedAttacks.push(bab - 15); }
+      state.combat.bab.meleeAttacks = meleeAttacks.map(a => a + meleeMod + cmbSize);
+      state.combat.bab.rangedAttacks = rangedAttacks.map(a => a + rangedMod + cmbSize);
+      state.combat.bab.meleeString = state.combat.bab.meleeAttacks.map(a => (a >= 0 ? '+' : '') + a).join('/');
+      state.combat.bab.rangedString = state.combat.bab.rangedAttacks.map(a => (a >= 0 ? '+' : '') + a).join('/');
+
+      // HP Status
+      const hp = state.combat.hp;
+      const current = hp.current || 0;
+      const max = hp.max || 1;
+      const nonlethal = hp.nonlethal || 0;
+      const effective = current - nonlethal;
+      const conMod = ab.con;
+      if (effective >= max) hp.status = "Feelin' Fine!";
+      else if (effective >= max * 0.5) hp.status = 'Hurt';
+      else if (effective > 0) hp.status = 'Bloodied';
+      else if (effective > -Math.abs(conMod)) hp.status = 'Dying';
+      else hp.status = 'Dead';
+
+      updateDisplay();
       saveToStorage();
     }
 
