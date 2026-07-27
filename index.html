@@ -682,7 +682,47 @@
     </div>
   </div>
   <div id="tab-abilities" class="tab-panel">
-    <p style="color: #8b6914; padding: 20px;">Abilities tab — coming in Task 9.</p>
+    <!-- Feats -->
+    <div class="panel">
+      <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Feats</span>
+        <button onclick="addFeat()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+      </div>
+      <div id="featsList"></div>
+    </div>
+
+    <!-- Class Talents -->
+    <div class="panel">
+      <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Class Talents / Rogue Talents / Discoveries</span>
+        <button onclick="addClassTalent()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+      </div>
+      <div id="classTalentsList"></div>
+    </div>
+
+    <!-- Class Features -->
+    <div class="panel">
+      <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Class Features</span>
+        <button onclick="addClassFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+      </div>
+      <div id="classFeaturesList"></div>
+    </div>
+
+    <!-- Racial Features -->
+    <div class="panel">
+      <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Racial Features & Traits</span>
+        <button onclick="addRacialFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+      </div>
+      <div id="racialFeaturesList"></div>
+    </div>
+
+    <!-- Proficiencies -->
+    <div class="panel">
+      <div class="panel-title">Proficiencies</div>
+      <textarea data-bind="featsAndFeatures.proficiencies" rows="4" placeholder="List armor, weapons, and tools proficient with..."></textarea>
+    </div>
   </div>
   <div id="tab-spells" class="tab-panel">
     <div id="spellSets"></div>
@@ -928,6 +968,10 @@
       renderCraftProfession();
       renderSpellSets();
       renderInventoryTable();
+      renderFeatureList('featsList', 'feats');
+      renderFeatureList('classTalentsList', 'classTalents');
+      renderFeatureList('classFeaturesList', 'classFeatures');
+      renderFeatureList('racialFeaturesList', 'racialFeatures');
       bindInputs();
       recalculate();
       updateDisplay();
@@ -948,6 +992,10 @@
       renderCraftProfession();
       renderSpellSets();
       renderInventoryTable();
+      renderFeatureList('featsList', 'feats');
+      renderFeatureList('classTalentsList', 'classTalents');
+      renderFeatureList('classFeaturesList', 'classFeatures');
+      renderFeatureList('racialFeaturesList', 'racialFeatures');
       bindInputs();
       recalculate();
       updateDisplay();
@@ -971,6 +1019,10 @@
       renderCraftProfession();
       renderSpellSets();
       renderInventoryTable();
+      renderFeatureList('featsList', 'feats');
+      renderFeatureList('classTalentsList', 'classTalents');
+      renderFeatureList('classFeaturesList', 'classFeatures');
+      renderFeatureList('racialFeaturesList', 'racialFeatures');
       bindInputs();
       recalculate();
       updateDisplay();
@@ -1710,6 +1762,66 @@
     function removeSpell(setIndex, level, spellIndex) {
       state.spells[setIndex].spells[level].splice(spellIndex, 1);
       renderSpellSets();
+      saveToStorage();
+    }
+
+    // ============================================
+    // ABILITIES/FEATS
+    // ============================================
+    function renderFeatureList(containerId, stateKey) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (!state.featsAndFeatures[stateKey]) state.featsAndFeatures[stateKey] = [];
+
+      container.innerHTML = state.featsAndFeatures[stateKey].map((item, i) => `
+        <div style="border:1px solid #6b4c1e;border-radius:4px;padding:8px;margin-bottom:8px;background:#1a1410;">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+            <input type="text" data-bind="featsAndFeatures.${stateKey}.${i}.name" placeholder="Name" style="flex:1">
+            <button onclick="removeFeature('${stateKey}',${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+          </div>
+          <textarea data-bind="featsAndFeatures.${stateKey}.${i}.description" rows="2" placeholder="Description (collapsible)"></textarea>
+        </div>
+      `).join('');
+
+      bindInputs();
+    }
+
+    function addFeat() {
+      if (!state.featsAndFeatures.feats) state.featsAndFeatures.feats = [];
+      if (state.featsAndFeatures.feats.length >= 20) return;
+      state.featsAndFeatures.feats.push({ name: '', description: '' });
+      renderFeatureList('featsList', 'feats');
+      saveToStorage();
+    }
+
+    function addClassTalent() {
+      if (!state.featsAndFeatures.classTalents) state.featsAndFeatures.classTalents = [];
+      if (state.featsAndFeatures.classTalents.length >= 15) return;
+      state.featsAndFeatures.classTalents.push({ name: '', description: '' });
+      renderFeatureList('classTalentsList', 'classTalents');
+      saveToStorage();
+    }
+
+    function addClassFeature() {
+      if (!state.featsAndFeatures.classFeatures) state.featsAndFeatures.classFeatures = [];
+      if (state.featsAndFeatures.classFeatures.length >= 15) return;
+      state.featsAndFeatures.classFeatures.push({ name: '', description: '' });
+      renderFeatureList('classFeaturesList', 'classFeatures');
+      saveToStorage();
+    }
+
+    function addRacialFeature() {
+      if (!state.featsAndFeatures.racialFeatures) state.featsAndFeatures.racialFeatures = [];
+      if (state.featsAndFeatures.racialFeatures.length >= 10) return;
+      state.featsAndFeatures.racialFeatures.push({ name: '', description: '' });
+      renderFeatureList('racialFeaturesList', 'racialFeatures');
+      saveToStorage();
+    }
+
+    function removeFeature(key, index) {
+      state.featsAndFeatures[key].splice(index, 1);
+      const containerMap = { feats: 'featsList', classTalents: 'classTalentsList', classFeatures: 'classFeaturesList', racialFeatures: 'racialFeaturesList' };
+      renderFeatureList(containerMap[key], key);
       saveToStorage();
     }
 
