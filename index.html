@@ -440,33 +440,48 @@
 
     .title-banner {
       text-align: center;
-      padding: 30px 20px 15px;
+      padding: 25px 20px 12px;
       position: relative;
-      border-top: 1px solid rgba(107, 76, 30, 0.4);
-      border-bottom: 1px solid rgba(107, 76, 30, 0.4);
+      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
     }
 
     .title-text {
       font-family: "Cinzel", Georgia, "Times New Roman", serif;
-      font-size: 42px;
-      font-variant: small-caps;
-      letter-spacing: 0.3em;
-      background: linear-gradient(180deg, #c9a84c 0%, #a08030 40%, #c9a84c 60%, #8b6914 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: none;
-      filter: drop-shadow(0 0 20px rgba(201, 168, 76, 0.3)) drop-shadow(0 0 40px rgba(201, 168, 76, 0.1));
+      font-size: 52px;
+      font-weight: 900;
+      font-variant: normal;
+      letter-spacing: 0.18em;
+      color: #b81c1c;
+      text-shadow:
+        0 0 2px #b81c1c,
+        -1px -1px 0 #2a0808,
+         1px -1px 0 #2a0808,
+        -1px  1px 0 #2a0808,
+         1px  1px 0 #2a0808,
+        -2px -2px 0 #2a0808,
+         2px -2px 0 #2a0808,
+        -2px  2px 0 #2a0808,
+         2px  2px 0 #2a0808,
+        -3px -3px 0 #1a0505,
+         3px -3px 0 #1a0505,
+        -3px  3px 0 #1a0505,
+         3px  3px 0 #1a0505,
+        0 0 30px rgba(184, 28, 28, 0.4),
+        0 0 60px rgba(184, 28, 28, 0.15);
       margin: 0;
-      line-height: 1.2;
+      line-height: 1.1;
+      -webkit-text-stroke: 1px #2a0808;
+      paint-order: stroke fill;
     }
 
     .title-subtitle {
       font-family: Georgia, serif;
-      font-size: 13px;
+      font-size: 12px;
       color: #8b6914;
-      letter-spacing: 0.15em;
-      margin-top: 4px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-top: 6px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
   </style>
 </head>
