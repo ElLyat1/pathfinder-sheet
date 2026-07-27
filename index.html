@@ -22,22 +22,102 @@
       content: '';
       position: fixed;
       inset: 0;
-      z-index: -2;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(30, 20, 15, 0.8) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(20, 15, 25, 0.6) 0%, transparent 40%),
-        radial-gradient(ellipse at 50% 80%, rgba(25, 18, 10, 0.7) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(15, 12, 18, 0.9) 0%, transparent 70%),
-        linear-gradient(180deg, #0d0b0f 0%, #1a1410 50%, #0d0b0f 100%);
+      z-index: -4;
+      background: linear-gradient(180deg, #0d0b1a 0%, #1a1025 25%, #120e1c 50%, #0d0b0f 100%);
     }
 
     body::after {
       content: '';
       position: fixed;
       inset: 0;
-      z-index: -1;
+      z-index: 0;
       background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
       pointer-events: none;
+    }
+
+    .bg-mountains-far {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100vh;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    .bg-mountains-far::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 55%;
+      clip-path: polygon(
+        0% 100%, 0% 65%, 5% 55%, 12% 48%, 18% 52%, 25% 38%, 32% 45%,
+        38% 35%, 45% 42%, 52% 30%, 58% 40%, 65% 33%, 72% 42%,
+        78% 36%, 85% 44%, 92% 38%, 100% 50%, 100% 100%
+      );
+      background: #0a0810;
+    }
+
+    .bg-mountains-mid {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100vh;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .bg-mountains-mid::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      clip-path: polygon(
+        0% 100%, 0% 55%, 8% 42%, 15% 50%, 22% 35%, 30% 48%,
+        38% 30%, 45% 42%, 52% 28%, 60% 40%, 68% 25%, 75% 38%,
+        82% 30%, 90% 42%, 95% 35%, 100% 45%, 100% 100%
+      );
+      background: #12101a;
+    }
+
+    .bg-mountains-near {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100vh;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .bg-mountains-near::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 35%;
+      clip-path: polygon(
+        0% 100%, 0% 50%, 5% 38%, 12% 45%, 20% 30%, 28% 42%,
+        35% 25%, 42% 38%, 50% 22%, 58% 35%, 65% 28%, 72% 40%,
+        80% 30%, 88% 42%, 95% 35%, 100% 48%, 100% 100%
+      );
+      background: #080610;
+    }
+
+    .bg-mountains-near::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 8%;
+      background: #0d0b0f;
     }
 
     h1, h2, h3, h4 {
@@ -54,6 +134,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      gap: 2px;
     }
 
     .tab-btn {
@@ -64,18 +145,29 @@
       font-size: 14px;
       padding: 10px 16px;
       cursor: pointer;
-      border-bottom: 2px solid transparent;
+      border-bottom: 3px solid transparent;
+      position: relative;
       transition: color 0.2s, border-color 0.2s, text-shadow 0.2s;
+    }
+
+    .tab-btn + .tab-btn {
+      border-left: 1px solid rgba(107, 76, 30, 0.3);
     }
 
     .tab-btn:hover {
       color: #c9a84c;
       text-shadow: 0 0 8px rgba(201, 168, 76, 0.3);
     }
+
+    .tab-btn:hover:not(.active) {
+      background: linear-gradient(180deg, transparent 0%, rgba(201, 168, 76, 0.04) 100%);
+    }
+
     .tab-btn.active {
       color: #c9a84c;
       border-bottom-color: #c9a84c;
-      text-shadow: 0 0 10px rgba(201, 168, 76, 0.4);
+      background: linear-gradient(180deg, transparent 0%, rgba(201, 168, 76, 0.08) 100%);
+      text-shadow: 0 0 12px rgba(201, 168, 76, 0.5);
     }
 
     /* Tab panels */
@@ -84,13 +176,20 @@
 
     /* Character selector bar */
     .char-selector {
-      background: rgba(42, 32, 24, 0.9);
-      border-bottom: 1px solid #5a421e;
-      padding: 8px 15px;
+      background: rgba(30, 22, 14, 0.95);
+      border-bottom: 2px solid #5a421e;
+      padding: 8px 12px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
       backdrop-filter: blur(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .char-selector button {
+      padding: 4px 10px;
+      font-size: 12px;
     }
 
     .char-selector select {
@@ -122,22 +221,31 @@
 
     /* Input styling */
     input, select, textarea {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid #5a421e;
-      border-bottom: 1px solid #8b6914;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid #3a2a15;
+      border-bottom: 2px solid #6b4c1e;
+      border-top: 1px solid #2a1c0e;
       color: #e8d5a3;
       font-family: Georgia, serif;
       font-size: 14px;
-      padding: 4px 6px;
-      border-radius: 2px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+      padding: 6px 8px;
+      border-radius: 3px;
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+        0 1px 0 rgba(255, 255, 255, 0.03);
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: #c9a84c;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 8px rgba(201, 168, 76, 0.4);
+      border-bottom-color: #c9a84c;
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.6),
+        inset 0 -1px 0 rgba(201, 168, 76, 0.15),
+        0 0 12px rgba(201, 168, 76, 0.3),
+        0 0 4px rgba(201, 168, 76, 0.2);
     }
 
     input[type="checkbox"] {
@@ -182,52 +290,74 @@
 
     /* Button styling */
     button, .btn {
-      background: linear-gradient(180deg, #6b4c1e 0%, #4a3515 100%);
+      background: linear-gradient(180deg, #5a421e 0%, #3a2a10 50%, #2a1c0a 100%);
       color: #e8d5a3;
       border: 1px solid #8b6914;
-      padding: 5px 12px;
+      border-bottom-color: #4a3515;
+      border-top-color: #a08030;
+      padding: 6px 14px;
       cursor: pointer;
       font-family: Georgia, serif;
       font-size: 13px;
-      border-radius: 3px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      transition: background 0.15s, box-shadow 0.15s;
+      border-radius: 4px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      transition: all 0.15s;
+      position: relative;
     }
 
     button:hover {
-      background: linear-gradient(180deg, #7a5a28 0%, #5a421e 100%);
-      box-shadow: 0 1px 4px rgba(201, 168, 76, 0.3);
+      background: linear-gradient(180deg, #6b4c1e 0%, #4a3515 50%, #3a2a10 100%);
+      border-color: #c9a84c;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.1),
+        0 2px 8px rgba(201, 168, 76, 0.3),
+        0 0 16px rgba(201, 168, 76, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      color: #ffd87a;
     }
 
     button:active {
-      background: linear-gradient(180deg, #4a3515 0%, #3a2a10 100%);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(180deg, #2a1c0a 0%, #3a2a10 50%, #4a3515 100%);
+      border-color: #6b4c1e;
+      box-shadow:
+        inset 0 2px 6px rgba(0, 0, 0, 0.6),
+        inset 0 1px 2px rgba(0, 0, 0, 0.4);
+      transform: translateY(1px);
     }
 
     /* Panel styling */
     .panel {
       background:
         repeating-linear-gradient(
-          87deg,
-          rgba(42, 32, 24, 0.95) 0px,
-          rgba(38, 28, 20, 0.95) 2px,
-          rgba(45, 35, 25, 0.95) 4px,
-          rgba(40, 30, 22, 0.95) 6px
+          180deg,
+          rgba(58, 42, 28, 0.6) 0px,
+          rgba(42, 30, 18, 0.8) 1px,
+          rgba(52, 38, 24, 0.7) 3px,
+          rgba(38, 26, 16, 0.9) 4px,
+          rgba(48, 35, 22, 0.6) 6px,
+          rgba(44, 32, 20, 0.8) 8px
         ),
         repeating-linear-gradient(
           90deg,
-          rgba(50, 38, 28, 0.3) 0px,
-          transparent 1px,
-          transparent 3px
-        );
-      border: 1px solid #5a421e;
+          rgba(80, 60, 35, 0.15) 0px,
+          transparent 2px,
+          transparent 8px
+        ),
+        linear-gradient(180deg, #2e2218 0%, #261c12 100%);
+      border: 2px solid #5a421e;
       border-radius: 4px;
       padding: 14px;
       margin-bottom: 14px;
       box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.05),
-        inset 0 1px 3px rgba(0, 0, 0, 0.4),
-        0 2px 8px rgba(0, 0, 0, 0.3);
+        0 -1px 0 rgba(139, 105, 20, 0.3),
+        0 1px 0 rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 4px 12px rgba(0, 0, 0, 0.5);
       position: relative;
     }
 
@@ -343,6 +473,7 @@
     @media print {
       body { background: white; color: black; font-size: 12px; }
       body::before, body::after { display: none !important; }
+      .bg-mountains-far, .bg-mountains-mid, .bg-mountains-near { display: none !important; }
       .title-banner { display: none !important; }
       .tab-nav, .char-selector { display: none !important; }
       .content-wrapper { max-width: 100%; padding: 0; }
@@ -390,6 +521,8 @@
       text-align: center;
       padding: 30px 20px 15px;
       position: relative;
+      border-top: 1px solid rgba(107, 76, 30, 0.4);
+      border-bottom: 1px solid rgba(107, 76, 30, 0.4);
     }
 
     .title-text {
@@ -402,6 +535,7 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-shadow: none;
+      filter: drop-shadow(0 0 20px rgba(201, 168, 76, 0.3)) drop-shadow(0 0 40px rgba(201, 168, 76, 0.1));
       margin: 0;
       line-height: 1.2;
     }
@@ -416,6 +550,9 @@
   </style>
 </head>
 <body>
+  <div class="bg-mountains-far"></div>
+  <div class="bg-mountains-mid"></div>
+  <div class="bg-mountains-near"></div>
   <div class="title-banner">
     <h1 class="title-text">PATHFINDER</h1>
     <div class="title-subtitle">1st Edition Character Sheet</div>
