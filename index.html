@@ -1011,21 +1011,10 @@
       }
       loadCharacterList();
       renderAbilityScores();
-      renderWeaponsTable();
-      renderArmorTable();
-      renderSkillsTable();
-      renderKnowledgeTable();
-      renderPerformTable();
-      renderCraftProfession();
-      renderSpellSets();
-      renderInventoryTable();
-      renderFeatureList('featsList', 'feats');
-      renderFeatureList('classTalentsList', 'classTalents');
-      renderFeatureList('classFeaturesList', 'classFeatures');
-      renderFeatureList('racialFeaturesList', 'racialFeatures');
+      renderAllDynamicTables();
       bindInputs();
       recalculate();
-      updateDisplay();
+      updateDerived();
     }
 
     function newCharacter() {
@@ -1035,21 +1024,10 @@
       saveToStorage();
       loadCharacterList();
       renderAbilityScores();
-      renderWeaponsTable();
-      renderArmorTable();
-      renderSkillsTable();
-      renderKnowledgeTable();
-      renderPerformTable();
-      renderCraftProfession();
-      renderSpellSets();
-      renderInventoryTable();
-      renderFeatureList('featsList', 'feats');
-      renderFeatureList('classTalentsList', 'classTalents');
-      renderFeatureList('classFeaturesList', 'classFeatures');
-      renderFeatureList('racialFeaturesList', 'racialFeatures');
+      renderAllDynamicTables();
       bindInputs();
       recalculate();
-      updateDisplay();
+      updateDerived();
     }
 
     function duplicateCharacter() {
@@ -1062,21 +1040,10 @@
       saveToStorage();
       loadCharacterList();
       renderAbilityScores();
-      renderWeaponsTable();
-      renderArmorTable();
-      renderSkillsTable();
-      renderKnowledgeTable();
-      renderPerformTable();
-      renderCraftProfession();
-      renderSpellSets();
-      renderInventoryTable();
-      renderFeatureList('featsList', 'feats');
-      renderFeatureList('classTalentsList', 'classTalents');
-      renderFeatureList('classFeaturesList', 'classFeatures');
-      renderFeatureList('racialFeaturesList', 'racialFeatures');
+      renderAllDynamicTables();
       bindInputs();
       recalculate();
-      updateDisplay();
+      updateDerived();
     }
 
     function renameCharacter() {
@@ -1299,23 +1266,46 @@
       else if (cw <= cap.heavy) state.inventory.encumbrance = 'Heavy';
       else state.inventory.encumbrance = 'Overloaded';
 
-      // Re-render skills
-      renderSkillsTable();
-      renderKnowledgeTable();
-      renderPerformTable();
-      renderCraftProfession();
-
-      // Re-render spells
-      renderSpellSets();
-
-      // Re-render inventory
-      renderInventoryTable();
-
-      updateDisplay();
-      saveToStorage();
+      // Compute skill totals into state for data-display binding
+      ensureSkillData();
+      SKILL_DEFS.forEach(s => {
+        const sk = state.skills[s.key];
+        const calc = calcSkillTotal(sk, s.ability, s.armorPenalty);
+        sk.total = calc.total;
+        sk.classSkillBonus = calc.classSkillBonus;
+        sk.abilityMod = calc.abilityMod;
+        sk.armorPenaltyBonus = calc.armorPenalty;
+      });
+      KNOWLEDGE_SKILLS.forEach(name => {
+        const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+        const sk = state.skills[key];
+        const calc = calcSkillTotal(sk, 'int', false);
+        sk.total = calc.total;
+        sk.classSkillBonus = calc.classSkillBonus;
+        sk.abilityMod = calc.abilityMod;
+      });
+      PERFORM_SKILLS.forEach(name => {
+        const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+        const sk = state.skills[key];
+        const calc = calcSkillTotal(sk, 'cha', false);
+        sk.total = calc.total;
+        sk.classSkillBonus = calc.classSkillBonus;
+        sk.abilityMod = calc.abilityMod;
+      });
+      // Craft/Profession totals
+      Object.entries(state.skills).filter(([k]) => k.startsWith('craft') || k.startsWith('profession')).forEach(([key, sk]) => {
+        const ability = sk.ability || (key.startsWith('craft') ? 'int' : 'wis');
+        const calc = calcSkillTotal(sk, ability, false);
+        sk.total = calc.total;
+      });
+      // Inventory item totals
+      (state.inventory.items || []).forEach(item => {
+        item.totalValue = (Number(item.qty) || 0) * (Number(item.valuePerUnit) || 0);
+        item.totalWeight = (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
+      });
     }
 
-    function updateDisplay() {
+    function updateDerived() {
       document.querySelectorAll('[data-display]').forEach(el => {
         const value = getNestedValue(state, el.dataset.display);
         if (value !== undefined) {
@@ -1326,6 +1316,22 @@
           }
         }
       });
+      saveToStorage();
+    }
+
+    function renderAllDynamicTables() {
+      renderSkillsTable();
+      renderKnowledgeTable();
+      renderPerformTable();
+      renderCraftProfession();
+      renderSpellSets();
+      renderInventoryTable();
+      renderWeaponsTable();
+      renderArmorTable();
+      renderFeatureList('featsList', 'feats');
+      renderFeatureList('classTalentsList', 'classTalents');
+      renderFeatureList('classFeaturesList', 'classFeatures');
+      renderFeatureList('racialFeaturesList', 'racialFeatures');
     }
 
     function renderAbilityScores() {
@@ -1344,21 +1350,37 @@
 
     function bindInputs() {
       document.querySelectorAll('[data-bind]').forEach(input => {
-        // Remove old listener by cloning
         const clone = input.cloneNode(true);
         input.parentNode.replaceChild(clone, input);
 
         const path = clone.dataset.bind;
         const existing = getNestedValue(state, path);
         if (existing !== undefined) {
-          clone.value = existing;
+          if (clone.type === 'checkbox') {
+            clone.checked = !!existing;
+          } else {
+            clone.value = existing;
+          }
         }
-        clone.addEventListener('input', () => {
-          let val = clone.value;
-          if (clone.type === 'number') val = Number(val) || 0;
+
+        const handler = () => {
+          let val;
+          if (clone.type === 'checkbox') {
+            val = clone.checked;
+          } else if (clone.type === 'number') {
+            val = Number(clone.value) || 0;
+          } else {
+            val = clone.value;
+          }
           setNestedValue(state, path, val);
           recalculate();
-        });
+          updateDerived();
+        };
+
+        clone.addEventListener('input', handler);
+        if (clone.type === 'checkbox') {
+          clone.addEventListener('change', handler);
+        }
       });
     }
 
@@ -1452,23 +1474,21 @@
       const tbody = document.getElementById('skillsBody');
       if (!tbody) return;
       tbody.innerHTML = SKILL_DEFS.map((s) => {
-        const sk = state.skills[s.key];
-        const calc = calcSkillTotal(sk, s.ability, s.armorPenalty);
         return `
           <tr>
             <td><input type="checkbox" data-bind="skills.${s.key}.classSkill"></td>
             <td>${s.name}${s.trainedOnly ? ' *' : ''}</td>
             <td>${abbr[s.ability]}</td>
-            <td class="derived" data-display="skills.${s.key}.total">${calc.total}</td>
+            <td class="derived" data-display="skills.${s.key}.total"></td>
             <td><input type="number" data-bind="skills.${s.key}.ranks" style="width:50px" min="0"></td>
-            <td class="derived">${calc.classSkillBonus}</td>
+            <td class="derived" data-display="skills.${s.key}.classSkillBonus"></td>
             <td><input type="number" data-bind="skills.${s.key}.competence" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${s.key}.circumstance" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${s.key}.feat" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${s.key}.race" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${s.key}.misc" style="width:50px"></td>
-            <td class="derived">${calc.armorPenalty}</td>
-            <td class="derived">${calc.abilityMod >= 0 ? '+' : ''}${calc.abilityMod}</td>
+            <td class="derived" data-display="skills.${s.key}.armorPenaltyBonus"></td>
+            <td class="derived" data-display="skills.${s.key}.abilityMod"></td>
           </tr>
         `;
       }).join('');
@@ -1481,21 +1501,19 @@
       if (!tbody) return;
       tbody.innerHTML = KNOWLEDGE_SKILLS.map((name) => {
         const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
-        const sk = state.skills[key];
-        const calc = calcSkillTotal(sk, 'int', false);
         return `
           <tr>
             <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
             <td>Knowledge (${name})</td>
-            <td class="derived" data-display="skills.${key}.total">${calc.total}</td>
+            <td class="derived" data-display="skills.${key}.total"></td>
             <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
-            <td class="derived">${calc.classSkillBonus}</td>
+            <td class="derived" data-display="skills.${key}.classSkillBonus"></td>
             <td><input type="number" data-bind="skills.${key}.competence" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.circumstance" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.feat" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.race" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.misc" style="width:50px"></td>
-            <td class="derived">+${calc.abilityMod}</td>
+            <td class="derived" data-display="skills.${key}.abilityMod"></td>
           </tr>
         `;
       }).join('');
@@ -1508,21 +1526,19 @@
       if (!tbody) return;
       tbody.innerHTML = PERFORM_SKILLS.map((name) => {
         const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
-        const sk = state.skills[key];
-        const calc = calcSkillTotal(sk, 'cha', false);
         return `
           <tr>
             <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
             <td>Perform (${name})</td>
-            <td class="derived" data-display="skills.${key}.total">${calc.total}</td>
+            <td class="derived" data-display="skills.${key}.total"></td>
             <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
-            <td class="derived">${calc.classSkillBonus}</td>
+            <td class="derived" data-display="skills.${key}.classSkillBonus"></td>
             <td><input type="number" data-bind="skills.${key}.competence" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.circumstance" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.feat" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.race" style="width:50px"></td>
             <td><input type="number" data-bind="skills.${key}.misc" style="width:50px"></td>
-            <td class="derived">+${calc.abilityMod}</td>
+            <td class="derived" data-display="skills.${key}.abilityMod"></td>
           </tr>
         `;
       }).join('');
@@ -1539,26 +1555,22 @@
       const profSkills = Object.entries(state.skills).filter(([k]) => k.startsWith('profession'));
 
       craftContainer.innerHTML = craftSkills.map(([key]) => {
-        const sk = state.skills[key];
-        const calc = calcSkillTotal(sk, 'int', false);
         return `
           <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
             <input type="text" data-bind="skills.${key}.customName" placeholder="Craft name" style="width:120px">
             <input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0" placeholder="Ranks">
-            <span class="derived" data-display="skills.${key}.total">${calc.total}</span>
+            <span class="derived" data-display="skills.${key}.total"></span>
             <button onclick="removeSkill('${key}')" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
           </div>
         `;
       }).join('');
 
       profContainer.innerHTML = profSkills.map(([key]) => {
-        const sk = state.skills[key];
-        const calc = calcSkillTotal(sk, 'wis', false);
         return `
           <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
             <input type="text" data-bind="skills.${key}.customName" placeholder="Profession name" style="width:120px">
             <input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0" placeholder="Ranks">
-            <span class="derived" data-display="skills.${key}.total">${calc.total}</span>
+            <span class="derived" data-display="skills.${key}.total"></span>
             <button onclick="removeSkill('${key}')" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
           </div>
         `;
@@ -1572,7 +1584,7 @@
       if (count >= 5) return;
       const key = 'craft' + (count + 1);
       state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'int', armorPenalty: false, customName: '' };
-      renderCraftProfession();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1580,14 +1592,14 @@
       const count = Object.keys(state.skills).filter(k => k.startsWith('profession')).length;
       if (count >= 5) return;
       const key = 'profession' + (count + 1);
-      state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'wis', armorPenalty: false, trainedOnly: true, customName: '' };
-      renderCraftProfession();
+      state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'wis', armorPenalty: true, trainedOnly: true, customName: '' };
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeSkill(key) {
       delete state.skills[key];
-      renderCraftProfession();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1637,16 +1649,14 @@
       if (!state.inventory.items) state.inventory.items = [];
 
       tbody.innerHTML = state.inventory.items.map((item, i) => {
-        const totalVal = (Number(item.qty) || 0) * (Number(item.valuePerUnit) || 0);
-        const totalWt = (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
         return `
           <tr>
             <td><input type="number" data-bind="inventory.items.${i}.qty" style="width:50px" min="0"></td>
             <td><input type="text" data-bind="inventory.items.${i}.name" style="width:120px"></td>
             <td><input type="number" data-bind="inventory.items.${i}.valuePerUnit" style="width:70px" step="0.01"></td>
             <td><input type="number" data-bind="inventory.items.${i}.weightPerUnit" style="width:70px" step="0.1"></td>
-            <td class="derived">${totalVal.toFixed(2)}</td>
-            <td class="derived">${totalWt.toFixed(1)}</td>
+            <td class="derived" data-display="inventory.items.${i}.totalValue"></td>
+            <td class="derived" data-display="inventory.items.${i}.totalWeight"></td>
             <td><input type="text" data-bind="inventory.items.${i}.location" style="width:100px"></td>
             <td><input type="text" data-bind="inventory.items.${i}.notes" style="width:80px"></td>
             <td><button onclick="removeInventoryItem(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
@@ -1661,13 +1671,13 @@
       if (!state.inventory.items) state.inventory.items = [];
       if (state.inventory.items.length >= 30) return;
       state.inventory.items.push({ qty: 1, name: '', valuePerUnit: 0, weightPerUnit: 0, location: '', notes: '' });
-      renderInventoryTable();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeInventoryItem(index) {
       state.inventory.items.splice(index, 1);
-      renderInventoryTable();
+      renderAllDynamicTables();
       recalculate();
       saveToStorage();
     }
@@ -1791,13 +1801,13 @@
       if (!state.spells) state.spells = [];
       if (state.spells.length >= 3) return;
       state.spells.push(createSpellSet());
-      renderSpellSets();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeSpellSet(index) {
       state.spells.splice(index, 1);
-      renderSpellSets();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1806,13 +1816,13 @@
         state.spells[setIndex].spells[level] = [];
       }
       state.spells[setIndex].spells[level].push({ name: '', expended: false, notes: '' });
-      renderSpellSets();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeSpell(setIndex, level, spellIndex) {
       state.spells[setIndex].spells[level].splice(spellIndex, 1);
-      renderSpellSets();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1841,7 +1851,7 @@
       if (!state.featsAndFeatures.feats) state.featsAndFeatures.feats = [];
       if (state.featsAndFeatures.feats.length >= 20) return;
       state.featsAndFeatures.feats.push({ name: '', description: '' });
-      renderFeatureList('featsList', 'feats');
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1849,7 +1859,7 @@
       if (!state.featsAndFeatures.classTalents) state.featsAndFeatures.classTalents = [];
       if (state.featsAndFeatures.classTalents.length >= 15) return;
       state.featsAndFeatures.classTalents.push({ name: '', description: '' });
-      renderFeatureList('classTalentsList', 'classTalents');
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1857,7 +1867,7 @@
       if (!state.featsAndFeatures.classFeatures) state.featsAndFeatures.classFeatures = [];
       if (state.featsAndFeatures.classFeatures.length >= 15) return;
       state.featsAndFeatures.classFeatures.push({ name: '', description: '' });
-      renderFeatureList('classFeaturesList', 'classFeatures');
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1865,14 +1875,13 @@
       if (!state.featsAndFeatures.racialFeatures) state.featsAndFeatures.racialFeatures = [];
       if (state.featsAndFeatures.racialFeatures.length >= 10) return;
       state.featsAndFeatures.racialFeatures.push({ name: '', description: '' });
-      renderFeatureList('racialFeaturesList', 'racialFeatures');
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeFeature(key, index) {
       state.featsAndFeatures[key].splice(index, 1);
-      const containerMap = { feats: 'featsList', classTalents: 'classTalentsList', classFeatures: 'classFeaturesList', racialFeatures: 'racialFeaturesList' };
-      renderFeatureList(containerMap[key], key);
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1904,13 +1913,13 @@
       if (!state.weapons) state.weapons = [];
       if (state.weapons.length >= 8) return;
       state.weapons.push({ name: '', damage: '', attackBonus: '', critRange: '', critMult: '', type: 'M', hand: '', range: '', notes: '' });
-      renderWeaponsTable();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeWeapon(index) {
       state.weapons.splice(index, 1);
-      renderWeaponsTable();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
@@ -1943,19 +1952,23 @@
       if (!state.armor) state.armor = [];
       if (state.armor.length >= 6) return;
       state.armor.push({ equipped: false, name: '', acBonus: 0, enhBonus: 0, type: 'A', heavy: false, maxDex: '', checkPenalty: 0, arcaneFail: 0, notes: '' });
-      renderArmorTable();
+      renderAllDynamicTables();
       saveToStorage();
     }
 
     function removeArmor(index) {
       state.armor.splice(index, 1);
-      renderArmorTable();
+      renderAllDynamicTables();
       recalculate();
+      updateDerived();
       saveToStorage();
     }
 
     function onArmorToggle() {
-      setTimeout(() => recalculate(), 10);
+      setTimeout(() => {
+        recalculate();
+        updateDerived();
+      }, 10);
     }
 
     // ============================================
