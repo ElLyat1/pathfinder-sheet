@@ -83,6 +83,15 @@
 
     .char-selector button:hover { background: #c9a84c; color: #1a1410; }
 
+    .lang-btn {
+      background: #c9a84c;
+      color: #1a1410;
+      font-weight: bold;
+      min-width: 36px;
+      text-align: center;
+    }
+    .lang-btn:hover { background: #e8d5a3; color: #1a1410; }
+
     /* Input styling */
     input, select, textarea {
       background: transparent;
@@ -226,92 +235,93 @@
 <body>
   <!-- Character Selector -->
   <div class="char-selector">
-    <label style="color: #c9a84c;">Character:</label>
+    <button id="langToggle" onclick="toggleLanguage()" class="lang-btn">EN</button>
+    <label style="color: #c9a84c;" data-i18n="lbl_character">Character:</label>
     <select id="charSelect"></select>
-    <button onclick="newCharacter()">New</button>
-    <button onclick="duplicateCharacter()">Duplicate</button>
-    <button onclick="renameCharacter()">Rename</button>
-    <button onclick="deleteCharacter()">Delete</button>
+    <button onclick="newCharacter()" data-i18n="btn_new">New</button>
+    <button onclick="duplicateCharacter()" data-i18n="btn_dup">Dup</button>
+    <button onclick="renameCharacter()" data-i18n="btn_rename">Rename</button>
+    <button onclick="deleteCharacter()" data-i18n="btn_del">Delete</button>
     <span style="flex:1"></span>
-    <button onclick="exportCharacter()">Export</button>
-    <button onclick="exportAll()">Export All</button>
-    <button onclick="importCharacter()">Import</button>
+    <button onclick="exportCharacter()" data-i18n="btn_export">Export</button>
+    <button onclick="exportAll()" data-i18n="btn_export_all">Export All</button>
+    <button onclick="importCharacter()" data-i18n="btn_import">Import</button>
   </div>
 
   <!-- Tab Navigation -->
   <nav class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('main')">Main</button>
-    <button class="tab-btn" onclick="switchTab('skills')">Skills</button>
-    <button class="tab-btn" onclick="switchTab('abilities')">Abilities</button>
-    <button class="tab-btn" onclick="switchTab('spells')">Spells</button>
-    <button class="tab-btn" onclick="switchTab('inventory')">Inventory</button>
-    <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
+    <button class="tab-btn active" onclick="switchTab('main')" data-i18n="tab_main">Main</button>
+    <button class="tab-btn" onclick="switchTab('skills')" data-i18n="tab_skills">Skills</button>
+    <button class="tab-btn" onclick="switchTab('abilities')" data-i18n="tab_abilities">Abilities</button>
+    <button class="tab-btn" onclick="switchTab('spells')" data-i18n="tab_spells">Spells</button>
+    <button class="tab-btn" onclick="switchTab('inventory')" data-i18n="tab_inventory">Inventory</button>
+    <button class="tab-btn" onclick="switchTab('notes')" data-i18n="tab_notes">Notes</button>
   </nav>
 
   <!-- Tab Panels -->
   <div id="tab-main" class="tab-panel active">
     <!-- Character Info Bar -->
     <div class="panel">
-      <div class="panel-title">Character Info</div>
+      <div class="panel-title" data-i18n="panel_character_info">Character Info</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Name</label>
+          <label class="field-label" data-i18n="lbl_name">Name</label>
           <input type="text" data-bind="meta.name" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Class</label>
+          <label class="field-label" data-i18n="lbl_class">Class</label>
           <input type="text" data-bind="main.class" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Level</label>
+          <label class="field-label" data-i18n="lbl_level">Level</label>
           <input type="number" data-bind="main.level" min="1" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Race</label>
+          <label class="field-label" data-i18n="lbl_race">Race</label>
           <input type="text" data-bind="main.race" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Alignment</label>
+          <label class="field-label" data-i18n="lbl_alignment">Alignment</label>
           <input type="text" data-bind="main.alignment" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Deity</label>
+          <label class="field-label" data-i18n="lbl_deity">Deity</label>
           <input type="text" data-bind="main.deity" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">XP</label>
+          <label class="field-label" data-i18n="lbl_xp">XP</label>
           <input type="number" data-bind="main.xp" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">XP to Next</label>
+          <label class="field-label" data-i18n="lbl_xp_next">XP to Next</label>
           <input type="number" data-bind="main.xpNext" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Gender</label>
+          <label class="field-label" data-i18n="lbl_gender">Gender</label>
           <input type="text" data-bind="main.gender" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Age</label>
+          <label class="field-label" data-i18n="lbl_age">Age</label>
           <input type="text" data-bind="main.age" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Height</label>
+          <label class="field-label" data-i18n="lbl_height">Height</label>
           <input type="text" data-bind="main.height" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Weight</label>
+          <label class="field-label" data-i18n="lbl_weight">Weight</label>
           <input type="text" data-bind="main.weight" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Hair</label>
+          <label class="field-label" data-i18n="lbl_hair">Hair</label>
           <input type="text" data-bind="main.hair" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Eyes</label>
+          <label class="field-label" data-i18n="lbl_eyes">Eyes</label>
           <input type="text" data-bind="main.eyes" style="width:100%">
         </div>
         <div class="field-group">
-          <label class="field-label">Skin</label>
+          <label class="field-label" data-i18n="lbl_skin">Skin</label>
           <input type="text" data-bind="main.skin" style="width:100%">
         </div>
       </div>
@@ -319,7 +329,7 @@
 
     <!-- Ability Scores -->
     <div class="panel">
-      <div class="panel-title">Ability Scores</div>
+      <div class="panel-title" data-i18n="panel_ability_scores">Ability Scores</div>
       <div class="grid-6" id="abilityScores">
         <!-- Generated by JS -->
       </div>
@@ -327,26 +337,26 @@
 
     <!-- Hit Points -->
     <div class="panel">
-      <div class="panel-title">Hit Points</div>
+      <div class="panel-title" data-i18n="panel_hit_points">Hit Points</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Current HP</label>
+          <label class="field-label" data-i18n="lbl_current_hp">Current HP</label>
           <input type="number" data-bind="combat.hp.current">
         </div>
         <div class="field-group">
-          <label class="field-label">Max HP</label>
+          <label class="field-label" data-i18n="lbl_max_hp">Max HP</label>
           <input type="number" data-bind="combat.hp.max">
         </div>
         <div class="field-group">
-          <label class="field-label">Temp HP</label>
+          <label class="field-label" data-i18n="lbl_temp_hp">Temp HP</label>
           <input type="number" data-bind="combat.hp.temp">
         </div>
         <div class="field-group">
-          <label class="field-label">Nonlethal</label>
+          <label class="field-label" data-i18n="lbl_nonlethal">Nonlethal</label>
           <input type="number" data-bind="combat.hp.nonlethal">
         </div>
         <div class="field-group">
-          <label class="field-label">Status</label>
+          <label class="field-label" data-i18n="lbl_status">Status</label>
           <span class="derived" data-display="combat.hp.status">—</span>
         </div>
       </div>
@@ -354,44 +364,44 @@
 
     <!-- Armor Class -->
     <div class="panel">
-      <div class="panel-title">Armor Class</div>
+      <div class="panel-title" data-i18n="panel_armor_class">Armor Class</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Total AC</label>
+          <label class="field-label" data-i18n="lbl_total_ac">Total AC</label>
           <span class="derived" data-display="combat.ac.total" style="font-size:24px;">10</span>
         </div>
         <div class="field-group">
-          <label class="field-label">Touch AC</label>
+          <label class="field-label" data-i18n="lbl_touch_ac">Touch AC</label>
           <span class="derived" data-display="combat.ac.touch">10</span>
         </div>
         <div class="field-group">
-          <label class="field-label">Flat-Footed</label>
+          <label class="field-label" data-i18n="lbl_flat_footed">Flat-Footed</label>
           <span class="derived" data-display="combat.ac.flatFooted">10</span>
         </div>
       </div>
       <div class="grid-3" style="margin-top:10px;">
         <div class="field-group">
-          <label class="field-label">Armor Bonus</label>
+          <label class="field-label" data-i18n="lbl_armor_bonus">Armor Bonus</label>
           <input type="number" data-bind="combat.ac.armor">
         </div>
         <div class="field-group">
-          <label class="field-label">Shield Bonus</label>
+          <label class="field-label" data-i18n="lbl_shield_bonus">Shield Bonus</label>
           <input type="number" data-bind="combat.ac.shield">
         </div>
         <div class="field-group">
-          <label class="field-label">Natural Armor</label>
+          <label class="field-label" data-i18n="lbl_natural_armor">Natural Armor</label>
           <input type="number" data-bind="combat.ac.natural">
         </div>
         <div class="field-group">
-          <label class="field-label">Deflection</label>
+          <label class="field-label" data-i18n="lbl_deflection">Deflection</label>
           <input type="number" data-bind="combat.ac.deflection">
         </div>
         <div class="field-group">
-          <label class="field-label">Dodge</label>
+          <label class="field-label" data-i18n="lbl_dodge">Dodge</label>
           <input type="number" data-bind="combat.ac.dodge">
         </div>
         <div class="field-group">
-          <label class="field-label">Size</label>
+          <label class="field-label" data-i18n="lbl_size_mod">Size</label>
           <select data-bind="combat.ac.size">
             <option value="8">Fine (+8)</option>
             <option value="4">Diminutive (+4)</option>
@@ -405,7 +415,7 @@
           </select>
         </div>
         <div class="field-group">
-          <label class="field-label">Misc</label>
+          <label class="field-label" data-i18n="lbl_misc_ac">Misc</label>
           <input type="number" data-bind="combat.ac.misc">
         </div>
       </div>
@@ -413,18 +423,18 @@
 
     <!-- Initiative -->
     <div class="panel">
-      <div class="panel-title">Initiative</div>
+      <div class="panel-title" data-i18n="panel_initiative">Initiative</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Total</label>
+          <label class="field-label" data-i18n="lbl_total">Total</label>
           <span class="derived" data-display="combat.initiative.total" style="font-size:20px;">+0</span>
         </div>
         <div class="field-group">
-          <label class="field-label">DEX Mod</label>
+          <label class="field-label" data-i18n="lbl_dex_mod">DEX Mod</label>
           <span class="derived" data-display="combat.initiative.dexMod">+0</span>
         </div>
         <div class="field-group">
-          <label class="field-label">Misc</label>
+          <label class="field-label" data-i18n="lbl_misc_init">Misc</label>
           <input type="number" data-bind="combat.initiative.misc">
         </div>
       </div>
@@ -432,30 +442,30 @@
 
     <!-- CMB / CMD -->
     <div class="panel">
-      <div class="panel-title">CMB / CMD</div>
+      <div class="panel-title" data-i18n="panel_combat_maneuvers">CMB / CMD</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">CMB</label>
+          <label class="field-label" data-i18n="lbl_cmb_total">CMB</label>
           <span class="derived" data-display="combat.cmb.total" style="font-size:20px;">+0</span>
         </div>
         <div class="field-group">
-          <label class="field-label">CMD</label>
+          <label class="field-label" data-i18n="lbl_cmd_total">CMD</label>
           <span class="derived" data-display="combat.cmd.total" style="font-size:20px;">10</span>
         </div>
         <div class="field-group">
-          <label class="field-label">BAB</label>
+          <label class="field-label" data-i18n="lbl_bab">BAB</label>
           <input type="number" data-bind="combat.bab.value">
         </div>
         <div class="field-group">
-          <label class="field-label">CMB Misc</label>
+          <label class="field-label" data-i18n="lbl_misc_cmb">CMB Misc</label>
           <input type="number" data-bind="combat.cmb.misc">
         </div>
         <div class="field-group">
-          <label class="field-label">CMD Misc</label>
+          <label class="field-label" data-i18n="lbl_cmd_misc">CMD Misc</label>
           <input type="number" data-bind="combat.cmd.misc">
         </div>
         <div class="field-group">
-          <label class="field-label">Size</label>
+          <label class="field-label" data-i18n="lbl_size_cmb">Size</label>
           <select data-bind="combat.cmb.size">
             <option value="-8">Fine (-8)</option>
             <option value="-4">Diminutive (-4)</option>
@@ -473,36 +483,36 @@
 
     <!-- Saves -->
     <div class="panel">
-      <div class="panel-title">Saves</div>
+      <div class="panel-title" data-i18n="panel_saves">Saves</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Fortitude</label>
+          <label class="field-label" data-i18n="lbl_fort">Fortitude</label>
           <span class="derived" data-display="combat.saves.fort.total" style="font-size:20px;">+0</span>
-          <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.fort.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.fort.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.fort.misc" style="width:40px;"></div>
+          <div style="font-size:11px;color:#8b6914;"><span data-i18n="lbl_base_save">Base</span>: <input type="number" data-bind="combat.saves.fort.base" style="width:40px;"> <span data-i18n="lbl_resistance">Res</span>: <input type="number" data-bind="combat.saves.fort.resistance" style="width:40px;"> <span data-i18n="lbl_misc_save">Misc</span>: <input type="number" data-bind="combat.saves.fort.misc" style="width:40px;"></div>
         </div>
         <div class="field-group">
-          <label class="field-label">Reflex</label>
+          <label class="field-label" data-i18n="lbl_ref">Reflex</label>
           <span class="derived" data-display="combat.saves.ref.total" style="font-size:20px;">+0</span>
-          <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.ref.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.ref.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.ref.misc" style="width:40px;"></div>
+          <div style="font-size:11px;color:#8b6914;"><span data-i18n="lbl_base_save">Base</span>: <input type="number" data-bind="combat.saves.ref.base" style="width:40px;"> <span data-i18n="lbl_resistance">Res</span>: <input type="number" data-bind="combat.saves.ref.resistance" style="width:40px;"> <span data-i18n="lbl_misc_save">Misc</span>: <input type="number" data-bind="combat.saves.ref.misc" style="width:40px;"></div>
         </div>
         <div class="field-group">
-          <label class="field-label">Will</label>
+          <label class="field-label" data-i18n="lbl_will">Will</label>
           <span class="derived" data-display="combat.saves.will.total" style="font-size:20px;">+0</span>
-          <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.will.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.will.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.will.misc" style="width:40px;"></div>
+          <div style="font-size:11px;color:#8b6914;"><span data-i18n="lbl_base_save">Base</span>: <input type="number" data-bind="combat.saves.will.base" style="width:40px;"> <span data-i18n="lbl_resistance">Res</span>: <input type="number" data-bind="combat.saves.will.resistance" style="width:40px;"> <span data-i18n="lbl_misc_save">Misc</span>: <input type="number" data-bind="combat.saves.will.misc" style="width:40px;"></div>
         </div>
       </div>
     </div>
 
     <!-- Full Attack -->
     <div class="panel">
-      <div class="panel-title">Attack Progression</div>
+      <div class="panel-title" data-i18n="panel_attack_progression">Attack Progression</div>
       <div class="grid-2">
         <div class="field-group">
-          <label class="field-label">Melee Attacks</label>
+          <label class="field-label" data-i18n="lbl_melee">Melee Attacks</label>
           <span class="derived" data-display="combat.bab.meleeString">+0</span>
         </div>
         <div class="field-group">
-          <label class="field-label">Ranged Attacks</label>
+          <label class="field-label" data-i18n="lbl_ranged">Ranged Attacks</label>
           <span class="derived" data-display="combat.bab.rangedString">+0</span>
         </div>
       </div>
@@ -510,22 +520,22 @@
 
     <!-- Speed -->
     <div class="panel">
-      <div class="panel-title">Speed</div>
+      <div class="panel-title" data-i18n="panel_speed">Speed</div>
       <div class="grid-4">
         <div class="field-group">
-          <label class="field-label">Ground (ft)</label>
+          <label class="field-label" data-i18n="lbl_ground">Ground (ft)</label>
           <input type="number" data-bind="combat.speed.ground">
         </div>
         <div class="field-group">
-          <label class="field-label">Climb (ft)</label>
+          <label class="field-label" data-i18n="lbl_climb">Climb (ft)</label>
           <input type="number" data-bind="combat.speed.climb">
         </div>
         <div class="field-group">
-          <label class="field-label">Swim (ft)</label>
+          <label class="field-label" data-i18n="lbl_swim">Swim (ft)</label>
           <input type="number" data-bind="combat.speed.swim">
         </div>
         <div class="field-group">
-          <label class="field-label">Fly (ft)</label>
+          <label class="field-label" data-i18n="lbl_fly">Fly (ft)</label>
           <input type="number" data-bind="combat.speed.fly">
         </div>
       </div>
@@ -533,40 +543,40 @@
 
     <!-- DR, Fast Healing, SR, Energy Resistances -->
     <div class="panel">
-      <div class="panel-title">Defensive Abilities</div>
+      <div class="panel-title" data-i18n="panel_defensive">Defensive Abilities</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Damage Reduction</label>
+          <label class="field-label" data-i18n="lbl_dr">Damage Reduction</label>
           <input type="text" data-bind="combat.dr" placeholder="e.g. 5/-">
         </div>
         <div class="field-group">
-          <label class="field-label">Fast Healing</label>
+          <label class="field-label" data-i18n="lbl_fast_healing">Fast Healing</label>
           <input type="number" data-bind="combat.fastHealing">
         </div>
         <div class="field-group">
-          <label class="field-label">Spell Resistance</label>
+          <label class="field-label" data-i18n="lbl_sr">Spell Resistance</label>
           <input type="number" data-bind="combat.sr">
         </div>
       </div>
       <div class="grid-5" style="margin-top:8px;">
         <div class="field-group">
-          <label class="field-label">Fire Resist</label>
+          <label class="field-label" data-i18n="lbl_fire_resist">Fire Resist</label>
           <input type="text" data-bind="combat.energyResist.fire">
         </div>
         <div class="field-group">
-          <label class="field-label">Cold Resist</label>
+          <label class="field-label" data-i18n="lbl_cold_resist">Cold Resist</label>
           <input type="text" data-bind="combat.energyResist.cold">
         </div>
         <div class="field-group">
-          <label class="field-label">Elec Resist</label>
+          <label class="field-label" data-i18n="lbl_elec_resist">Elec Resist</label>
           <input type="text" data-bind="combat.energyResist.electricity">
         </div>
         <div class="field-group">
-          <label class="field-label">Acid Resist</label>
+          <label class="field-label" data-i18n="lbl_acid_resist">Acid Resist</label>
           <input type="text" data-bind="combat.energyResist.acid">
         </div>
         <div class="field-group">
-          <label class="field-label">Sonic Resist</label>
+          <label class="field-label" data-i18n="lbl_sonic_resist">Sonic Resist</label>
           <input type="text" data-bind="combat.energyResist.sonic">
         </div>
       </div>
@@ -574,74 +584,74 @@
 
     <!-- Weapons -->
     <div class="panel">
-      <div class="panel-title">Weapons</div>
+      <div class="panel-title" data-i18n="panel_weapons">Weapons</div>
       <table id="weaponsTable">
         <thead>
           <tr>
-            <th>Name</th><th>Damage</th><th>Atk Bonus</th><th>Crit</th><th>Type</th><th>Hand</th><th>Range</th><th>Notes</th><th></th>
+            <th data-i18n="th_name">Name</th><th data-i18n="th_damage">Damage</th><th data-i18n="th_atk_bonus">Atk Bonus</th><th data-i18n="th_crit">Crit</th><th data-i18n="th_type">Type</th><th data-i18n="th_hand">Hand</th><th data-i18n="th_range">Range</th><th data-i18n="th_notes">Notes</th><th></th>
           </tr>
         </thead>
         <tbody id="weaponsBody"></tbody>
       </table>
-      <button onclick="addWeapon()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Weapon</button>
+      <button onclick="addWeapon()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_weapon">+ Add Weapon</button>
     </div>
 
     <!-- Armor -->
     <div class="panel">
-      <div class="panel-title">Armor</div>
+      <div class="panel-title" data-i18n="panel_armor">Armor</div>
       <table id="armorTable">
         <thead>
           <tr>
-            <th>Eq</th><th>Name</th><th>AC Bonus</th><th>Enh</th><th>Type</th><th>Heavy?</th><th>Max Dex</th><th>Check Pen</th><th>Arcane Fail</th><th>Notes</th><th></th>
+            <th data-i18n="th_eq">Eq</th><th data-i18n="th_name">Name</th><th data-i18n="th_ac_bonus">AC Bonus</th><th data-i18n="th_enh">Enh</th><th data-i18n="th_type">Type</th><th data-i18n="th_heavy">Heavy?</th><th data-i18n="th_max_dex">Max Dex</th><th data-i18n="th_check_pen">Check Pen</th><th data-i18n="th_arcane_fail">Arcane Fail</th><th data-i18n="th_notes">Notes</th><th></th>
           </tr>
         </thead>
         <tbody id="armorBody"></tbody>
       </table>
-      <button onclick="addArmor()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Armor</button>
+      <button onclick="addArmor()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_armor">+ Add Armor</button>
     </div>
 
     <!-- Conditions -->
     <div class="panel">
-      <div class="panel-title">Common Conditions</div>
+      <div class="panel-title" data-i18n="panel_conditions">Common Conditions</div>
       <div style="display:flex;flex-wrap:wrap;gap:10px;">
-        <label><input type="checkbox" data-bind="conditions.blinded"> Blinded</label>
-        <label><input type="checkbox" data-bind="conditions.cowering"> Cowering</label>
-        <label><input type="checkbox" data-bind="conditions.dazzled"> Dazzled</label>
-        <label><input type="checkbox" data-bind="conditions.deafened"> Deafened</label>
-        <label><input type="checkbox" data-bind="conditions.entangled"> Entangled</label>
-        <label><input type="checkbox" data-bind="conditions.exhausted"> Exhausted</label>
-        <label><input type="checkbox" data-bind="conditions.fatigued"> Fatigued</label>
-        <label><input type="checkbox" data-bind="conditions.frightened"> Frightened</label>
-        <label><input type="checkbox" data-bind="conditions.grappled"> Grappled</label>
-        <label><input type="checkbox" data-bind="conditions.panicked"> Panicked</label>
-        <label><input type="checkbox" data-bind="conditions.pinned"> Pinned</label>
-        <label><input type="checkbox" data-bind="conditions.prone"> Prone</label>
-        <label><input type="checkbox" data-bind="conditions.shaken"> Shaken</label>
-        <label><input type="checkbox" data-bind="conditions.sickened"> Sickened</label>
-        <label><input type="checkbox" data-bind="conditions.stunned"> Stunned</label>
-        <label><input type="checkbox" data-bind="conditions.haste"> Haste</label>
-        <label><input type="checkbox" data-bind="conditions.prayer"> Prayer</label>
-        <label><input type="checkbox" data-bind="conditions.enlarge"> Enlarge</label>
-        <label><input type="checkbox" data-bind="conditions.reduce"> Reduce</label>
-        <label><input type="checkbox" data-bind="conditions.heroism"> Heroism</label>
+        <label><input type="checkbox" data-bind="conditions.blinded"> <span data-i18n="cond_blinded">Blinded</span></label>
+        <label><input type="checkbox" data-bind="conditions.cowering"> <span data-i18n="cond_cowering">Cowering</span></label>
+        <label><input type="checkbox" data-bind="conditions.dazzled"> <span data-i18n="cond_dazzled">Dazzled</span></label>
+        <label><input type="checkbox" data-bind="conditions.deafened"> <span data-i18n="cond_deafened">Deafened</span></label>
+        <label><input type="checkbox" data-bind="conditions.entangled"> <span data-i18n="cond_entangled">Entangled</span></label>
+        <label><input type="checkbox" data-bind="conditions.exhausted"> <span data-i18n="cond_exhausted">Exhausted</span></label>
+        <label><input type="checkbox" data-bind="conditions.fatigued"> <span data-i18n="cond_fatigued">Fatigued</span></label>
+        <label><input type="checkbox" data-bind="conditions.frightened"> <span data-i18n="cond_frightened">Frightened</span></label>
+        <label><input type="checkbox" data-bind="conditions.grappled"> <span data-i18n="cond_grappled">Grappled</span></label>
+        <label><input type="checkbox" data-bind="conditions.panicked"> <span data-i18n="cond_panicked">Panicked</span></label>
+        <label><input type="checkbox" data-bind="conditions.pinned"> <span data-i18n="cond_pinned">Pinned</span></label>
+        <label><input type="checkbox" data-bind="conditions.prone"> <span data-i18n="cond_prone">Prone</span></label>
+        <label><input type="checkbox" data-bind="conditions.shaken"> <span data-i18n="cond_shaken">Shaken</span></label>
+        <label><input type="checkbox" data-bind="conditions.sickened"> <span data-i18n="cond_sickened">Sickened</span></label>
+        <label><input type="checkbox" data-bind="conditions.stunned"> <span data-i18n="cond_stunned">Stunned</span></label>
+        <label><input type="checkbox" data-bind="conditions.haste"> <span data-i18n="cond_haste">Haste</span></label>
+        <label><input type="checkbox" data-bind="conditions.prayer"> <span data-i18n="cond_prayer">Prayer</span></label>
+        <label><input type="checkbox" data-bind="conditions.enlarge"> <span data-i18n="cond_enlarge">Enlarge</span></label>
+        <label><input type="checkbox" data-bind="conditions.reduce"> <span data-i18n="cond_reduce">Reduce</span></label>
+        <label><input type="checkbox" data-bind="conditions.heroism"> <span data-i18n="cond_heroism">Heroism</span></label>
       </div>
     </div>
   </div>
   <div id="tab-skills" class="tab-panel">
     <!-- Skill Points -->
     <div class="panel">
-      <div class="panel-title">Skill Points</div>
+      <div class="panel-title" data-i18n="panel_skill_points">Skill Points</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Available</label>
+          <label class="field-label" data-i18n="lbl_available">Available</label>
           <input type="number" data-bind="skillPoints.available">
         </div>
         <div class="field-group">
-          <label class="field-label">Used</label>
+          <label class="field-label" data-i18n="lbl_used">Used</label>
           <span class="derived" data-display="skillPoints.used">0</span>
         </div>
         <div class="field-group">
-          <label class="field-label">Remaining</label>
+          <label class="field-label" data-i18n="lbl_remaining">Remaining</label>
           <span class="derived" data-display="skillPoints.remaining">0</span>
         </div>
       </div>
@@ -649,14 +659,14 @@
 
     <!-- Skills Table -->
     <div class="panel">
-      <div class="panel-title">Skills</div>
+      <div class="panel-title" data-i18n="panel_skills">Skills</div>
       <div style="overflow-x:auto;">
         <table id="skillsTable">
           <thead>
             <tr>
-              <th>CS</th><th>Skill</th><th>Ability</th><th>Total</th><th>Ranks</th>
-              <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
-              <th>Misc</th><th>Armor</th><th>Ab Mod</th>
+              <th data-i18n="th_cs">CS</th><th data-i18n="th_skill">Skill</th><th data-i18n="th_ability">Ability</th><th data-i18n="th_skill_total">Total</th><th data-i18n="th_ranks">Ranks</th>
+              <th data-i18n="th_cs_bonus">CS Bonus</th><th data-i18n="th_comp">Comp</th><th data-i18n="th_circ">Circ</th><th data-i18n="th_feat">Feat</th><th data-i18n="th_race">Race</th>
+              <th data-i18n="th_misc_skill">Misc</th><th data-i18n="th_armor">Armor</th><th data-i18n="th_ab_mod">Ab Mod</th>
             </tr>
           </thead>
           <tbody id="skillsBody"></tbody>
@@ -666,14 +676,14 @@
 
     <!-- Knowledge Skills -->
     <div class="panel">
-      <div class="panel-title">Knowledge Skills</div>
+      <div class="panel-title" data-i18n="panel_knowledge">Knowledge Skills</div>
       <div style="overflow-x:auto;">
         <table id="knowledgeTable">
           <thead>
             <tr>
-              <th>CS</th><th>Skill</th><th>Total</th><th>Ranks</th>
-              <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
-              <th>Misc</th><th>Ab Mod</th>
+              <th data-i18n="th_cs">CS</th><th data-i18n="th_skill">Skill</th><th data-i18n="th_skill_total">Total</th><th data-i18n="th_ranks">Ranks</th>
+              <th data-i18n="th_cs_bonus">CS Bonus</th><th data-i18n="th_comp">Comp</th><th data-i18n="th_circ">Circ</th><th data-i18n="th_feat">Feat</th><th data-i18n="th_race">Race</th>
+              <th data-i18n="th_misc_skill">Misc</th><th data-i18n="th_ab_mod">Ab Mod</th>
             </tr>
           </thead>
           <tbody id="knowledgeBody"></tbody>
@@ -683,14 +693,14 @@
 
     <!-- Perform Skills -->
     <div class="panel">
-      <div class="panel-title">Perform Skills</div>
+      <div class="panel-title" data-i18n="panel_perform">Perform Skills</div>
       <div style="overflow-x:auto;">
         <table id="performTable">
           <thead>
             <tr>
-              <th>CS</th><th>Skill</th><th>Total</th><th>Ranks</th>
-              <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
-              <th>Misc</th><th>Ab Mod</th>
+              <th data-i18n="th_cs">CS</th><th data-i18n="th_skill">Skill</th><th data-i18n="th_skill_total">Total</th><th data-i18n="th_ranks">Ranks</th>
+              <th data-i18n="th_cs_bonus">CS Bonus</th><th data-i18n="th_comp">Comp</th><th data-i18n="th_circ">Circ</th><th data-i18n="th_feat">Feat</th><th data-i18n="th_race">Race</th>
+              <th data-i18n="th_misc_skill">Misc</th><th data-i18n="th_ab_mod">Ab Mod</th>
             </tr>
           </thead>
           <tbody id="performBody"></tbody>
@@ -700,24 +710,24 @@
 
     <!-- Craft / Profession -->
     <div class="panel">
-      <div class="panel-title">Craft / Profession</div>
+      <div class="panel-title" data-i18n="panel_craft_prof">Craft / Profession</div>
       <div class="grid-2">
         <div>
-          <h4 style="margin-bottom:8px;">Craft (Int)</h4>
+          <h4 style="margin-bottom:8px;" data-i18n="lbl_craft">Craft (Int)</h4>
           <div id="craftSkills"></div>
-          <button onclick="addCraftSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Craft</button>
+          <button onclick="addCraftSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_craft">+ Add Craft</button>
         </div>
         <div>
-          <h4 style="margin-bottom:8px;">Profession (Wis, Trained Only)</h4>
+          <h4 style="margin-bottom:8px;" data-i18n="lbl_profession">Profession (Wis, Trained Only)</h4>
           <div id="professionSkills"></div>
-          <button onclick="addProfessionSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Profession</button>
+          <button onclick="addProfessionSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_profession">+ Add Profession</button>
         </div>
       </div>
     </div>
 
     <!-- Languages -->
     <div class="panel">
-      <div class="panel-title">Languages</div>
+      <div class="panel-title" data-i18n="panel_languages">Languages</div>
       <textarea data-bind="languages" rows="2" placeholder="Comma-separated list"></textarea>
     </div>
   </div>
@@ -725,8 +735,8 @@
     <!-- Feats -->
     <div class="panel">
       <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Feats</span>
-        <button onclick="addFeat()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+        <span data-i18n="panel_feats">Feats</span>
+        <button onclick="addFeat()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;" data-i18n="btn_add_feat">+ Add</button>
       </div>
       <div id="featsList"></div>
     </div>
@@ -734,8 +744,8 @@
     <!-- Class Talents -->
     <div class="panel">
       <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Class Talents / Rogue Talents / Discoveries</span>
-        <button onclick="addClassTalent()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+        <span data-i18n="panel_class_talents">Class Talents / Rogue Talents / Discoveries</span>
+        <button onclick="addClassTalent()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;" data-i18n="btn_add_talent">+ Add</button>
       </div>
       <div id="classTalentsList"></div>
     </div>
@@ -743,8 +753,8 @@
     <!-- Class Features -->
     <div class="panel">
       <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Class Features</span>
-        <button onclick="addClassFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+        <span data-i18n="panel_class_features">Class Features</span>
+        <button onclick="addClassFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;" data-i18n="btn_add_feature">+ Add</button>
       </div>
       <div id="classFeaturesList"></div>
     </div>
@@ -752,45 +762,45 @@
     <!-- Racial Features -->
     <div class="panel">
       <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Racial Features & Traits</span>
-        <button onclick="addRacialFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+        <span data-i18n="panel_racial">Racial Features & Traits</span>
+        <button onclick="addRacialFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;" data-i18n="btn_add_racial">+ Add</button>
       </div>
       <div id="racialFeaturesList"></div>
     </div>
 
     <!-- Proficiencies -->
     <div class="panel">
-      <div class="panel-title">Proficiencies</div>
+      <div class="panel-title" data-i18n="panel_proficiencies">Proficiencies</div>
       <textarea data-bind="featsAndFeatures.proficiencies" rows="4" placeholder="List armor, weapons, and tools proficient with..."></textarea>
     </div>
   </div>
   <div id="tab-spells" class="tab-panel">
     <div id="spellSets"></div>
-    <button onclick="addSpellSet()" style="margin-top:12px;background:#6b4c1e;color:#e8d5a3;border:none;padding:6px 16px;cursor:pointer;">+ Add Spell Set</button>
+    <button onclick="addSpellSet()" style="margin-top:12px;background:#6b4c1e;color:#e8d5a3;border:none;padding:6px 16px;cursor:pointer;" data-i18n="btn_add_spell_set">+ Add Spell Set</button>
   </div>
   <div id="tab-inventory" class="tab-panel">
     <!-- Currency -->
     <div class="panel">
-      <div class="panel-title">Currency</div>
+      <div class="panel-title" data-i18n="panel_currency">Currency</div>
       <div class="grid-5">
         <div class="field-group">
-          <label class="field-label">Platinum</label>
+          <label class="field-label" data-i18n="lbl_platinum">Platinum</label>
           <input type="number" data-bind="inventory.currency.platinum" min="0">
         </div>
         <div class="field-group">
-          <label class="field-label">Gold</label>
+          <label class="field-label" data-i18n="lbl_gold">Gold</label>
           <input type="number" data-bind="inventory.currency.gold" min="0">
         </div>
         <div class="field-group">
-          <label class="field-label">Silver</label>
+          <label class="field-label" data-i18n="lbl_silver">Silver</label>
           <input type="number" data-bind="inventory.currency.silver" min="0">
         </div>
         <div class="field-group">
-          <label class="field-label">Copper</label>
+          <label class="field-label" data-i18n="lbl_copper">Copper</label>
           <input type="number" data-bind="inventory.currency.copper" min="0">
         </div>
         <div class="field-group">
-          <label class="field-label">Total (GP)</label>
+          <label class="field-label" data-i18n="lbl_total_val">Total (GP)</label>
           <span class="derived" data-display="inventory.totalValueGP" style="font-size:18px;">0</span>
         </div>
       </div>
@@ -798,10 +808,10 @@
 
     <!-- Carrying Capacity -->
     <div class="panel">
-      <div class="panel-title">Carrying Capacity</div>
+      <div class="panel-title" data-i18n="panel_carrying">Carrying Capacity</div>
       <div class="grid-3">
         <div class="field-group">
-          <label class="field-label">Size Modifier</label>
+          <label class="field-label" data-i18n="lbl_size_mod_inv">Size Modifier</label>
           <select data-bind="inventory.sizeModifier">
             <option value="0.5">Small (×3/4)</option>
             <option value="1" selected>Medium (×1)</option>
@@ -810,82 +820,82 @@
           </select>
         </div>
         <div class="field-group">
-          <label class="field-label">Quadruped</label>
+          <label class="field-label" data-i18n="lbl_quadruped">Quadruped</label>
           <input type="checkbox" data-bind="inventory.isQuadruped"> <span style="font-size:12px;">(×1.5 capacity)</span>
         </div>
         <div class="field-group">
-          <label class="field-label">Current Load (lbs)</label>
+          <label class="field-label" data-i18n="lbl_current_load">Current Load (lbs)</label>
           <span class="derived" data-display="inventory.carriedWeight">0</span>
         </div>
       </div>
       <div class="grid-3" style="margin-top:10px;">
         <div class="field-group">
-          <label class="field-label">Light Load</label>
+          <label class="field-label" data-i18n="lbl_light_load">Light Load</label>
           <span class="derived" data-display="inventory.carryingCapacity.light">0</span> lbs
         </div>
         <div class="field-group">
-          <label class="field-label">Medium Load</label>
+          <label class="field-label" data-i18n="lbl_medium_load">Medium Load</label>
           <span class="derived" data-display="inventory.carryingCapacity.medium">0</span> lbs
         </div>
         <div class="field-group">
-          <label class="field-label">Heavy Load</label>
+          <label class="field-label" data-i18n="lbl_heavy_load">Heavy Load</label>
           <span class="derived" data-display="inventory.carryingCapacity.heavy">0</span> lbs
         </div>
       </div>
       <div class="grid-3" style="margin-top:10px;">
         <div class="field-group">
-          <label class="field-label">Lift Over Head</label>
+          <label class="field-label" data-i18n="lbl_lift_over">Lift Over Head</label>
           <span class="derived" data-display="inventory.liftOverHead">0</span> lbs
         </div>
         <div class="field-group">
-          <label class="field-label">Lift Off Ground</label>
+          <label class="field-label" data-i18n="lbl_lift_off">Lift Off Ground</label>
           <span class="derived" data-display="inventory.liftOffGround">0</span> lbs
         </div>
         <div class="field-group">
-          <label class="field-label">Push / Drag</label>
+          <label class="field-label" data-i18n="lbl_push_drag">Push / Drag</label>
           <span class="derived" data-display="inventory.pushDrag">0</span> lbs
         </div>
       </div>
       <div style="margin-top:12px;">
-        <label class="field-label">Encumbrance</label>
+        <label class="field-label" data-i18n="lbl_encumbrance">Encumbrance</label>
         <span class="derived" data-display="inventory.encumbrance" style="font-size:18px;padding:4px 12px;border:1px solid #6b4c1e;border-radius:4px;">Light</span>
-        <span style="font-size:11px;color:#8b6914;margin-left:10px;">Informational only — not auto-applied to skills</span>
+        <span style="font-size:11px;color:#8b6914;margin-left:10px;" data-i18n="lbl_info_only">Informational only — not auto-applied to skills</span>
       </div>
     </div>
 
     <!-- Inventory Table -->
     <div class="panel">
-      <div class="panel-title">Inventory</div>
+      <div class="panel-title" data-i18n="panel_inventory">Inventory</div>
       <table id="inventoryTable">
         <thead>
           <tr>
-            <th>Qty</th><th>Item</th><th>Value/unit (gp)</th><th>Weight/unit (lbs)</th>
-            <th>Total Value</th><th>Total Weight</th><th>Location</th><th>Notes</th><th></th>
+            <th data-i18n="th_qty">Qty</th><th data-i18n="th_item">Item</th><th data-i18n="th_value_unit">Value/unit (gp)</th><th data-i18n="th_weight_unit">Weight/unit (lbs)</th>
+            <th data-i18n="th_total_value">Total Value</th><th data-i18n="th_total_weight">Total Weight</th><th data-i18n="th_location">Location</th><th data-i18n="th_notes">Notes</th><th></th>
           </tr>
         </thead>
         <tbody id="inventoryBody"></tbody>
       </table>
-      <button onclick="addInventoryItem()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Item</button>
+      <button onclick="addInventoryItem()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_item">+ Add Item</button>
     </div>
 
     <!-- Not-Carried Locations -->
     <div class="panel">
-      <div class="panel-title">Not-Carried Locations</div>
-      <p style="font-size:12px;color:#8b6914;margin-bottom:8px;">Items in these locations are excluded from carried weight:</p>
+      <div class="panel-title" data-i18n="panel_not_carried">Not-Carried Locations</div>
+      <p style="font-size:12px;color:#8b6914;margin-bottom:8px;" data-i18n="lbl_not_carried_desc">Items in these locations are excluded from carried weight:</p>
       <textarea data-bind="inventory.notCarriedLocationsText" rows="2" placeholder="Comma-separated (e.g. Home, Handy Haversack)"></textarea>
     </div>
   </div>
   <div id="tab-notes" class="tab-panel">
     <div class="panel">
-      <div class="panel-title">Background / Backstory</div>
+      <div class="panel-title" data-i18n="panel_background">Background / Backstory</div>
       <textarea data-bind="notes.background" rows="10" placeholder="Character background, backstory, motivations..."></textarea>
     </div>
     <div class="panel">
-      <div class="panel-title">General Notes</div>
+      <div class="panel-title" data-i18n="panel_general_notes">General Notes</div>
       <textarea data-bind="notes.general" rows="10" placeholder="General notes, reminders, plans..."></textarea>
     </div>
     <div class="panel">
-      <div class="panel-title">Party / Campaign Log</div>
+      <div class="panel-title" data-i18n="panel_campaign_log">Party / Campaign Log</div>
       <textarea data-bind="notes.log" rows="10" placeholder="Session notes, quest progress, important events..."></textarea>
     </div>
   </div>
@@ -897,6 +907,556 @@
     let state = {};
     let currentCharId = null;
     let saveTimeout = null;
+
+    // ============================================
+    // i18n
+    // ============================================
+    const i18n = {
+      en: {
+        tab_main: "Main",
+        tab_skills: "Skills",
+        tab_abilities: "Abilities",
+        tab_spells: "Spells",
+        tab_inventory: "Inventory",
+        tab_notes: "Notes",
+        btn_new: "New",
+        btn_dup: "Dup",
+        btn_rename: "Rename",
+        btn_del: "Delete",
+        btn_export: "Export",
+        btn_export_all: "Export All",
+        btn_import: "Import",
+        lbl_character: "Character:",
+        panel_character_info: "Character Info",
+        lbl_name: "Name",
+        lbl_player: "Player",
+        lbl_race: "Race",
+        lbl_class: "Class",
+        lbl_level: "Level",
+        lbl_class_level: "Class & Level",
+        lbl_alignment: "Alignment",
+        lbl_deity: "Deity",
+        lbl_size: "Size",
+        lbl_age: "Age",
+        lbl_gender: "Gender",
+        lbl_height: "Height",
+        lbl_weight: "Weight",
+        lbl_eyes: "Eyes",
+        lbl_hair: "Hair",
+        lbl_skin: "Skin",
+        lbl_xp: "XP",
+        lbl_xp_next: "XP to Next",
+        panel_ability_scores: "Ability Scores",
+        panel_hit_points: "Hit Points",
+        lbl_current_hp: "Current HP",
+        lbl_max_hp: "Max HP",
+        lbl_temp_hp: "Temp HP",
+        lbl_nonlethal: "Nonlethal",
+        lbl_status: "Status",
+        panel_armor_class: "Armor Class",
+        lbl_total_ac: "Total AC",
+        lbl_touch_ac: "Touch AC",
+        lbl_flat_footed: "Flat-Footed",
+        lbl_armor_bonus: "Armor Bonus",
+        lbl_shield_bonus: "Shield Bonus",
+        lbl_natural_armor: "Natural Armor",
+        lbl_size_mod: "Size Mod",
+        lbl_deflection: "Deflection",
+        lbl_dodge: "Dodge",
+        lbl_misc_ac: "Misc AC",
+        lbl_dex_mod: "Dex Mod",
+        panel_initiative: "Initiative",
+        lbl_total: "Total",
+        lbl_misc_init: "Misc",
+        panel_combat_maneuvers: "Combat Maneuvers",
+        lbl_cmb_total: "CMB",
+        lbl_bab: "BAB",
+        lbl_str_mod: "Str Mod",
+        lbl_size_cmb: "Size",
+        lbl_misc_cmb: "Misc",
+        lbl_cmd_total: "CMD",
+        lbl_cmd_misc: "Misc",
+        panel_saves: "Saving Throws",
+        lbl_fort: "Fortitude",
+        lbl_ref: "Reflex",
+        lbl_will: "Will",
+        lbl_base_save: "Base",
+        lbl_ability_mod: "Ability",
+        lbl_resistance: "Resistance",
+        lbl_misc_save: "Misc",
+        panel_attack_progression: "Attack Progression",
+        lbl_melee: "Melee Attacks",
+        lbl_ranged: "Ranged Attacks",
+        panel_speed: "Speed",
+        lbl_ground: "Ground (ft)",
+        lbl_climb: "Climb (ft)",
+        lbl_swim: "Swim (ft)",
+        lbl_fly: "Fly (ft)",
+        panel_defensive: "Defensive Abilities",
+        lbl_dr: "Damage Reduction",
+        lbl_fast_healing: "Fast Healing",
+        lbl_sr: "Spell Resistance",
+        lbl_fire_resist: "Fire Resist",
+        lbl_cold_resist: "Cold Resist",
+        lbl_elec_resist: "Elec Resist",
+        lbl_acid_resist: "Acid Resist",
+        lbl_sonic_resist: "Sonic Resist",
+        panel_weapons: "Weapons",
+        btn_add_weapon: "+ Add Weapon",
+        th_name: "Name",
+        th_damage: "Damage",
+        th_atk_bonus: "Atk Bonus",
+        th_crit: "Crit",
+        th_type: "Type",
+        th_hand: "Hand",
+        th_range: "Range",
+        th_notes: "Notes",
+        panel_armor: "Armor",
+        btn_add_armor: "+ Add Armor",
+        th_eq: "Eq",
+        th_ac_bonus: "AC Bonus",
+        th_enh: "Enh",
+        th_heavy: "Heavy?",
+        th_max_dex: "Max Dex",
+        th_check_pen: "Check Pen",
+        th_arcane_fail: "Arcane Fail",
+        panel_conditions: "Common Conditions",
+        cond_blinded: "Blinded",
+        cond_cowering: "Cowering",
+        cond_dazzled: "Dazzled",
+        cond_deafened: "Deafened",
+        cond_entangled: "Entangled",
+        cond_exhausted: "Exhausted",
+        cond_fatigued: "Fatigued",
+        cond_frightened: "Frightened",
+        cond_grappled: "Grappled",
+        cond_panicked: "Panicked",
+        cond_pinned: "Pinned",
+        cond_prone: "Prone",
+        cond_shaken: "Shaken",
+        cond_sickened: "Sickened",
+        cond_stunned: "Stunned",
+        cond_haste: "Haste",
+        cond_prayer: "Prayer",
+        cond_enlarge: "Enlarge",
+        cond_reduce: "Reduce",
+        cond_heroism: "Heroism",
+        panel_skill_points: "Skill Points",
+        lbl_available: "Available",
+        lbl_used: "Used",
+        lbl_remaining: "Remaining",
+        panel_skills: "Skills",
+        th_cs: "CS",
+        th_skill: "Skill",
+        th_ability: "Ability",
+        th_skill_total: "Total",
+        th_ranks: "Ranks",
+        th_cs_bonus: "CS Bonus",
+        th_comp: "Comp",
+        th_circ: "Circ",
+        th_feat: "Feat",
+        th_race: "Race",
+        th_misc_skill: "Misc",
+        th_armor: "Armor",
+        th_ab_mod: "Ab Mod",
+        panel_knowledge: "Knowledge Skills",
+        panel_perform: "Perform Skills",
+        panel_craft_prof: "Craft / Profession",
+        lbl_craft: "Craft (Int)",
+        lbl_profession: "Profession (Wis, Trained Only)",
+        btn_add_craft: "+ Add Craft",
+        btn_add_profession: "+ Add Profession",
+        panel_languages: "Languages",
+        btn_add_spell_set: "+ Add Spell Set",
+        lbl_caster_class: "Caster Class",
+        lbl_caster_level: "Caster Level",
+        lbl_ability: "Ability",
+        lbl_misc_spell: "Misc",
+        lbl_concentration: "Concentration Check",
+        lbl_spell_slots: "Spell Slots",
+        lbl_spell_list: "Spell List",
+        lbl_spell_level: "Level",
+        lbl_total_val: "Total (GP)",
+        panel_currency: "Currency",
+        lbl_platinum: "Platinum",
+        lbl_gold: "Gold",
+        lbl_silver: "Silver",
+        lbl_copper: "Copper",
+        panel_carrying: "Carrying Capacity",
+        lbl_size_mod_inv: "Size Modifier",
+        lbl_quadruped: "Quadruped",
+        lbl_current_load: "Current Load (lbs)",
+        lbl_light_load: "Light Load",
+        lbl_medium_load: "Medium Load",
+        lbl_heavy_load: "Heavy Load",
+        lbl_lift_over: "Lift Over Head",
+        lbl_lift_off: "Lift Off Ground",
+        lbl_push_drag: "Push / Drag",
+        lbl_encumbrance: "Encumbrance",
+        lbl_info_only: "Informational only — not auto-applied to skills",
+        panel_inventory: "Inventory",
+        btn_add_item: "+ Add Item",
+        th_qty: "Qty",
+        th_item: "Item",
+        th_value_unit: "Value/unit (gp)",
+        th_weight_unit: "Weight/unit (lbs)",
+        th_total_value: "Total Value",
+        th_total_weight: "Total Weight",
+        th_location: "Location",
+        panel_not_carried: "Not-Carried Locations",
+        lbl_not_carried_desc: "Items in these locations are excluded from carried weight:",
+        panel_feats: "Feats",
+        btn_add_feat: "+ Add",
+        panel_class_talents: "Class Talents / Rogue Talents / Discoveries",
+        btn_add_talent: "+ Add",
+        panel_class_features: "Class Features",
+        btn_add_feature: "+ Add",
+        panel_racial: "Racial Features & Traits",
+        btn_add_racial: "+ Add",
+        panel_proficiencies: "Proficiencies",
+        panel_background: "Background / Backstory",
+        panel_general_notes: "General Notes",
+        panel_campaign_log: "Party / Campaign Log",
+        status_fine: "Feelin' Fine!",
+        status_hurt: "Hurt",
+        status_bloodied: "Bloodied",
+        status_dying: "Dying",
+        status_dead: "Dead",
+        enc_light: "Light",
+        enc_medium: "Medium",
+        enc_heavy: "Heavy",
+        enc_overloaded: "Overloaded",
+        lang_toggle: "EN",
+        skill_acrobatics: "Acrobatics",
+        skill_appraise: "Appraise",
+        skill_bluff: "Bluff",
+        skill_climb: "Climb",
+        skill_diplomacy: "Diplomacy",
+        skill_disableDevice: "Disable Device",
+        skill_disguise: "Disguise",
+        skill_escapeArtist: "Escape Artist",
+        skill_fly: "Fly",
+        skill_handleAnimal: "Handle Animal",
+        skill_heal: "Heal",
+        skill_intimidate: "Intimidate",
+        skill_linguistics: "Linguistics",
+        skill_perception: "Perception",
+        skill_ride: "Ride",
+        skill_senseMotive: "Sense Motive",
+        skill_sleightOfHand: "Sleight of Hand",
+        skill_spellcraft: "Spellcraft",
+        skill_stealth: "Stealth",
+        skill_survival: "Survival",
+        skill_swim: "Swim",
+        skill_useMagicDevice: "Use Magic Device",
+        skill_knowledgeArcana: "Knowledge (Arcana)",
+        skill_knowledgeDungeoneering: "Knowledge (Dungeoneering)",
+        skill_knowledgeEngineering: "Knowledge (Engineering)",
+        skill_knowledgeGeography: "Knowledge (Geography)",
+        skill_knowledgeHistory: "Knowledge (History)",
+        skill_knowledgeLocal: "Knowledge (Local)",
+        skill_knowledgeNature: "Knowledge (Nature)",
+        skill_knowledgeNobilityRoyalty: "Knowledge (Nobility & Royalty)",
+        skill_knowledgeReligion: "Knowledge (Religion)",
+        skill_knowledgeThePlanes: "Knowledge (The Planes)",
+        skill_knowledgeOther: "Knowledge (Other)",
+        skill_performAct: "Perform (Act)",
+        skill_performComedy: "Perform (Comedy)",
+        skill_performDance: "Perform (Dance)",
+        skill_performKeyboard: "Perform (Keyboard)",
+        skill_performOratory: "Perform (Oratory)",
+        skill_performPercussion: "Perform (Percussion)",
+        skill_performSing: "Perform (Sing)",
+        skill_performStringInstrument: "Perform (String Instrument)",
+        skill_performWindInstrument: "Perform (Wind Instrument)",
+        skill_performOther: "Perform (Other)",
+      },
+      ru: {
+        tab_main: "Основное",
+        tab_skills: "Навыки",
+        tab_abilities: "Черты",
+        tab_spells: "Заклинания",
+        tab_inventory: "Инвентарь",
+        tab_notes: "Заметки",
+        btn_new: "Новый",
+        btn_dup: "Копия",
+        btn_rename: "Переименовать",
+        btn_del: "Удалить",
+        btn_export: "Экспорт",
+        btn_export_all: "Экспорт всех",
+        btn_import: "Импорт",
+        lbl_character: "Персонаж:",
+        panel_character_info: "Информация о персонаже",
+        lbl_name: "Имя",
+        lbl_player: "Игрок",
+        lbl_race: "Раса",
+        lbl_class: "Класс",
+        lbl_level: "Уровень",
+        lbl_class_level: "Класс и уровень",
+        lbl_alignment: "Мировоззрение",
+        lbl_deity: "Божество",
+        lbl_size: "Размер",
+        lbl_age: "Возраст",
+        lbl_gender: "Пол",
+        lbl_height: "Рост",
+        lbl_weight: "Вес",
+        lbl_eyes: "Глаза",
+        lbl_hair: "Волосы",
+        lbl_skin: "Кожа",
+        lbl_xp: "Опыт",
+        lbl_xp_next: "Опыт до след.",
+        panel_ability_scores: "Параметры",
+        panel_hit_points: "Хиты (ХП)",
+        lbl_current_hp: "Текущие ХП",
+        lbl_max_hp: "Макс. ХП",
+        lbl_temp_hp: "Врем. ХП",
+        lbl_nonlethal: "Несмертельный",
+        lbl_status: "Статус",
+        panel_armor_class: "Класс Доспеха",
+        lbl_total_ac: "КД",
+        lbl_touch_ac: "Касание",
+        lbl_flat_footed: "С захватом",
+        lbl_armor_bonus: "Бонус доспеха",
+        lbl_shield_bonus: "Бонус щита",
+        lbl_natural_armor: "Природная броня",
+        lbl_size_mod: "Мод. размера",
+        lbl_deflection: "Отражение",
+        lbl_dodge: "Уклонение",
+        lbl_misc_ac: "Разное КД",
+        lbl_dex_mod: "Мод. Лов",
+        panel_initiative: "Инициатива",
+        lbl_total: "Итого",
+        lbl_misc_init: "Разное",
+        panel_combat_maneuvers: "Боевые маневры",
+        lbl_cmb_total: "МБМ",
+        lbl_bab: "БМА",
+        lbl_str_mod: "Мод. Сил",
+        lbl_size_cmb: "Размер",
+        lbl_misc_cmb: "Разное",
+        lbl_cmd_total: "ЗБМ",
+        lbl_cmd_misc: "Разное",
+        panel_saves: "Спасброски",
+        lbl_fort: "Стойкость",
+        lbl_ref: "Рефлекс",
+        lbl_will: "Воля",
+        lbl_base_save: "Базовый",
+        lbl_ability_mod: "Параметр",
+        lbl_resistance: "Сопротивление",
+        lbl_misc_save: "Разное",
+        panel_attack_progression: "Прогрессия атак",
+        lbl_melee: "Атаки ближнего боя",
+        lbl_ranged: "Атаки дальнего боя",
+        panel_speed: "Скорость",
+        lbl_ground: "Земля (фт)",
+        lbl_climb: "Лазание (фт)",
+        lbl_swim: "Плавание (фт)",
+        lbl_fly: "Полёт (фт)",
+        panel_defensive: "Защитные способности",
+        lbl_dr: "Снижение урона",
+        lbl_fast_healing: "Быстрое лечение",
+        lbl_sr: "Сопротивление магии",
+        lbl_fire_resist: "Огонь",
+        lbl_cold_resist: "Холод",
+        lbl_elec_resist: "Электричество",
+        lbl_acid_resist: "Кислота",
+        lbl_sonic_resist: "Звук",
+        panel_weapons: "Оружие",
+        btn_add_weapon: "+ Добавить оружие",
+        th_name: "Название",
+        th_damage: "Урон",
+        th_atk_bonus: "Бонус атаки",
+        th_crit: "Крит",
+        th_type: "Тип",
+        th_hand: "Рука",
+        th_range: "Дальность",
+        th_notes: "Заметки",
+        panel_armor: "Доспехи",
+        btn_add_armor: "+ Добавить доспех",
+        th_eq: "Надет",
+        th_ac_bonus: "Бонус КД",
+        th_enh: "Улучш",
+        th_heavy: "Тяжёл?",
+        th_max_dex: "Макс. Лов",
+        th_check_pen: "Штраф проверки",
+        th_arcane_fail: "Шанс неудачи",
+        panel_conditions: "Распространённые состояния",
+        cond_blinded: "Ослеплён",
+        cond_cowering: "В ужасе",
+        cond_dazzled: "Ослаблен",
+        cond_deafened: "Оглушён",
+        cond_entangled: "Опутан",
+        cond_exhausted: "Изнеможение",
+        cond_fatigued: "Усталость",
+        cond_frightened: "Испуган",
+        cond_grappled: "В захвате",
+        cond_panicked: "В панике",
+        cond_pinned: "Прижат",
+        cond_prone: "Лёжа",
+        cond_shaken: "Напуган",
+        cond_sickened: "Тошнота",
+        cond_stunned: "Оглушён",
+        cond_haste: "Ускорение",
+        cond_prayer: "Молитва",
+        cond_enlarge: "Увеличение",
+        cond_reduce: "Уменьшение",
+        cond_heroism: "Героизм",
+        panel_skill_points: "Очки навыков",
+        lbl_available: "Доступно",
+        lbl_used: "Потрачено",
+        lbl_remaining: "Осталось",
+        panel_skills: "Навыки",
+        th_cs: "КН",
+        th_skill: "Навык",
+        th_ability: "Параметр",
+        th_skill_total: "Итого",
+        th_ranks: "Ранги",
+        th_cs_bonus: "Бонус КН",
+        th_comp: "Компет",
+        th_circ: "Ситуац",
+        th_feat: "Черта",
+        th_race: "Раса",
+        th_misc_skill: "Разное",
+        th_armor: "Доспех",
+        th_ab_mod: "Мод.парам",
+        panel_knowledge: "Знания",
+        panel_perform: "Исполнение",
+        panel_craft_prof: "Ремесло / Профессия",
+        lbl_craft: "Ремесло (Инт)",
+        lbl_profession: "Профессия (Мдр, Только обученный)",
+        btn_add_craft: "+ Добавить ремесло",
+        btn_add_profession: "+ Добавить профессию",
+        panel_languages: "Языки",
+        btn_add_spell_set: "+ Добавить набор заклинаний",
+        lbl_caster_class: "Класс заклинателя",
+        lbl_caster_level: "Уровень заклинателя",
+        lbl_ability: "Параметр",
+        lbl_misc_spell: "Разное",
+        lbl_concentration: "Проверка концентрации",
+        lbl_spell_slots: "Ячейки заклинаний",
+        lbl_spell_list: "Список заклинаний",
+        lbl_spell_level: "Уровень",
+        lbl_total_val: "Итого (зм)",
+        panel_currency: "Валюта",
+        lbl_platinum: "Платина",
+        lbl_gold: "Золото",
+        lbl_silver: "Серебро",
+        lbl_copper: "Медь",
+        panel_carrying: "Несущая способность",
+        lbl_size_mod_inv: "Мод. размера",
+        lbl_quadruped: "Четвероногий",
+        lbl_current_load: "Текущая нагрузка (фн)",
+        lbl_light_load: "Лёгкая",
+        lbl_medium_load: "Средняя",
+        lbl_heavy_load: "Тяжёлая",
+        lbl_lift_over: "Поднять над головой",
+        lbl_lift_off: "Поднять с земли",
+        lbl_push_drag: "Толкнуть / Волочить",
+        lbl_encumbrance: "Нагрузка",
+        lbl_info_only: "Только для справки — не влияет на навыки",
+        panel_inventory: "Инвентарь",
+        btn_add_item: "+ Добавить предмет",
+        th_qty: "Кол-во",
+        th_item: "Предмет",
+        th_value_unit: "Цена/шт (зм)",
+        th_weight_unit: "Вес/шт (фн)",
+        th_total_value: "Общая цена",
+        th_total_weight: "Общий вес",
+        th_location: "Расположение",
+        panel_not_carried: "Места без переноски",
+        lbl_not_carried_desc: "Предметы в этих местах не включены в нагрузку:",
+        panel_feats: "Черты",
+        btn_add_feat: "+ Добавить",
+        panel_class_talents: "Таланты класса / Таланты разведчика / Открытия",
+        btn_add_talent: "+ Добавить",
+        panel_class_features: "Классовые способности",
+        btn_add_feature: "+ Добавить",
+        panel_racial: "Расовые особенности и черты",
+        btn_add_racial: "+ Добавить",
+        panel_proficiencies: "Владение",
+        panel_background: "Предыстория",
+        panel_general_notes: "Общие заметки",
+        panel_campaign_log: "Журнал кампании / группы",
+        status_fine: "В порядке!",
+        status_hurt: "Ранен",
+        status_bloodied: "Истекает кровью",
+        status_dying: "Умирает",
+        status_dead: "Мёртв",
+        enc_light: "Лёгкая",
+        enc_medium: "Средняя",
+        enc_heavy: "Тяжёлая",
+        enc_overloaded: "Перегрузка",
+        lang_toggle: "RU",
+        skill_acrobatics: "Акробатика",
+        skill_appraise: "Оценка",
+        skill_bluff: "Обман",
+        skill_climb: "Лазание",
+        skill_diplomacy: "Дипломатия",
+        skill_disableDevice: "Взлом",
+        skill_disguise: "Маскировка",
+        skill_escapeArtist: "Побег",
+        skill_fly: "Полёт",
+        skill_handleAnimal: "Уход за животными",
+        skill_heal: "Лечение",
+        skill_intimidate: "Запугивание",
+        skill_linguistics: "Лингвистика",
+        skill_perception: "Восприятие",
+        skill_ride: "Езда",
+        skill_senseMotive: "Проницательность",
+        skill_sleightOfHand: "Ловкость рук",
+        skill_spellcraft: "Магия",
+        skill_stealth: "Скрытность",
+        skill_survival: "Выживание",
+        skill_swim: "Плавание",
+        skill_useMagicDevice: "Использование маг. устройств",
+        skill_knowledgeArcana: "Знание (Магия)",
+        skill_knowledgeDungeoneering: "Знание (Подземелья)",
+        skill_knowledgeEngineering: "Знание (Инженерное)",
+        skill_knowledgeGeography: "Знание (География)",
+        skill_knowledgeHistory: "Знание (История)",
+        skill_knowledgeLocal: "Знание (Местное)",
+        skill_knowledgeNature: "Знание (Природа)",
+        skill_knowledgeNobilityRoyalty: "Знание (Благородство и королевская власть)",
+        skill_knowledgeReligion: "Знание (Религия)",
+        skill_knowledgeThePlanes: "Знание (Планы)",
+        skill_knowledgeOther: "Знание (Другое)",
+        skill_performAct: "Исполнение (Актёрское)",
+        skill_performComedy: "Исполнение (Комедия)",
+        skill_performDance: "Исполнение (Танец)",
+        skill_performKeyboard: "Исполнение (Клавишные)",
+        skill_performOratory: "Исполнение (Ораторство)",
+        skill_performPercussion: "Исполнение (Ударные)",
+        skill_performSing: "Исполнение (Пение)",
+        skill_performStringInstrument: "Исполнение (Струнные)",
+        skill_performWindInstrument: "Исполнение (Духовые)",
+        skill_performOther: "Исполнение (Другое)",
+      }
+    };
+
+    let currentLang = localStorage.getItem('pf18n_lang') || 'en';
+
+    function applyLanguage() {
+      const strings = i18n[currentLang] || i18n.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (strings[key] !== undefined) {
+          el.textContent = strings[key];
+        }
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.dataset.i18nPlaceholder;
+        if (strings[key] !== undefined) {
+          el.placeholder = strings[key];
+        }
+      });
+      const langBtn = document.getElementById('langToggle');
+      if (langBtn) langBtn.textContent = i18n[currentLang].lang_toggle;
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'ru' : 'en';
+      localStorage.setItem('pf18n_lang', currentLang);
+      applyLanguage();
+    }
 
     // ============================================
     // TAB NAVIGATION
@@ -1015,6 +1575,7 @@
       bindInputs();
       recalculate();
       updateDerived();
+      applyLanguage();
     }
 
     function newCharacter() {
@@ -1028,6 +1589,7 @@
       bindInputs();
       recalculate();
       updateDerived();
+      applyLanguage();
     }
 
     function duplicateCharacter() {
@@ -1044,6 +1606,7 @@
       bindInputs();
       recalculate();
       updateDerived();
+      applyLanguage();
     }
 
     function renameCharacter() {
@@ -1109,7 +1672,8 @@
               saveToStorage();
             }
           }
-          loadCharacterList();
+    loadCharacterList();
+    applyLanguage();
         } catch (err) {
           alert('Invalid JSON file');
         }
@@ -1306,10 +1870,23 @@
     }
 
     function updateDerived() {
+      const strings = i18n[currentLang] || i18n.en;
+      const statusMap = {
+        "Feelin' Fine!": strings.status_fine,
+        'Hurt': strings.status_hurt,
+        'Bloodied': strings.status_bloodied,
+        'Dying': strings.status_dying,
+        'Dead': strings.status_dead,
+      };
       document.querySelectorAll('[data-display]').forEach(el => {
         const value = getNestedValue(state, el.dataset.display);
         if (value !== undefined) {
-          if (typeof value === 'number' && el.dataset.display.includes('.mod')) {
+          if (el.dataset.display === 'combat.hp.status') {
+            el.textContent = statusMap[value] || value;
+          } else if (el.dataset.display === 'inventory.encumbrance') {
+            const encMap = { 'Light': strings.enc_light, 'Medium': strings.enc_medium, 'Heavy': strings.enc_heavy, 'Overloaded': strings.enc_overloaded };
+            el.textContent = encMap[value] || value;
+          } else if (typeof value === 'number' && el.dataset.display.includes('.mod')) {
             el.textContent = value >= 0 ? '+' + value : String(value);
           } else {
             el.textContent = String(value);
@@ -1477,7 +2054,7 @@
         return `
           <tr>
             <td><input type="checkbox" data-bind="skills.${s.key}.classSkill"></td>
-            <td>${s.name}${s.trainedOnly ? ' *' : ''}</td>
+            <td data-i18n="skill_${s.key}">${s.name}${s.trainedOnly ? ' *' : ''}</td>
             <td>${abbr[s.ability]}</td>
             <td class="derived" data-display="skills.${s.key}.total"></td>
             <td><input type="number" data-bind="skills.${s.key}.ranks" style="width:50px" min="0"></td>
@@ -1501,10 +2078,11 @@
       if (!tbody) return;
       tbody.innerHTML = KNOWLEDGE_SKILLS.map((name) => {
         const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+        const i18nKey = 'skill_knowledge' + name.replace(/[^a-zA-Z]/g, '');
         return `
           <tr>
             <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
-            <td>Knowledge (${name})</td>
+            <td data-i18n="${i18nKey}">Knowledge (${name})</td>
             <td class="derived" data-display="skills.${key}.total"></td>
             <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
             <td class="derived" data-display="skills.${key}.classSkillBonus"></td>
@@ -1526,10 +2104,11 @@
       if (!tbody) return;
       tbody.innerHTML = PERFORM_SKILLS.map((name) => {
         const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+        const i18nKey = 'skill_perform' + name.replace(/[^a-zA-Z]/g, '');
         return `
           <tr>
             <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
-            <td>Perform (${name})</td>
+            <td data-i18n="${i18nKey}">Perform (${name})</td>
             <td class="derived" data-display="skills.${key}.total"></td>
             <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
             <td class="derived" data-display="skills.${key}.classSkillBonus"></td>
@@ -1722,7 +2301,7 @@
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
               <span style="width:20px;color:#c9a84c;">${lvl}:</span>
               <input type="number" data-bind="spells.${si}.slots.${lvl}.total" style="width:40px" min="0" placeholder="Total">
-              <span style="color:#8b6914;">Used:</span>
+              <span style="color:#8b6914;" data-i18n="lbl_used">Used:</span>
               <input type="number" data-bind="spells.${si}.slots.${lvl}.used" style="width:40px" min="0">
               <span class="derived">= ${remaining}</span>
             </div>
@@ -1744,8 +2323,8 @@
           spellListHTML += `
             <div style="margin-bottom:8px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:#c9a84c;">Level ${lvl}</span>
-                <button onclick="addSpell(${si},${lvl})" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;font-size:11px;">+ Add</button>
+                <span style="color:#c9a84c;"><span data-i18n="lbl_spell_level">Level</span> ${lvl}</span>
+                <button onclick="addSpell(${si},${lvl})" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;font-size:11px;" data-i18n="btn_add_feat">+ Add</button>
               </div>
               ${spellRows}
             </div>
@@ -1760,33 +2339,33 @@
             </div>
             <div class="grid-4" style="margin-bottom:12px;">
               <div class="field-group">
-                <label class="field-label">Caster Class</label>
+                <label class="field-label" data-i18n="lbl_caster_class">Caster Class</label>
                 <input type="text" data-bind="spells.${si}.casterClass" style="width:100%">
               </div>
               <div class="field-group">
-                <label class="field-label">Caster Level</label>
+                <label class="field-label" data-i18n="lbl_caster_level">Caster Level</label>
                 <input type="number" data-bind="spells.${si}.casterLevel" style="width:100%">
               </div>
               <div class="field-group">
-                <label class="field-label">Ability</label>
+                <label class="field-label" data-i18n="lbl_ability">Ability</label>
                 <select data-bind="spells.${si}.ability">
-                  <option value="int">Intelligence</option>
-                  <option value="wis">Wisdom</option>
-                  <option value="cha">Charisma</option>
+                  <option value="int" data-i18n="ability_int">Intelligence</option>
+                  <option value="wis" data-i18n="ability_wis">Wisdom</option>
+                  <option value="cha" data-i18n="ability_cha">Charisma</option>
                 </select>
               </div>
               <div class="field-group">
-                <label class="field-label">Misc</label>
+                <label class="field-label" data-i18n="lbl_misc_spell">Misc</label>
                 <input type="number" data-bind="spells.${si}.misc" style="width:100%">
               </div>
             </div>
             <div class="field-group">
-              <label class="field-label">Concentration Check</label>
+              <label class="field-label" data-i18n="lbl_concentration">Concentration Check</label>
               <span class="derived" data-display="spells.${si}.concentration" style="font-size:18px;">0</span>
             </div>
-            <div class="panel-title" style="margin-top:12px;">Spell Slots</div>
+            <div class="panel-title" style="margin-top:12px;" data-i18n="lbl_spell_slots">Spell Slots</div>
             ${slotsHTML}
-            <div class="panel-title" style="margin-top:12px;">Spell List</div>
+            <div class="panel-title" style="margin-top:12px;" data-i18n="lbl_spell_list">Spell List</div>
             <div style="max-height:400px;overflow-y:auto;">
               ${spellListHTML}
             </div>
@@ -1899,7 +2478,7 @@
           <td><input type="text" data-bind="weapons.${i}.attackBonus" style="width:50px"></td>
           <td><input type="text" data-bind="weapons.${i}.critRange" style="width:50px"></td>
           <td><input type="text" data-bind="weapons.${i}.critMult" style="width:40px"></td>
-          <td><select data-bind="weapons.${i}.type"><option value="M">Melee</option><option value="R">Ranged</option></select></td>
+          <td><select data-bind="weapons.${i}.type"><option value="M" data-i18n="type_melee">Melee</option><option value="R" data-i18n="type_ranged">Ranged</option></select></td>
           <td><input type="text" data-bind="weapons.${i}.hand" style="width:50px"></td>
           <td><input type="text" data-bind="weapons.${i}.range" style="width:50px"></td>
           <td><input type="text" data-bind="weapons.${i}.notes" style="width:80px"></td>
@@ -1936,7 +2515,7 @@
           <td><input type="text" data-bind="armor.${i}.name" style="width:100px"></td>
           <td><input type="number" data-bind="armor.${i}.acBonus" style="width:50px"></td>
           <td><input type="number" data-bind="armor.${i}.enhBonus" style="width:50px"></td>
-          <td><select data-bind="armor.${i}.type"><option value="A">Armor</option><option value="S">Shield</option><option value="N">Natural</option><option value="D">Deflection</option></select></td>
+          <td><select data-bind="armor.${i}.type"><option value="A" data-i18n="type_armor">Armor</option><option value="S" data-i18n="type_shield">Shield</option><option value="N" data-i18n="type_natural">Natural</option><option value="D" data-i18n="type_deflection">Deflection</option></select></td>
           <td><input type="checkbox" data-bind="armor.${i}.heavy"></td>
           <td><input type="number" data-bind="armor.${i}.maxDex" style="width:50px"></td>
           <td><input type="number" data-bind="armor.${i}.checkPenalty" style="width:50px"></td>
@@ -1975,6 +2554,7 @@
     // INIT
     // ============================================
     loadCharacterList();
+    applyLanguage();
   </script>
 </body>
 </html>
