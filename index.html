@@ -182,6 +182,24 @@
       margin: 15px 0 8px 0;
     }
   </style>
+
+  <style>
+    @media print {
+      body { background: white; color: black; font-size: 12px; }
+      .tab-nav, .char-selector { display: none !important; }
+      .tab-panel { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
+      .panel { border: 1px solid #ccc; background: white; }
+      .panel-title { color: #333; border-bottom: 1px solid #ccc; }
+      input, select, textarea { border-bottom: 1px solid #999; color: black; background: transparent; }
+      input[type="checkbox"] { accent-color: black; }
+      .derived { color: #333; }
+      .field-label { color: #666; }
+      th { background: #eee; color: #333; }
+      td { background: white; }
+      button { display: none !important; }
+      h1, h2, h3, h4 { color: #333; }
+    }
+  </style>
 </head>
 <body>
   <!-- Character Selector -->
