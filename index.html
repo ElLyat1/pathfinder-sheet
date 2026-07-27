@@ -588,7 +588,98 @@
     </div>
   </div>
   <div id="tab-skills" class="tab-panel">
-    <p style="color: #8b6914; padding: 20px;">Skills tab — coming in Task 6.</p>
+    <!-- Skill Points -->
+    <div class="panel">
+      <div class="panel-title">Skill Points</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Available</label>
+          <input type="number" data-bind="skillPoints.available">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Used</label>
+          <span class="derived" data-display="skillPoints.used">0</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Remaining</label>
+          <span class="derived" data-display="skillPoints.remaining">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Table -->
+    <div class="panel">
+      <div class="panel-title">Skills</div>
+      <div style="overflow-x:auto;">
+        <table id="skillsTable">
+          <thead>
+            <tr>
+              <th>CS</th><th>Skill</th><th>Ability</th><th>Total</th><th>Ranks</th>
+              <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
+              <th>Misc</th><th>Armor</th><th>Ab Mod</th>
+            </tr>
+          </thead>
+          <tbody id="skillsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Knowledge Skills -->
+    <div class="panel">
+      <div class="panel-title">Knowledge Skills</div>
+      <div style="overflow-x:auto;">
+        <table id="knowledgeTable">
+          <thead>
+            <tr>
+              <th>CS</th><th>Skill</th><th>Total</th><th>Ranks</th>
+              <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
+              <th>Misc</th><th>Ab Mod</th>
+            </tr>
+          </thead>
+          <tbody id="knowledgeBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Perform Skills -->
+    <div class="panel">
+      <div class="panel-title">Perform Skills</div>
+      <div style="overflow-x:auto;">
+        <table id="performTable">
+          <thead>
+            <tr>
+              <th>CS</th><th>Skill</th><th>Total</th><th>Ranks</th>
+              <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
+              <th>Misc</th><th>Ab Mod</th>
+            </tr>
+          </thead>
+          <tbody id="performBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Craft / Profession -->
+    <div class="panel">
+      <div class="panel-title">Craft / Profession</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="margin-bottom:8px;">Craft (Int)</h4>
+          <div id="craftSkills"></div>
+          <button onclick="addCraftSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Craft</button>
+        </div>
+        <div>
+          <h4 style="margin-bottom:8px;">Profession (Wis, Trained Only)</h4>
+          <div id="professionSkills"></div>
+          <button onclick="addProfessionSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Profession</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="panel">
+      <div class="panel-title">Languages</div>
+      <textarea data-bind="languages" rows="2" placeholder="Comma-separated list"></textarea>
+    </div>
   </div>
   <div id="tab-abilities" class="tab-panel">
     <p style="color: #8b6914; padding: 20px;">Abilities tab — coming in Task 9.</p>
@@ -726,6 +817,10 @@
       renderAbilityScores();
       renderWeaponsTable();
       renderArmorTable();
+      renderSkillsTable();
+      renderKnowledgeTable();
+      renderPerformTable();
+      renderCraftProfession();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -740,6 +835,10 @@
       renderAbilityScores();
       renderWeaponsTable();
       renderArmorTable();
+      renderSkillsTable();
+      renderKnowledgeTable();
+      renderPerformTable();
+      renderCraftProfession();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -757,6 +856,10 @@
       renderAbilityScores();
       renderWeaponsTable();
       renderArmorTable();
+      renderSkillsTable();
+      renderKnowledgeTable();
+      renderPerformTable();
+      renderCraftProfession();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -927,6 +1030,21 @@
       else if (effective > -Math.abs(conMod)) hp.status = 'Dying';
       else hp.status = 'Dead';
 
+      // Skill points
+      if (!state.skillPoints) state.skillPoints = { available: 0, used: 0 };
+      let usedPoints = 0;
+      Object.values(state.skills || {}).forEach(sk => {
+        usedPoints += Number(sk.ranks) || 0;
+      });
+      state.skillPoints.used = usedPoints;
+      state.skillPoints.remaining = (state.skillPoints.available || 0) - usedPoints;
+
+      // Re-render skills
+      renderSkillsTable();
+      renderKnowledgeTable();
+      renderPerformTable();
+      renderCraftProfession();
+
       updateDisplay();
       saveToStorage();
     }
@@ -976,6 +1094,235 @@
           recalculate();
         });
       });
+    }
+
+    // ============================================
+    // SKILLS
+    // ============================================
+    const SKILL_DEFS = [
+      { key: 'acrobatics', name: 'Acrobatics', ability: 'dex', armorPenalty: true },
+      { key: 'appraise', name: 'Appraise', ability: 'int', armorPenalty: false },
+      { key: 'bluff', name: 'Bluff', ability: 'cha', armorPenalty: false },
+      { key: 'climb', name: 'Climb', ability: 'str', armorPenalty: true },
+      { key: 'diplomacy', name: 'Diplomacy', ability: 'cha', armorPenalty: false },
+      { key: 'disableDevice', name: 'Disable Device', ability: 'int', armorPenalty: true, trainedOnly: true },
+      { key: 'disguise', name: 'Disguise', ability: 'cha', armorPenalty: false },
+      { key: 'escapeArtist', name: 'Escape Artist', ability: 'dex', armorPenalty: true },
+      { key: 'fly', name: 'Fly', ability: 'dex', armorPenalty: true },
+      { key: 'handleAnimal', name: 'Handle Animal', ability: 'cha', armorPenalty: false, trainedOnly: true },
+      { key: 'heal', name: 'Heal', ability: 'wis', armorPenalty: false },
+      { key: 'intimidate', name: 'Intimidate', ability: 'cha', armorPenalty: false },
+      { key: 'linguistics', name: 'Linguistics', ability: 'int', armorPenalty: false, trainedOnly: true },
+      { key: 'perception', name: 'Perception', ability: 'wis', armorPenalty: false },
+      { key: 'ride', name: 'Ride', ability: 'dex', armorPenalty: true },
+      { key: 'senseMotive', name: 'Sense Motive', ability: 'wis', armorPenalty: false },
+      { key: 'sleightOfHand', name: 'Sleight of Hand', ability: 'dex', armorPenalty: true, trainedOnly: true },
+      { key: 'spellcraft', name: 'Spellcraft', ability: 'int', armorPenalty: false, trainedOnly: true },
+      { key: 'stealth', name: 'Stealth', ability: 'dex', armorPenalty: true },
+      { key: 'survival', name: 'Survival', ability: 'wis', armorPenalty: false },
+      { key: 'swim', name: 'Swim', ability: 'str', armorPenalty: true },
+      { key: 'useMagicDevice', name: 'Use Magic Device', ability: 'cha', armorPenalty: false, trainedOnly: true },
+    ];
+
+    const KNOWLEDGE_SKILLS = [
+      'Arcana', 'Dungeoneering', 'Engineering', 'Geography', 'History',
+      'Local', 'Nature', 'Nobility & Royalty', 'Religion', 'The Planes', 'Other'
+    ];
+
+    const PERFORM_SKILLS = [
+      'Act', 'Comedy', 'Dance', 'Keyboard', 'Oratory',
+      'Percussion', 'Sing', 'String Instrument', 'Wind Instrument', 'Other'
+    ];
+
+    function getArmorCheckPenalty() {
+      return (state.armor || [])
+        .filter(a => a.equipped)
+        .reduce((sum, a) => sum + (Number(a.checkPenalty) || 0), 0);
+    }
+
+    function ensureSkillData() {
+      if (!state.skills) state.skills = {};
+      SKILL_DEFS.forEach(s => {
+        if (!state.skills[s.key]) {
+          state.skills[s.key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0 };
+        }
+      });
+      KNOWLEDGE_SKILLS.forEach((name) => {
+        const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+        if (!state.skills[key]) {
+          state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, trainedOnly: true };
+        }
+      });
+      PERFORM_SKILLS.forEach((name) => {
+        const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+        if (!state.skills[key]) {
+          state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0 };
+        }
+      });
+    }
+
+    function calcSkillTotal(skill, abilityKey, armorPenaltyFlag) {
+      const ab = state.abilityScores[abilityKey];
+      const abMod = ab ? ab.mod : 0;
+      const ranks = Number(skill.ranks) || 0;
+      const classSkillBonus = (skill.classSkill && ranks > 0) ? 3 : 0;
+      let armorPen = 0;
+      if (armorPenaltyFlag) {
+        armorPen = getArmorCheckPenalty();
+      }
+      return {
+        total: ranks + classSkillBonus + abMod + (Number(skill.competence) || 0)
+          + (Number(skill.circumstance) || 0) + (Number(skill.feat) || 0)
+          + (Number(skill.race) || 0) + (Number(skill.misc) || 0) + armorPen,
+        classSkillBonus,
+        abilityMod: abMod,
+        armorPenalty: armorPen
+      };
+    }
+
+    function renderSkillsTable() {
+      ensureSkillData();
+      const abbr = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
+      const tbody = document.getElementById('skillsBody');
+      if (!tbody) return;
+      tbody.innerHTML = SKILL_DEFS.map((s) => {
+        const sk = state.skills[s.key];
+        const calc = calcSkillTotal(sk, s.ability, s.armorPenalty);
+        return `
+          <tr>
+            <td><input type="checkbox" data-bind="skills.${s.key}.classSkill"></td>
+            <td>${s.name}${s.trainedOnly ? ' *' : ''}</td>
+            <td>${abbr[s.ability]}</td>
+            <td class="derived" data-display="skills.${s.key}.total">${calc.total}</td>
+            <td><input type="number" data-bind="skills.${s.key}.ranks" style="width:50px" min="0"></td>
+            <td class="derived">${calc.classSkillBonus}</td>
+            <td><input type="number" data-bind="skills.${s.key}.competence" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${s.key}.circumstance" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${s.key}.feat" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${s.key}.race" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${s.key}.misc" style="width:50px"></td>
+            <td class="derived">${calc.armorPenalty}</td>
+            <td class="derived">${calc.abilityMod >= 0 ? '+' : ''}${calc.abilityMod}</td>
+          </tr>
+        `;
+      }).join('');
+      bindInputs();
+    }
+
+    function renderKnowledgeTable() {
+      ensureSkillData();
+      const tbody = document.getElementById('knowledgeBody');
+      if (!tbody) return;
+      tbody.innerHTML = KNOWLEDGE_SKILLS.map((name) => {
+        const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+        const sk = state.skills[key];
+        const calc = calcSkillTotal(sk, 'int', false);
+        return `
+          <tr>
+            <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
+            <td>Knowledge (${name})</td>
+            <td class="derived" data-display="skills.${key}.total">${calc.total}</td>
+            <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
+            <td class="derived">${calc.classSkillBonus}</td>
+            <td><input type="number" data-bind="skills.${key}.competence" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.circumstance" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.feat" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.race" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.misc" style="width:50px"></td>
+            <td class="derived">+${calc.abilityMod}</td>
+          </tr>
+        `;
+      }).join('');
+      bindInputs();
+    }
+
+    function renderPerformTable() {
+      ensureSkillData();
+      const tbody = document.getElementById('performBody');
+      if (!tbody) return;
+      tbody.innerHTML = PERFORM_SKILLS.map((name) => {
+        const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+        const sk = state.skills[key];
+        const calc = calcSkillTotal(sk, 'cha', false);
+        return `
+          <tr>
+            <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
+            <td>Perform (${name})</td>
+            <td class="derived" data-display="skills.${key}.total">${calc.total}</td>
+            <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
+            <td class="derived">${calc.classSkillBonus}</td>
+            <td><input type="number" data-bind="skills.${key}.competence" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.circumstance" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.feat" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.race" style="width:50px"></td>
+            <td><input type="number" data-bind="skills.${key}.misc" style="width:50px"></td>
+            <td class="derived">+${calc.abilityMod}</td>
+          </tr>
+        `;
+      }).join('');
+      bindInputs();
+    }
+
+    function renderCraftProfession() {
+      ensureSkillData();
+      const craftContainer = document.getElementById('craftSkills');
+      const profContainer = document.getElementById('professionSkills');
+      if (!craftContainer || !profContainer) return;
+
+      const craftSkills = Object.entries(state.skills).filter(([k]) => k.startsWith('craft'));
+      const profSkills = Object.entries(state.skills).filter(([k]) => k.startsWith('profession'));
+
+      craftContainer.innerHTML = craftSkills.map(([key]) => {
+        const sk = state.skills[key];
+        const calc = calcSkillTotal(sk, 'int', false);
+        return `
+          <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
+            <input type="text" data-bind="skills.${key}.customName" placeholder="Craft name" style="width:120px">
+            <input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0" placeholder="Ranks">
+            <span class="derived" data-display="skills.${key}.total">${calc.total}</span>
+            <button onclick="removeSkill('${key}')" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+          </div>
+        `;
+      }).join('');
+
+      profContainer.innerHTML = profSkills.map(([key]) => {
+        const sk = state.skills[key];
+        const calc = calcSkillTotal(sk, 'wis', false);
+        return `
+          <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
+            <input type="text" data-bind="skills.${key}.customName" placeholder="Profession name" style="width:120px">
+            <input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0" placeholder="Ranks">
+            <span class="derived" data-display="skills.${key}.total">${calc.total}</span>
+            <button onclick="removeSkill('${key}')" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+          </div>
+        `;
+      }).join('');
+
+      bindInputs();
+    }
+
+    function addCraftSkill() {
+      const count = Object.keys(state.skills).filter(k => k.startsWith('craft')).length;
+      if (count >= 5) return;
+      const key = 'craft' + (count + 1);
+      state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'int', armorPenalty: false, customName: '' };
+      renderCraftProfession();
+      saveToStorage();
+    }
+
+    function addProfessionSkill() {
+      const count = Object.keys(state.skills).filter(k => k.startsWith('profession')).length;
+      if (count >= 5) return;
+      const key = 'profession' + (count + 1);
+      state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'wis', armorPenalty: false, trainedOnly: true, customName: '' };
+      renderCraftProfession();
+      saveToStorage();
+    }
+
+    function removeSkill(key) {
+      delete state.skills[key];
+      renderCraftProfession();
+      saveToStorage();
     }
 
     // ============================================
