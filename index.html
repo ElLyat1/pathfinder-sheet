@@ -531,6 +531,61 @@
         </div>
       </div>
     </div>
+
+    <!-- Weapons -->
+    <div class="panel">
+      <div class="panel-title">Weapons</div>
+      <table id="weaponsTable">
+        <thead>
+          <tr>
+            <th>Name</th><th>Damage</th><th>Atk Bonus</th><th>Crit</th><th>Type</th><th>Hand</th><th>Range</th><th>Notes</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="weaponsBody"></tbody>
+      </table>
+      <button onclick="addWeapon()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Weapon</button>
+    </div>
+
+    <!-- Armor -->
+    <div class="panel">
+      <div class="panel-title">Armor</div>
+      <table id="armorTable">
+        <thead>
+          <tr>
+            <th>Eq</th><th>Name</th><th>AC Bonus</th><th>Enh</th><th>Type</th><th>Heavy?</th><th>Max Dex</th><th>Check Pen</th><th>Arcane Fail</th><th>Notes</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="armorBody"></tbody>
+      </table>
+      <button onclick="addArmor()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Armor</button>
+    </div>
+
+    <!-- Conditions -->
+    <div class="panel">
+      <div class="panel-title">Common Conditions</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <label><input type="checkbox" data-bind="conditions.blinded"> Blinded</label>
+        <label><input type="checkbox" data-bind="conditions.cowering"> Cowering</label>
+        <label><input type="checkbox" data-bind="conditions.dazzled"> Dazzled</label>
+        <label><input type="checkbox" data-bind="conditions.deafened"> Deafened</label>
+        <label><input type="checkbox" data-bind="conditions.entangled"> Entangled</label>
+        <label><input type="checkbox" data-bind="conditions.exhausted"> Exhausted</label>
+        <label><input type="checkbox" data-bind="conditions.fatigued"> Fatigued</label>
+        <label><input type="checkbox" data-bind="conditions.frightened"> Frightened</label>
+        <label><input type="checkbox" data-bind="conditions.grappled"> Grappled</label>
+        <label><input type="checkbox" data-bind="conditions.panicked"> Panicked</label>
+        <label><input type="checkbox" data-bind="conditions.pinned"> Pinned</label>
+        <label><input type="checkbox" data-bind="conditions.prone"> Prone</label>
+        <label><input type="checkbox" data-bind="conditions.shaken"> Shaken</label>
+        <label><input type="checkbox" data-bind="conditions.sickened"> Sickened</label>
+        <label><input type="checkbox" data-bind="conditions.stunned"> Stunned</label>
+        <label><input type="checkbox" data-bind="conditions.haste"> Haste</label>
+        <label><input type="checkbox" data-bind="conditions.prayer"> Prayer</label>
+        <label><input type="checkbox" data-bind="conditions.enlarge"> Enlarge</label>
+        <label><input type="checkbox" data-bind="conditions.reduce"> Reduce</label>
+        <label><input type="checkbox" data-bind="conditions.heroism"> Heroism</label>
+      </div>
+    </div>
   </div>
   <div id="tab-skills" class="tab-panel">
     <p style="color: #8b6914; padding: 20px;">Skills tab — coming in Task 6.</p>
@@ -669,6 +724,8 @@
       }
       loadCharacterList();
       renderAbilityScores();
+      renderWeaponsTable();
+      renderArmorTable();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -681,6 +738,8 @@
       saveToStorage();
       loadCharacterList();
       renderAbilityScores();
+      renderWeaponsTable();
+      renderArmorTable();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -696,6 +755,8 @@
       saveToStorage();
       loadCharacterList();
       renderAbilityScores();
+      renderWeaponsTable();
+      renderArmorTable();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -915,6 +976,88 @@
           recalculate();
         });
       });
+    }
+
+    // ============================================
+    // WEAPONS TABLE
+    // ============================================
+    function renderWeaponsTable() {
+      const tbody = document.getElementById('weaponsBody');
+      if (!tbody) return;
+      if (!state.weapons) state.weapons = [];
+      tbody.innerHTML = state.weapons.map((w, i) => `
+        <tr>
+          <td><input type="text" data-bind="weapons.${i}.name" style="width:100px"></td>
+          <td><input type="text" data-bind="weapons.${i}.damage" style="width:60px"></td>
+          <td><input type="text" data-bind="weapons.${i}.attackBonus" style="width:50px"></td>
+          <td><input type="text" data-bind="weapons.${i}.critRange" style="width:50px"></td>
+          <td><input type="text" data-bind="weapons.${i}.critMult" style="width:40px"></td>
+          <td><select data-bind="weapons.${i}.type"><option value="M">Melee</option><option value="R">Ranged</option></select></td>
+          <td><input type="text" data-bind="weapons.${i}.hand" style="width:50px"></td>
+          <td><input type="text" data-bind="weapons.${i}.range" style="width:50px"></td>
+          <td><input type="text" data-bind="weapons.${i}.notes" style="width:80px"></td>
+          <td><button onclick="removeWeapon(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
+        </tr>
+      `).join('');
+      bindInputs();
+    }
+
+    function addWeapon() {
+      if (!state.weapons) state.weapons = [];
+      if (state.weapons.length >= 8) return;
+      state.weapons.push({ name: '', damage: '', attackBonus: '', critRange: '', critMult: '', type: 'M', hand: '', range: '', notes: '' });
+      renderWeaponsTable();
+      saveToStorage();
+    }
+
+    function removeWeapon(index) {
+      state.weapons.splice(index, 1);
+      renderWeaponsTable();
+      saveToStorage();
+    }
+
+    // ============================================
+    // ARMOR TABLE
+    // ============================================
+    function renderArmorTable() {
+      const tbody = document.getElementById('armorBody');
+      if (!tbody) return;
+      if (!state.armor) state.armor = [];
+      tbody.innerHTML = state.armor.map((a, i) => `
+        <tr>
+          <td><input type="checkbox" data-bind="armor.${i}.equipped" onchange="onArmorToggle()"></td>
+          <td><input type="text" data-bind="armor.${i}.name" style="width:100px"></td>
+          <td><input type="number" data-bind="armor.${i}.acBonus" style="width:50px"></td>
+          <td><input type="number" data-bind="armor.${i}.enhBonus" style="width:50px"></td>
+          <td><select data-bind="armor.${i}.type"><option value="A">Armor</option><option value="S">Shield</option><option value="N">Natural</option><option value="D">Deflection</option></select></td>
+          <td><input type="checkbox" data-bind="armor.${i}.heavy"></td>
+          <td><input type="number" data-bind="armor.${i}.maxDex" style="width:50px"></td>
+          <td><input type="number" data-bind="armor.${i}.checkPenalty" style="width:50px"></td>
+          <td><input type="number" data-bind="armor.${i}.arcaneFail" style="width:50px"></td>
+          <td><input type="text" data-bind="armor.${i}.notes" style="width:80px"></td>
+          <td><button onclick="removeArmor(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
+        </tr>
+      `).join('');
+      bindInputs();
+    }
+
+    function addArmor() {
+      if (!state.armor) state.armor = [];
+      if (state.armor.length >= 6) return;
+      state.armor.push({ equipped: false, name: '', acBonus: 0, enhBonus: 0, type: 'A', heavy: false, maxDex: '', checkPenalty: 0, arcaneFail: 0, notes: '' });
+      renderArmorTable();
+      saveToStorage();
+    }
+
+    function removeArmor(index) {
+      state.armor.splice(index, 1);
+      renderArmorTable();
+      recalculate();
+      saveToStorage();
+    }
+
+    function onArmorToggle() {
+      setTimeout(() => recalculate(), 10);
     }
 
     // ============================================
