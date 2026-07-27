@@ -328,6 +328,8 @@
     }
 
     @media (max-width: 700px) {
+      .title-text { font-size: 28px; letter-spacing: 0.2em; }
+      .title-banner { padding: 20px 15px 10px; }
       .content-wrapper {
         max-width: 100%;
       }
@@ -340,15 +342,18 @@
   <style>
     @media print {
       body { background: white; color: black; font-size: 12px; }
+      body::before, body::after { display: none !important; }
+      .title-banner { display: none !important; }
       .tab-nav, .char-selector { display: none !important; }
       .content-wrapper { max-width: 100%; padding: 0; }
       .tab-panel { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
       .tab-panel.wide { max-width: 100%; }
-      .panel { border: 1px solid #ccc; background: white; }
+      .panel { background: white; border: 1px solid #ccc; box-shadow: none; }
+      .panel::before { display: none; }
       .panel-title { color: #333; border-bottom: 1px solid #ccc; }
       .panel-title::before, .panel-title::after { content: none; }
-      input, select, textarea { border-bottom: 1px solid #999; color: black; background: transparent; }
-      input[type="checkbox"] { appearance: auto; -webkit-appearance: auto; background: transparent; border: 1px solid #999; width: auto; height: auto; box-shadow: none; }
+      input, select, textarea { border: 1px solid #999; color: black; background: transparent; box-shadow: none; }
+      input[type="checkbox"] { appearance: auto; -webkit-appearance: auto; background: transparent; border: 1px solid #999; }
       input[type="checkbox"]:checked::after { content: none; }
       .derived { color: #333; }
       .field-label { color: #666; }
@@ -356,6 +361,7 @@
       td { background: white; }
       button { display: none !important; }
       h1, h2, h3, h4 { color: #333; }
+      .lang-btn { display: none !important; }
     }
 
     @media (max-width: 900px) {
@@ -1354,6 +1360,15 @@
         skill_performStringInstrument: "Perform (String Instrument)",
         skill_performWindInstrument: "Perform (Wind Instrument)",
         skill_performOther: "Perform (Other)",
+        ability_int: "Intelligence",
+        ability_wis: "Wisdom",
+        ability_cha: "Charisma",
+        type_melee: "Melee",
+        type_ranged: "Ranged",
+        type_armor: "Armor",
+        type_shield: "Shield",
+        type_natural: "Natural",
+        type_deflection: "Deflection",
       },
       ru: {
         tab_main: "Основное",
@@ -1613,6 +1628,15 @@
         skill_performStringInstrument: "Исполнение (Струнные)",
         skill_performWindInstrument: "Исполнение (Духовые)",
         skill_performOther: "Исполнение (Другое)",
+        ability_int: "Интеллект",
+        ability_wis: "Мудрость",
+        ability_cha: "Харизма",
+        type_melee: "Ближний",
+        type_ranged: "Дальний",
+        type_armor: "Доспех",
+        type_shield: "Щит",
+        type_natural: "Природный",
+        type_deflection: "Отражение",
       }
     };
 
