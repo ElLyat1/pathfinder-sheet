@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pathfinder 1e Character Sheet</title>
+  <style>
+    /* Reset and base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, "Crimson Text", serif;
+      background: #1a1410;
+      color: #e8d5a3;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      color: #c9a84c;
+    }
+
+    /* Tab navigation */
+    .tab-nav {
+      display: flex;
+      background: #2a2018;
+      border-bottom: 2px solid #6b4c1e;
+      padding: 0 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #8b6914;
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      font-size: 14px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab-btn:hover { color: #c9a84c; }
+    .tab-btn.active {
+      color: #c9a84c;
+      border-bottom-color: #c9a84c;
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; padding: 15px; }
+    .tab-panel.active { display: block; }
+
+    /* Character selector bar */
+    .char-selector {
+      background: #2a2018;
+      border-bottom: 1px solid #6b4c1e;
+      padding: 8px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .char-selector select {
+      background: #1a1410;
+      color: #e8d5a3;
+      border: 1px solid #6b4c1e;
+      padding: 4px 8px;
+      font-family: Georgia, serif;
+    }
+
+    .char-selector button {
+      background: #6b4c1e;
+      color: #e8d5a3;
+      border: none;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: Georgia, serif;
+    }
+
+    .char-selector button:hover { background: #c9a84c; color: #1a1410; }
+
+    /* Input styling */
+    input, select, textarea {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #8b6914;
+      color: #e8d5a3;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      padding: 2px 4px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-bottom-color: #c9a84c;
+    }
+
+    input[type="checkbox"] {
+      border-bottom: none;
+      accent-color: #c9a84c;
+    }
+
+    textarea {
+      border: 1px solid #8b6914;
+      resize: vertical;
+      width: 100%;
+    }
+
+    /* Panel styling */
+    .panel {
+      background: #2a2018;
+      border: 1px solid #6b4c1e;
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      color: #c9a84c;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #6b4c1e;
+      padding-bottom: 5px;
+    }
+
+    /* Grid layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #6b4c1e;
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    th {
+      background: #2a2018;
+      color: #c9a84c;
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      font-size: 12px;
+    }
+
+    td { background: #1a1410; }
+
+    /* Label styling */
+    .field-label {
+      color: #8b6914;
+      font-size: 11px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .field-group { margin-bottom: 8px; }
+
+    /* Derived value display */
+    .derived {
+      font-weight: bold;
+      color: #c9a84c;
+    }
+
+    /* Section header */
+    .section-header {
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      color: #c9a84c;
+      font-size: 14px;
+      margin: 15px 0 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Character Selector -->
+  <div class="char-selector">
+    <label style="color: #c9a84c;">Character:</label>
+    <select id="charSelect"></select>
+    <button onclick="newCharacter()">New</button>
+    <button onclick="duplicateCharacter()">Duplicate</button>
+    <button onclick="renameCharacter()">Rename</button>
+    <button onclick="deleteCharacter()">Delete</button>
+    <span style="flex:1"></span>
+    <button onclick="exportCharacter()">Export</button>
+    <button onclick="exportAll()">Export All</button>
+    <button onclick="importCharacter()">Import</button>
+  </div>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('main')">Main</button>
+    <button class="tab-btn" onclick="switchTab('skills')">Skills</button>
+    <button class="tab-btn" onclick="switchTab('abilities')">Abilities</button>
+    <button class="tab-btn" onclick="switchTab('spells')">Spells</button>
+    <button class="tab-btn" onclick="switchTab('inventory')">Inventory</button>
+    <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
+  </nav>
+
+  <!-- Tab Panels -->
+  <div id="tab-main" class="tab-panel active">
+    <p style="color: #8b6914; padding: 20px;">Tab content will be built in subsequent tasks.</p>
+  </div>
+  <div id="tab-skills" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Skills tab — coming in Task 6.</p>
+  </div>
+  <div id="tab-abilities" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Abilities tab — coming in Task 9.</p>
+  </div>
+  <div id="tab-spells" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Spells tab — coming in Task 7.</p>
+  </div>
+  <div id="tab-inventory" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Inventory tab — coming in Task 8.</p>
+  </div>
+  <div id="tab-notes" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Notes tab — coming in Task 10.</p>
+  </div>
+
+  <script>
+    // ============================================
+    // STATE
+    // ============================================
+    let state = {};
+    let currentCharId = null;
+    let saveTimeout = null;
+
+    // ============================================
+    // TAB SWITCHING
+    // ============================================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // ============================================
+    // CHARACTER MANAGEMENT (placeholder — Task 2)
+    // ============================================
+    function loadCharacterList() {}
+    function selectCharacter(id) {}
+    function newCharacter() {}
+    function duplicateCharacter() {}
+    function renameCharacter() {}
+    function deleteCharacter() {}
+    function exportCharacter() {}
+    function exportAll() {}
+    function importCharacter() {}
+
+    // ============================================
+    // PERSISTENCE (placeholder — Task 2)
+    // ============================================
+    function saveToStorage() {}
+    function loadFromStorage(id) {}
+
+    // ============================================
+    // INIT
+    // ============================================
+    loadCharacterList();
+  </script>
+</body>
+</html>
