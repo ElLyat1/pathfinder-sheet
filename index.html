@@ -561,9 +561,11 @@
       document.querySelectorAll('[data-display]').forEach(el => {
         const value = getNestedValue(state, el.dataset.display);
         if (value !== undefined) {
-          el.textContent = typeof value === 'number'
-            ? (value >= 0 ? '+' + value : String(value))
-            : String(value);
+          if (typeof value === 'number' && el.dataset.display.includes('.mod')) {
+            el.textContent = value >= 0 ? '+' + value : String(value);
+          } else {
+            el.textContent = String(value);
+          }
         }
       });
     }
@@ -584,17 +586,20 @@
 
     function bindInputs() {
       document.querySelectorAll('[data-bind]').forEach(input => {
-        const path = input.dataset.bind;
+        // Remove old listener by cloning
+        const clone = input.cloneNode(true);
+        input.parentNode.replaceChild(clone, input);
+
+        const path = clone.dataset.bind;
         const existing = getNestedValue(state, path);
         if (existing !== undefined) {
-          input.value = existing;
+          clone.value = existing;
         }
-        input.addEventListener('input', () => {
-          let val = input.value;
-          if (input.type === 'number') val = Number(val) || 0;
+        clone.addEventListener('input', () => {
+          let val = clone.value;
+          if (clone.type === 'number') val = Number(val) || 0;
           setNestedValue(state, path, val);
           recalculate();
-          updateDisplay();
         });
       });
     }
