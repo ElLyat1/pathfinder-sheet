@@ -235,33 +235,198 @@
     let saveTimeout = null;
 
     // ============================================
-    // TAB SWITCHING
+    // UUID GENERATOR & DEFAULT STATE
     // ============================================
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tabName).classList.add('active');
-      event.target.classList.add('active');
+    function generateId() {
+      return 'xxxx-xxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16));
+    }
+
+    function createDefaultState() {
+      return {
+        meta: { id: generateId(), name: 'New Character', created: Date.now() },
+        main: { name: '', class: '', level: 1, race: '', alignment: '', deity: '', xp: 0, xpNext: 0, gender: '', age: '', height: '', weight: '', hair: '', eyes: '', skin: '' },
+        abilityScores: {
+          str: { base: 10, mod: 0 }, dex: { base: 10, mod: 0 },
+          con: { base: 10, mod: 0 }, int: { base: 10, mod: 0 },
+          wis: { base: 10, mod: 0 }, cha: { base: 10, mod: 0 }
+        },
+        combat: {
+          hp: { current: 10, max: 10, temp: 0, nonlethal: 0, status: '' },
+          ac: { total: 10, touch: 10, flatFooted: 10, armor: 0, shield: 0, natural: 0, dex: 0, size: 0, deflection: 0, dodge: 0, misc: 0 },
+          cmb: { total: 0, bab: 0, strMod: 0, size: 0, misc: 0 },
+          cmd: { total: 10, bab: 0, strMod: 0, dexMod: 0, size: 0, misc: 0 },
+          saves: {
+            fort: { base: 0, conMod: 0, resistance: 0, misc: 0 },
+            ref: { base: 0, dexMod: 0, resistance: 0, misc: 0 },
+            will: { base: 0, wisMod: 0, resistance: 0, misc: 0 }
+          },
+          initiative: { total: 0, dexMod: 0, misc: 0 },
+          bab: { value: 0, meleeAttacks: [], rangedAttacks: [] },
+          speed: { ground: 30, climb: 0, swim: 0, fly: 0, armorReduction: 0 },
+          dr: '', fastHealing: '', sr: '',
+          energyResist: { fire: '', cold: '', electricity: '', acid: '', sonic: '' }
+        },
+        weapons: [],
+        armor: [],
+        conditions: { blinded: false, cowering: false, dazzled: false, deafened: false, entangled: false, exhausted: false, fatigued: false, frightened: false, grappled: false, panicked: false, pinned: false, prone: false, shaken: false, sickened: false, stunned: false, haste: false, prayer: false, enlarge: false, reduce: false, heroism: false },
+        skills: {},
+        skillPoints: { available: 0, used: 0 },
+        languages: '',
+        featsAndFeatures: { feats: [], classTalents: [], classFeatures: [], racialFeatures: [], proficiencies: '' },
+        spells: [],
+        inventory: { currency: { platinum: 0, gold: 0, silver: 0, copper: 0 }, totalValueGP: 0, carryingCapacity: { light: 0, medium: 0, heavy: 0 }, encumbrance: 'Light', carriedWeight: 0, sizeModifier: 'Medium', isQuadruped: false, notCarriedLocations: [], items: [] },
+        notes: { background: '', general: '', log: '' }
+      };
     }
 
     // ============================================
-    // CHARACTER MANAGEMENT (placeholder — Task 2)
+    // PERSISTENCE
     // ============================================
-    function loadCharacterList() {}
-    function selectCharacter(id) {}
-    function newCharacter() {}
-    function duplicateCharacter() {}
-    function renameCharacter() {}
-    function deleteCharacter() {}
-    function exportCharacter() {}
-    function exportAll() {}
-    function importCharacter() {}
+    const STORAGE_KEY_INDEX = 'pf1e_char_index';
+    const STORAGE_KEY_PREFIX = 'pf1e_char_';
+
+    function saveToStorage() {
+      if (!currentCharId) return;
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY_PREFIX + currentCharId, JSON.stringify(state));
+        let index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+        const existing = index.find(c => c.id === currentCharId);
+        if (existing) {
+          existing.name = state.meta.name;
+        } else {
+          index.push({ id: currentCharId, name: state.meta.name });
+        }
+        localStorage.setItem(STORAGE_KEY_INDEX, JSON.stringify(index));
+      }, 300);
+    }
+
+    function loadFromStorage(id) {
+      const data = localStorage.getItem(STORAGE_KEY_PREFIX + id);
+      return data ? JSON.parse(data) : null;
+    }
 
     // ============================================
-    // PERSISTENCE (placeholder — Task 2)
+    // CHARACTER MANAGEMENT
     // ============================================
-    function saveToStorage() {}
-    function loadFromStorage(id) {}
+    function loadCharacterList() {
+      const index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+      const select = document.getElementById('charSelect');
+      select.innerHTML = '';
+      index.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        if (c.id === currentCharId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      select.onchange = () => selectCharacter(select.value);
+
+      if (index.length === 0) {
+        newCharacter();
+      } else if (!currentCharId) {
+        selectCharacter(index[0].id);
+      }
+    }
+
+    function selectCharacter(id) {
+      currentCharId = id;
+      const loaded = loadFromStorage(id);
+      if (loaded) {
+        state = loaded;
+      }
+      loadCharacterList();
+    }
+
+    function newCharacter() {
+      const newState = createDefaultState();
+      currentCharId = newState.meta.id;
+      state = newState;
+      saveToStorage();
+      loadCharacterList();
+    }
+
+    function duplicateCharacter() {
+      if (!currentCharId) return;
+      const newState = JSON.parse(JSON.stringify(state));
+      newState.meta.id = generateId();
+      newState.meta.name += ' (Copy)';
+      currentCharId = newState.meta.id;
+      state = newState;
+      saveToStorage();
+      loadCharacterList();
+    }
+
+    function renameCharacter() {
+      if (!currentCharId) return;
+      const name = prompt('New name:', state.meta.name);
+      if (name) {
+        state.meta.name = name;
+        saveToStorage();
+        loadCharacterList();
+      }
+    }
+
+    function deleteCharacter() {
+      if (!currentCharId) return;
+      if (!confirm('Delete "' + state.meta.name + '"?')) return;
+      localStorage.removeItem(STORAGE_KEY_PREFIX + currentCharId);
+      let index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+      index = index.filter(c => c.id !== currentCharId);
+      localStorage.setItem(STORAGE_KEY_INDEX, JSON.stringify(index));
+      currentCharId = null;
+      loadCharacterList();
+    }
+
+    // ============================================
+    // EXPORT / IMPORT
+    // ============================================
+    function exportCharacter() {
+      if (!currentCharId) return;
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (state.meta.name || 'character') + '.json';
+      a.click();
+    }
+
+    function exportAll() {
+      const index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+      const all = index.map(c => loadFromStorage(c.id)).filter(Boolean);
+      const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pathfinder_characters.json';
+      a.click();
+    }
+
+    function importCharacter() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async (e) => {
+        const text = await e.target.files[0].text();
+        try {
+          const data = JSON.parse(text);
+          const items = Array.isArray(data) ? data : [data];
+          for (const item of items) {
+            if (item.meta && item.meta.id) {
+              const existing = loadFromStorage(item.meta.id);
+              if (existing) {
+                if (!confirm('Overwrite "' + item.meta.name + '"?')) continue;
+              }
+              currentCharId = item.meta.id;
+              state = item;
+              saveToStorage();
+            }
+          }
+          loadCharacterList();
+        } catch (err) {
+          alert('Invalid JSON file');
+        }
+      };
+      input.click();
+    }
 
     // ============================================
     // INIT
