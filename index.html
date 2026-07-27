@@ -235,6 +235,16 @@
     let saveTimeout = null;
 
     // ============================================
+    // TAB NAVIGATION
+    // ============================================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // ============================================
     // UUID GENERATOR & DEFAULT STATE
     // ============================================
     function generateId() {
