@@ -145,21 +145,61 @@
 
     /* Panel styling */
     .panel {
-      background: #2a2018;
-      border: 1px solid #6b4c1e;
+      background:
+        repeating-linear-gradient(
+          87deg,
+          rgba(42, 32, 24, 0.95) 0px,
+          rgba(38, 28, 20, 0.95) 2px,
+          rgba(45, 35, 25, 0.95) 4px,
+          rgba(40, 30, 22, 0.95) 6px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(50, 38, 28, 0.3) 0px,
+          transparent 1px,
+          transparent 3px
+        );
+      border: 1px solid #5a421e;
       border-radius: 4px;
-      padding: 12px;
-      margin-bottom: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05),
+        inset 0 1px 3px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      border: 1px solid rgba(201, 168, 76, 0.1);
+      pointer-events: none;
     }
 
     .panel-title {
       font-family: "Cinzel", Georgia, "Times New Roman", serif;
       color: #c9a84c;
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 10px;
-      border-bottom: 1px solid #6b4c1e;
-      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(107, 76, 30, 0.6);
+      padding-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+
+    .panel-title::before,
+    .panel-title::after {
+      content: '═';
+      color: #6b4c1e;
+      font-size: 12px;
+    }
+
+    .panel-title::before { content: '═══ ✦ '; }
+    .panel-title::after { content: ' ✦ ═══'; }
 
     /* Grid layouts */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -214,15 +254,38 @@
       font-size: 14px;
       margin: 15px 0 8px 0;
     }
+
+    /* Centered layout */
+    .content-wrapper {
+      max-width: 550px;
+      margin: 0 auto;
+      padding: 0 15px 40px;
+    }
+
+    .tab-panel.wide {
+      max-width: 950px;
+    }
+
+    @media (max-width: 700px) {
+      .content-wrapper {
+        max-width: 100%;
+      }
+      .tab-panel.wide {
+        max-width: 100%;
+      }
+    }
   </style>
 
   <style>
     @media print {
       body { background: white; color: black; font-size: 12px; }
       .tab-nav, .char-selector { display: none !important; }
+      .content-wrapper { max-width: 100%; padding: 0; }
       .tab-panel { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
+      .tab-panel.wide { max-width: 100%; }
       .panel { border: 1px solid #ccc; background: white; }
       .panel-title { color: #333; border-bottom: 1px solid #ccc; }
+      .panel-title::before, .panel-title::after { content: none; }
       input, select, textarea { border-bottom: 1px solid #999; color: black; background: transparent; }
       input[type="checkbox"] { accent-color: black; }
       .derived { color: #333; }
@@ -316,6 +379,7 @@
   </nav>
 
   <!-- Tab Panels -->
+  <div class="content-wrapper">
   <div id="tab-main" class="tab-panel active">
     <!-- Character Info Bar -->
     <div class="panel">
@@ -694,7 +758,7 @@
       </div>
     </div>
   </div>
-  <div id="tab-skills" class="tab-panel">
+  <div id="tab-skills" class="tab-panel wide">
     <!-- Skill Points -->
     <div class="panel">
       <div class="panel-title" data-i18n="panel_skill_points">Skill Points</div>
@@ -831,11 +895,11 @@
       <textarea data-bind="featsAndFeatures.proficiencies" rows="4" placeholder="List armor, weapons, and tools proficient with..."></textarea>
     </div>
   </div>
-  <div id="tab-spells" class="tab-panel">
+  <div id="tab-spells" class="tab-panel wide">
     <div id="spellSets"></div>
     <button onclick="addSpellSet()" style="margin-top:12px;background:#6b4c1e;color:#e8d5a3;border:none;padding:6px 16px;cursor:pointer;" data-i18n="btn_add_spell_set">+ Add Spell Set</button>
   </div>
-  <div id="tab-inventory" class="tab-panel">
+  <div id="tab-inventory" class="tab-panel wide">
     <!-- Currency -->
     <div class="panel">
       <div class="panel-title" data-i18n="panel_currency">Currency</div>
@@ -955,6 +1019,7 @@
       <div class="panel-title" data-i18n="panel_campaign_log">Party / Campaign Log</div>
       <textarea data-bind="notes.log" rows="10" placeholder="Session notes, quest progress, important events..."></textarea>
     </div>
+  </div>
   </div>
 
   <script>
