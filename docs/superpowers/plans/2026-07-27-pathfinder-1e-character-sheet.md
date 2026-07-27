@@ -1,0 +1,2651 @@
+# Pathfinder 1e Character Sheet — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a single-file offline-capable Pathfinder 1e character sheet web app with dark fantasy UI, localStorage persistence, and full reactive calculations.
+
+**Architecture:** Single `index.html` file with inline CSS/JS. Centralized state object, reactive recalculation on input changes, debounced localStorage save. 6-tab layout (Main, Skills, Abilities, Spells, Inventory, Notes).
+
+**Tech Stack:** Vanilla HTML/CSS/JS. No frameworks, no build tools, no external dependencies.
+
+## Global Constraints
+
+- Single HTML file — no external JS/CSS imports (except system font fallbacks)
+- Offline-first — must work via `file://` protocol
+- No Google Fonts — system font stacks only
+- localStorage persistence — debounced 300ms auto-save
+- Dark fantasy theme: `#1a1410` bg, `#c9a84c` gold accent, `#e8d5a3` text
+- Print CSS: hide tabs, stack sections, black-on-white
+
+---
+
+## File Structure
+
+```
+index.html (single file)
+├── <style>    — All CSS (theme, layout, tabs, tables, print)
+├── <body>     — All HTML (character selector, 6 tab panels, forms)
+└── <script>   — All JS (state, calculations, persistence, UI logic)
+```
+
+No other files created. Deployment via GitHub Pages from `index.html` root.
+
+---
+
+### Task 1: HTML Skeleton + Tab Navigation + Dark Theme CSS
+
+**Files:**
+- Modify: `index.html` (create from scratch)
+
+**What this produces:** A working single-file app with 6 tabs, dark theme, and tab switching.
+
+- [ ] **Step 1: Create index.html with basic HTML structure**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pathfinder 1e Character Sheet</title>
+  <style>
+    /* Reset and base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, "Crimson Text", serif;
+      background: #1a1410;
+      color: #e8d5a3;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      color: #c9a84c;
+    }
+
+    /* Tab navigation */
+    .tab-nav {
+      display: flex;
+      background: #2a2018;
+      border-bottom: 2px solid #6b4c1e;
+      padding: 0 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #8b6914;
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      font-size: 14px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab-btn:hover { color: #c9a84c; }
+    .tab-btn.active {
+      color: #c9a84c;
+      border-bottom-color: #c9a84c;
+    }
+
+    /* Tab panels */
+    .tab-panel { display: none; padding: 15px; }
+    .tab-panel.active { display: block; }
+
+    /* Character selector bar */
+    .char-selector {
+      background: #2a2018;
+      border-bottom: 1px solid #6b4c1e;
+      padding: 8px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .char-selector select {
+      background: #1a1410;
+      color: #e8d5a3;
+      border: 1px solid #6b4c1e;
+      padding: 4px 8px;
+      font-family: Georgia, serif;
+    }
+
+    .char-selector button {
+      background: #6b4c1e;
+      color: #e8d5a3;
+      border: none;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: Georgia, serif;
+    }
+
+    .char-selector button:hover { background: #c9a84c; color: #1a1410; }
+
+    /* Input styling */
+    input, select, textarea {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #8b6914;
+      color: #e8d5a3;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      padding: 2px 4px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-bottom-color: #c9a84c;
+    }
+
+    input[type="checkbox"] {
+      border-bottom: none;
+      accent-color: #c9a84c;
+    }
+
+    textarea {
+      border: 1px solid #8b6914;
+      resize: vertical;
+      width: 100%;
+    }
+
+    /* Panel styling */
+    .panel {
+      background: #2a2018;
+      border: 1px solid #6b4c1e;
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      color: #c9a84c;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #6b4c1e;
+      padding-bottom: 5px;
+    }
+
+    /* Grid layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid #6b4c1e;
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    th {
+      background: #2a2018;
+      color: #c9a84c;
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      font-size: 12px;
+    }
+
+    td { background: #1a1410; }
+
+    /* Label styling */
+    .field-label {
+      color: #8b6914;
+      font-size: 11px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .field-group { margin-bottom: 8px; }
+
+    /* Derived value display */
+    .derived {
+      font-weight: bold;
+      color: #c9a84c;
+    }
+
+    /* Section header */
+    .section-header {
+      font-family: "Cinzel", Georgia, "Times New Roman", serif;
+      color: #c9a84c;
+      font-size: 14px;
+      margin: 15px 0 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Character Selector -->
+  <div class="char-selector">
+    <label style="color: #c9a84c;">Character:</label>
+    <select id="charSelect"></select>
+    <button onclick="newCharacter()">New</button>
+    <button onclick="duplicateCharacter()">Duplicate</button>
+    <button onclick="renameCharacter()">Rename</button>
+    <button onclick="deleteCharacter()">Delete</button>
+    <span style="flex:1"></span>
+    <button onclick="exportCharacter()">Export</button>
+    <button onclick="exportAll()">Export All</button>
+    <button onclick="importCharacter()">Import</button>
+  </div>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('main')">Main</button>
+    <button class="tab-btn" onclick="switchTab('skills')">Skills</button>
+    <button class="tab-btn" onclick="switchTab('abilities')">Abilities</button>
+    <button class="tab-btn" onclick="switchTab('spells')">Spells</button>
+    <button class="tab-btn" onclick="switchTab('inventory')">Inventory</button>
+    <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
+  </nav>
+
+  <!-- Tab Panels -->
+  <div id="tab-main" class="tab-panel active">
+    <p style="color: #8b6914; padding: 20px;">Tab content will be built in subsequent tasks.</p>
+  </div>
+  <div id="tab-skills" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Skills tab — coming in Task 6.</p>
+  </div>
+  <div id="tab-abilities" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Abilities tab — coming in Task 9.</p>
+  </div>
+  <div id="tab-spells" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Spells tab — coming in Task 7.</p>
+  </div>
+  <div id="tab-inventory" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Inventory tab — coming in Task 8.</p>
+  </div>
+  <div id="tab-notes" class="tab-panel">
+    <p style="color: #8b6914; padding: 20px;">Notes tab — coming in Task 10.</p>
+  </div>
+
+  <script>
+    // ============================================
+    // STATE
+    // ============================================
+    let state = {};
+    let currentCharId = null;
+    let saveTimeout = null;
+
+    // ============================================
+    // TAB SWITCHING
+    // ============================================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // ============================================
+    // CHARACTER MANAGEMENT (placeholder — Task 2)
+    // ============================================
+    function loadCharacterList() {}
+    function selectCharacter(id) {}
+    function newCharacter() {}
+    function duplicateCharacter() {}
+    function renameCharacter() {}
+    function deleteCharacter() {}
+    function exportCharacter() {}
+    function exportAll() {}
+    function importCharacter() {}
+
+    // ============================================
+    // PERSISTENCE (placeholder — Task 2)
+    // ============================================
+    function saveToStorage() {}
+    function loadFromStorage(id) {}
+
+    // ============================================
+    // INIT
+    // ============================================
+    loadCharacterList();
+  </script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Open index.html in browser and verify**
+
+Open `index.html` in a browser. Verify:
+- Dark background `#1a1410` renders
+- Tab navigation shows 6 tabs
+- Clicking tabs switches panels
+- Character selector bar is visible at top
+- No console errors
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: HTML skeleton with tab navigation and dark theme"
+```
+
+---
+
+### Task 2: Multi-Character Selector + localStorage Scaffolding
+
+**Files:**
+- Modify: `index.html:200-250` (JS section)
+
+**What this produces:** Working character creation, switching, persistence. Users can create multiple characters and switch between them.
+
+**Interfaces:**
+- Consumes: HTML skeleton from Task 1
+- Produces: `state` object populated, `currentCharId` set, character list in `<select>`
+
+- [ ] **Step 1: Implement UUID generator and default state factory**
+
+Add to `<script>`:
+
+```javascript
+function generateId() {
+  return 'xxxx-xxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16));
+}
+
+function createDefaultState() {
+  return {
+    meta: { id: generateId(), name: 'New Character', created: Date.now() },
+    main: { name: '', class: '', level: 1, race: '', alignment: '', deity: '', xp: 0, xpNext: 0, gender: '', age: '', height: '', weight: '', hair: '', eyes: '', skin: '' },
+    abilityScores: {
+      str: { base: 10, mod: 0 }, dex: { base: 10, mod: 0 },
+      con: { base: 10, mod: 0 }, int: { base: 10, mod: 0 },
+      wis: { base: 10, mod: 0 }, cha: { base: 10, mod: 0 }
+    },
+    combat: {
+      hp: { current: 10, max: 10, temp: 0, nonlethal: 0, status: '' },
+      ac: { total: 10, touch: 10, flatFooted: 10, armor: 0, shield: 0, natural: 0, dex: 0, size: 0, deflection: 0, dodge: 0, misc: 0 },
+      cmb: { total: 0, bab: 0, strMod: 0, size: 0, misc: 0 },
+      cmd: { total: 10, bab: 0, strMod: 0, dexMod: 0, size: 0, misc: 0 },
+      saves: {
+        fort: { base: 0, conMod: 0, resistance: 0, misc: 0 },
+        ref: { base: 0, dexMod: 0, resistance: 0, misc: 0 },
+        will: { base: 0, wisMod: 0, resistance: 0, misc: 0 }
+      },
+      initiative: { total: 0, dexMod: 0, misc: 0 },
+      bab: { value: 0, meleeAttacks: [], rangedAttacks: [] },
+      speed: { ground: 30, climb: 0, swim: 0, fly: 0, armorReduction: 0 },
+      dr: '', fastHealing: '', sr: '',
+      energyResist: { fire: '', cold: '', electricity: '', acid: '', sonic: '' }
+    },
+    weapons: [],
+    armor: [],
+    conditions: { blinded: false, cowering: false, dazzled: false, deafened: false, entangled: false, exhausted: false, fatigued: false, frightened: false, grappled: false, panicked: false, pinned: false, prone: false, shaken: false, sickened: false, stunned: false, haste: false, prayer: false, enlarge: false, reduce: false, heroism: false },
+    skills: {},
+    skillPoints: { available: 0, used: 0 },
+    languages: '',
+    featsAndFeatures: { feats: [], classTalents: [], classFeatures: [], racialFeatures: [], proficiencies: '' },
+    spells: [],
+    inventory: { currency: { platinum: 0, gold: 0, silver: 0, copper: 0 }, totalValueGP: 0, carryingCapacity: { light: 0, medium: 0, heavy: 0 }, encumbrance: 'Light', carriedWeight: 0, sizeModifier: 'Medium', isQuadruped: false, notCarriedLocations: [], items: [] },
+    notes: { background: '', general: '', log: '' }
+  };
+}
+```
+
+- [ ] **Step 2: Implement localStorage persistence**
+
+```javascript
+const STORAGE_KEY_INDEX = 'pf1e_char_index';
+const STORAGE_KEY_PREFIX = 'pf1e_char_';
+
+function saveToStorage() {
+  if (!currentCharId) return;
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    localStorage.setItem(STORAGE_KEY_PREFIX + currentCharId, JSON.stringify(state));
+    // Update index
+    let index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+    const existing = index.find(c => c.id === currentCharId);
+    if (existing) {
+      existing.name = state.meta.name;
+    } else {
+      index.push({ id: currentCharId, name: state.meta.name });
+    }
+    localStorage.setItem(STORAGE_KEY_INDEX, JSON.stringify(index));
+  }, 300);
+}
+
+function loadFromStorage(id) {
+  const data = localStorage.getItem(STORAGE_KEY_PREFIX + id);
+  return data ? JSON.parse(data) : null;
+}
+```
+
+- [ ] **Step 3: Implement character list loading and switching**
+
+```javascript
+function loadCharacterList() {
+  const index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+  const select = document.getElementById('charSelect');
+  select.innerHTML = '';
+  index.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    if (c.id === currentCharId) opt.selected = true;
+    select.appendChild(opt);
+  });
+  select.onchange = () => selectCharacter(select.value);
+
+  if (index.length === 0) {
+    newCharacter();
+  } else if (!currentCharId) {
+    selectCharacter(index[0].id);
+  }
+}
+
+function selectCharacter(id) {
+  currentCharId = id;
+  const loaded = loadFromStorage(id);
+  if (loaded) {
+    state = loaded;
+  }
+  loadCharacterList();
+  // UI update will be added in Task 3
+}
+```
+
+- [ ] **Step 4: Implement new/duplicate/rename/delete**
+
+```javascript
+function newCharacter() {
+  const newState = createDefaultState();
+  currentCharId = newState.meta.id;
+  state = newState;
+  saveToStorage();
+  loadCharacterList();
+  // UI update will be added in Task 3
+}
+
+function duplicateCharacter() {
+  if (!currentCharId) return;
+  const newState = JSON.parse(JSON.stringify(state));
+  newState.meta.id = generateId();
+  newState.meta.name += ' (Copy)';
+  currentCharId = newState.meta.id;
+  state = newState;
+  saveToStorage();
+  loadCharacterList();
+}
+
+function renameCharacter() {
+  if (!currentCharId) return;
+  const name = prompt('New name:', state.meta.name);
+  if (name) {
+    state.meta.name = name;
+    saveToStorage();
+    loadCharacterList();
+  }
+}
+
+function deleteCharacter() {
+  if (!currentCharId) return;
+  if (!confirm('Delete "' + state.meta.name + '"?')) return;
+  localStorage.removeItem(STORAGE_KEY_PREFIX + currentCharId);
+  let index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+  index = index.filter(c => c.id !== currentCharId);
+  localStorage.setItem(STORAGE_KEY_INDEX, JSON.stringify(index));
+  currentCharId = null;
+  loadCharacterList();
+}
+```
+
+- [ ] **Step 5: Implement export/import**
+
+```javascript
+function exportCharacter() {
+  if (!currentCharId) return;
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (state.meta.name || 'character') + '.json';
+  a.click();
+}
+
+function exportAll() {
+  const index = JSON.parse(localStorage.getItem(STORAGE_KEY_INDEX) || '[]');
+  const all = index.map(c => loadFromStorage(c.id)).filter(Boolean);
+  const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pathfinder_characters.json';
+  a.click();
+}
+
+function importCharacter() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    const text = await e.target.files[0].text();
+    try {
+      const data = JSON.parse(text);
+      const items = Array.isArray(data) ? data : [data];
+      for (const item of items) {
+        if (item.meta && item.meta.id) {
+          const existing = loadFromStorage(item.meta.id);
+          if (existing) {
+            if (!confirm('Overwrite "' + item.meta.name + '"?')) continue;
+          }
+          currentCharId = item.meta.id;
+          state = item;
+          saveToStorage();
+        }
+      }
+      loadCharacterList();
+    } catch (err) {
+      alert('Invalid JSON file');
+    }
+  };
+  input.click();
+}
+```
+
+- [ ] **Step 6: Test in browser**
+
+Open `index.html`. Verify:
+- Click "New" — creates character, adds to dropdown
+- Switch between characters — dropdown updates
+- Rename — name updates in dropdown
+- Duplicate — creates copy with "(Copy)" suffix
+- Delete — removes from dropdown
+- Export — downloads JSON file
+- Import — loads character from file
+- Refresh page — characters persist from localStorage
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: multi-character management with localStorage persistence"
+```
+
+---
+
+### Task 3: Character Info + Ability Scores + Modifiers
+
+**Files:**
+- Modify: `index.html` (add to `tab-main` HTML, add to JS)
+
+**What this produces:** Character info form and ability scores with auto-calculating modifiers.
+
+**Interfaces:**
+- Consumes: `state` object from Task 2, `saveToStorage()` from Task 2
+- Produces: `state.main.*` fields populated, `state.abilityScores.*.mod` computed
+
+- [ ] **Step 1: Add character info HTML to `tab-main`**
+
+Replace placeholder in `tab-main` with:
+
+```html
+<div id="tab-main" class="tab-panel active">
+  <!-- Character Info Bar -->
+  <div class="panel">
+    <div class="panel-title">Character Info</div>
+    <div class="grid-3">
+      <div class="field-group">
+        <label class="field-label">Name</label>
+        <input type="text" data-bind="meta.name" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Class</label>
+        <input type="text" data-bind="main.class" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Level</label>
+        <input type="number" data-bind="main.level" min="1" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Race</label>
+        <input type="text" data-bind="main.race" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Alignment</label>
+        <input type="text" data-bind="main.alignment" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Deity</label>
+        <input type="text" data-bind="main.deity" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">XP</label>
+        <input type="number" data-bind="main.xp" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">XP to Next</label>
+        <input type="number" data-bind="main.xpNext" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Gender</label>
+        <input type="text" data-bind="main.gender" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Age</label>
+        <input type="text" data-bind="main.age" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Height</label>
+        <input type="text" data-bind="main.height" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Weight</label>
+        <input type="text" data-bind="main.weight" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Hair</label>
+        <input type="text" data-bind="main.hair" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Eyes</label>
+        <input type="text" data-bind="main.eyes" style="width:100%">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Skin</label>
+        <input type="text" data-bind="main.skin" style="width:100%">
+      </div>
+    </div>
+  </div>
+
+  <!-- Ability Scores -->
+  <div class="panel">
+    <div class="panel-title">Ability Scores</div>
+    <div class="grid-6" id="abilityScores">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- Combat sections will be added in Task 4 -->
+</div>
+```
+
+- [ ] **Step 2: Add ability scores rendering and auto-modifier**
+
+```javascript
+function renderAbilityScores() {
+  const container = document.getElementById('abilityScores');
+  if (!container) return;
+  const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+  const labels = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+  container.innerHTML = abilities.map(ab => `
+    <div class="field-group" style="text-align:center;">
+      <label class="field-label">${labels[ab]}</label>
+      <input type="number" data-bind="abilityScores.${ab}.base" min="1" max="100" style="width:50px;text-align:center;">
+      <div class="derived" data-display="abilityScores.${ab}.mod">+0</div>
+    </div>
+  `).join('');
+}
+```
+
+- [ ] **Step 3: Implement data binding and recalculation engine**
+
+```javascript
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((o, k) => (o || {})[k], obj);
+}
+
+function setNestedValue(obj, path, value) {
+  const keys = path.split('.');
+  const last = keys.pop();
+  const target = keys.reduce((o, k) => o[k], obj);
+  target[last] = value;
+}
+
+function recalculate() {
+  // Ability modifiers
+  ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(ab => {
+    const base = state.abilityScores[ab].base || 10;
+    state.abilityScores[ab].mod = Math.floor((base - 10) / 2);
+  });
+
+  // Update all display elements
+  document.querySelectorAll('[data-display]').forEach(el => {
+    const value = getNestedValue(state, el.dataset.display);
+    if (value !== undefined) {
+      el.textContent = typeof value === 'number' && el.dataset.display.includes('.mod')
+        ? (value >= 0 ? '+' + value : String(value))
+        : String(value);
+    }
+  });
+
+  saveToStorage();
+}
+
+function updateDisplay() {
+  document.querySelectorAll('[data-display]').forEach(el => {
+    const value = getNestedValue(state, el.dataset.display);
+    if (value !== undefined) {
+      el.textContent = typeof value === 'number'
+        ? (value >= 0 ? '+' + value : String(value))
+        : String(value);
+    }
+  });
+}
+```
+
+- [ ] **Step 4: Implement input binding**
+
+```javascript
+function bindInputs() {
+  document.querySelectorAll('[data-bind]').forEach(input => {
+    const path = input.dataset.bind;
+    const existing = getNestedValue(state, path);
+    if (existing !== undefined) {
+      input.value = existing;
+    }
+    input.addEventListener('input', () => {
+      let val = input.value;
+      if (input.type === 'number') val = Number(val) || 0;
+      setNestedValue(state, path, val);
+      recalculate();
+      updateDisplay();
+    });
+  });
+}
+```
+
+- [ ] **Step 5: Update selectCharacter to rebind**
+
+```javascript
+function selectCharacter(id) {
+  currentCharId = id;
+  const loaded = loadFromStorage(id);
+  if (loaded) {
+    state = loaded;
+  }
+  loadCharacterList();
+  renderAbilityScores();
+  bindInputs();
+  recalculate();
+  updateDisplay();
+}
+```
+
+- [ ] **Step 6: Update newCharacter and duplicateCharacter to rebind**
+
+```javascript
+function newCharacter() {
+  const newState = createDefaultState();
+  currentCharId = newState.meta.id;
+  state = newState;
+  saveToStorage();
+  loadCharacterList();
+  renderAbilityScores();
+  bindInputs();
+  recalculate();
+  updateDisplay();
+}
+
+function duplicateCharacter() {
+  if (!currentCharId) return;
+  const newState = JSON.parse(JSON.stringify(state));
+  newState.meta.id = generateId();
+  newState.meta.name += ' (Copy)';
+  currentCharId = newState.meta.id;
+  state = newState;
+  saveToStorage();
+  loadCharacterList();
+  renderAbilityScores();
+  bindInputs();
+  recalculate();
+  updateDisplay();
+}
+```
+
+- [ ] **Step 7: Update init to render on load**
+
+```javascript
+loadCharacterList();
+```
+
+- [ ] **Step 8: Test in browser**
+
+Open `index.html`. Verify:
+- Character info fields appear with labels
+- Ability scores show 6 boxes (STR, DEX, CON, INT, WIS, CHA)
+- Changing ability score updates modifier (e.g., STR 14 → +2)
+- Modifier shows +/- prefix
+- Switching characters loads correct data
+- All fields persist after refresh
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: character info form and ability scores with auto-modifiers"
+```
+
+---
+
+### Task 4: Combat Stats — HP, AC, CMB/CMD, Saves, Initiative, Full Attack
+
+**Files:**
+- Modify: `index.html` (add to `tab-main` HTML, add to JS recalculate)
+
+**What this produces:** All combat-related calculations working reactively.
+
+**Interfaces:**
+- Consumes: `state.abilityScores.*.mod` from Task 3
+- Produces: `state.combat.*` fields computed, DOM updated
+
+- [ ] **Step 1: Add combat HTML sections to `tab-main`**
+
+Add after the Ability Scores panel:
+
+```html
+<!-- Hit Points -->
+<div class="panel">
+  <div class="panel-title">Hit Points</div>
+  <div class="grid-3">
+    <div class="field-group">
+      <label class="field-label">Current HP</label>
+      <input type="number" data-bind="combat.hp.current">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Max HP</label>
+      <input type="number" data-bind="combat.hp.max">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Temp HP</label>
+      <input type="number" data-bind="combat.hp.temp">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Nonlethal</label>
+      <input type="number" data-bind="combat.hp.nonlethal">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Status</label>
+      <span class="derived" data-display="combat.hp.status">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Armor Class -->
+<div class="panel">
+  <div class="panel-title">Armor Class</div>
+  <div class="grid-3">
+    <div class="field-group">
+      <label class="field-label">Total AC</label>
+      <span class="derived" data-display="combat.ac.total" style="font-size:24px;">10</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Touch AC</label>
+      <span class="derived" data-display="combat.ac.touch">10</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Flat-Footed</label>
+      <span class="derived" data-display="combat.ac.flatFooted">10</span>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:10px;">
+    <div class="field-group">
+      <label class="field-label">Armor Bonus</label>
+      <input type="number" data-bind="combat.ac.armor">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Shield Bonus</label>
+      <input type="number" data-bind="combat.ac.shield">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Natural Armor</label>
+      <input type="number" data-bind="combat.ac.natural">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Deflection</label>
+      <input type="number" data-bind="combat.ac.deflection">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Dodge</label>
+      <input type="number" data-bind="combat.ac.dodge">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Size</label>
+      <select data-bind="combat.ac.size">
+        <option value="8">Fine (+8)</option>
+        <option value="4">Diminutive (+4)</option>
+        <option value="2">Tiny (+2)</option>
+        <option value="1">Small (+1)</option>
+        <option value="0" selected>Medium (0)</option>
+        <option value="-1">Large (-1)</option>
+        <option value="-2">Huge (-2)</option>
+        <option value="-4">Gargantuan (-4)</option>
+        <option value="-8">Colossal (-8)</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Misc</label>
+      <input type="number" data-bind="combat.ac.misc">
+    </div>
+  </div>
+</div>
+
+<!-- Initiative -->
+<div class="panel">
+  <div class="panel-title">Initiative</div>
+  <div class="grid-3">
+    <div class="field-group">
+      <label class="field-label">Total</label>
+      <span class="derived" data-display="combat.initiative.total" style="font-size:20px;">+0</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">DEX Mod</label>
+      <span class="derived" data-display="combat.initiative.dexMod">+0</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Misc</label>
+      <input type="number" data-bind="combat.initiative.misc">
+    </div>
+  </div>
+</div>
+
+<!-- CMB / CMD -->
+<div class="panel">
+  <div class="panel-title">CMB / CMD</div>
+  <div class="grid-3">
+    <div class="field-group">
+      <label class="field-label">CMB</label>
+      <span class="derived" data-display="combat.cmb.total" style="font-size:20px;">+0</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">CMD</label>
+      <span class="derived" data-display="combat.cmd.total" style="font-size:20px;">10</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">BAB</label>
+      <input type="number" data-bind="combat.bab.value">
+    </div>
+    <div class="field-group">
+      <label class="field-label">CMB Misc</label>
+      <input type="number" data-bind="combat.cmb.misc">
+    </div>
+    <div class="field-group">
+      <label class="field-label">CMD Misc</label>
+      <input type="number" data-bind="combat.cmd.misc">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Size</label>
+      <select data-bind="combat.cmb.size">
+        <option value="-8">Fine (-8)</option>
+        <option value="-4">Diminutive (-4)</option>
+        <option value="-2">Tiny (-2)</option>
+        <option value="-1">Small (-1)</option>
+        <option value="0" selected>Medium (0)</option>
+        <option value="1">Large (+1)</option>
+        <option value="2">Huge (+2)</option>
+        <option value="4">Gargantuan (+4)</option>
+        <option value="8">Colossal (+8)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Saves -->
+<div class="panel">
+  <div class="panel-title">Saves</div>
+  <div class="grid-3">
+    <div class="field-group">
+      <label class="field-label">Fortitude</label>
+      <span class="derived" data-display="combat.saves.fort.total" style="font-size:20px;">+0</span>
+      <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.fort.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.fort.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.fort.misc" style="width:40px;"></div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Reflex</label>
+      <span class="derived" data-display="combat.saves.ref.total" style="font-size:20px;">+0</span>
+      <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.ref.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.ref.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.ref.misc" style="width:40px;"></div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Will</label>
+      <span class="derived" data-display="combat.saves.will.total" style="font-size:20px;">+0</span>
+      <div style="font-size:11px;color:#8b6914;">Base: <input type="number" data-bind="combat.saves.will.base" style="width:40px;"> Res: <input type="number" data-bind="combat.saves.will.resistance" style="width:40px;"> Misc: <input type="number" data-bind="combat.saves.will.misc" style="width:40px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Full Attack -->
+<div class="panel">
+  <div class="panel-title">Attack Progression</div>
+  <div class="grid-2">
+    <div class="field-group">
+      <label class="field-label">Melee Attacks</label>
+      <span class="derived" data-display="combat.bab.meleeString">+0</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Ranged Attacks</label>
+      <span class="derived" data-display="combat.bab.rangedString">+0</span>
+    </div>
+  </div>
+</div>
+
+<!-- Speed -->
+<div class="panel">
+  <div class="panel-title">Speed</div>
+  <div class="grid-4">
+    <div class="field-group">
+      <label class="field-label">Ground (ft)</label>
+      <input type="number" data-bind="combat.speed.ground">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Climb (ft)</label>
+      <input type="number" data-bind="combat.speed.climb">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Swim (ft)</label>
+      <input type="number" data-bind="combat.speed.swim">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Fly (ft)</label>
+      <input type="number" data-bind="combat.speed.fly">
+    </div>
+  </div>
+</div>
+
+<!-- DR, Fast Healing, SR, Energy Resistances -->
+<div class="panel">
+  <div class="panel-title">Defensive Abilities</div>
+  <div class="grid-3">
+    <div class="field-group">
+      <label class="field-label">Damage Reduction</label>
+      <input type="text" data-bind="combat.dr" placeholder="e.g. 5/-">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Fast Healing</label>
+      <input type="number" data-bind="combat.fastHealing">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Spell Resistance</label>
+      <input type="number" data-bind="combat.sr">
+    </div>
+  </div>
+  <div class="grid-5" style="margin-top:8px;">
+    <div class="field-group">
+      <label class="field-label">Fire Resist</label>
+      <input type="text" data-bind="combat.energyResist.fire">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Cold Resist</label>
+      <input type="text" data-bind="combat.energyResist.cold">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Elec Resist</label>
+      <input type="text" data-bind="combat.energyResist.electricity">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Acid Resist</label>
+      <input type="text" data-bind="combat.energyResist.acid">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Sonic Resist</label>
+      <input type="text" data-bind="combat.energyResist.sonic">
+    </div>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Add combat calculations to recalculate()**
+
+```javascript
+function recalculate() {
+  const ab = {};
+  ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(a => {
+    const base = state.abilityScores[a].base || 10;
+    state.abilityScores[a].mod = Math.floor((base - 10) / 2);
+    ab[a] = state.abilityScores[a].mod;
+  });
+
+  // Max Dex from equipped armor
+  const equippedArmor = state.armor.filter(a => a.equipped);
+  let maxDexCap = 999;
+  equippedArmor.forEach(a => {
+    if (a.maxDex !== '' && a.maxDex !== undefined && a.maxDex !== null) {
+      const cap = Number(a.maxDex);
+      if (!isNaN(cap) && cap < maxDexCap) maxDexCap = cap;
+    }
+  });
+
+  const effectiveDex = maxDexCap === 999 ? ab.dex : Math.min(ab.dex, maxDexCap);
+
+  // AC
+  state.combat.ac.dex = effectiveDex;
+  state.combat.ac.total = 10 + (state.combat.ac.armor || 0) + (state.combat.ac.shield || 0)
+    + (state.combat.ac.natural || 0) + effectiveDex + (state.combat.ac.size || 0)
+    + (state.combat.ac.deflection || 0) + (state.combat.ac.dodge || 0) + (state.combat.ac.misc || 0);
+  state.combat.ac.touch = 10 + effectiveDex + (state.combat.ac.size || 0)
+    + (state.combat.ac.deflection || 0) + (state.combat.ac.dodge || 0) + (state.combat.ac.misc || 0);
+  state.combat.ac.flatFooted = state.combat.ac.total - ab.dex - (state.combat.ac.dodge || 0);
+
+  // CMB / CMD
+  const bab = state.combat.bab.value || 0;
+  const cmbSize = Number(state.combat.cmb.size) || 0;
+  state.combat.cmb.strMod = ab.str;
+  state.combat.cmb.total = bab + ab.str + cmbSize + (state.combat.cmb.misc || 0);
+  state.combat.cmd.strMod = ab.str;
+  state.combat.cmd.dexMod = ab.dex;
+  state.combat.cmd.size = cmbSize;
+  state.combat.cmd.total = 10 + bab + ab.str + ab.dex + cmbSize + (state.combat.cmd.misc || 0);
+
+  // Saves
+  state.combat.saves.fort.conMod = ab.con;
+  state.combat.saves.fort.total = (state.combat.saves.fort.base || 0) + ab.con
+    + (state.combat.saves.fort.resistance || 0) + (state.combat.saves.fort.misc || 0);
+  state.combat.saves.ref.dexMod = ab.dex;
+  state.combat.saves.ref.total = (state.combat.saves.ref.base || 0) + ab.dex
+    + (state.combat.saves.ref.resistance || 0) + (state.combat.saves.ref.misc || 0);
+  state.combat.saves.will.wisMod = ab.wis;
+  state.combat.saves.will.total = (state.combat.saves.will.base || 0) + ab.wis
+    + (state.combat.saves.will.resistance || 0) + (state.combat.saves.will.misc || 0);
+
+  // Initiative
+  state.combat.initiative.dexMod = ab.dex;
+  state.combat.initiative.total = ab.dex + (state.combat.initiative.misc || 0);
+
+  // Full Attack Progression
+  const meleeMod = ab.str;
+  const rangedMod = ab.dex;
+  const meleeAttacks = [bab];
+  const rangedAttacks = [bab];
+  if (bab >= 6) { meleeAttacks.push(bab - 5); rangedAttacks.push(bab - 5); }
+  if (bab >= 11) { meleeAttacks.push(bab - 10); rangedAttacks.push(bab - 10); }
+  if (bab >= 16) { meleeAttacks.push(bab - 15); rangedAttacks.push(bab - 15); }
+  state.combat.bab.meleeAttacks = meleeAttacks.map(a => a + meleeMod + cmbSize);
+  state.combat.bab.rangedAttacks = rangedAttacks.map(a => a + rangedMod + cmbSize);
+  state.combat.bab.meleeString = state.combat.bab.meleeAttacks.map(a => (a >= 0 ? '+' : '') + a).join('/');
+  state.combat.bab.rangedString = state.combat.bab.rangedAttacks.map(a => (a >= 0 ? '+' : '') + a).join('/');
+
+  // HP Status
+  const hp = state.combat.hp;
+  const current = hp.current || 0;
+  const max = hp.max || 1;
+  const nonlethal = hp.nonlethal || 0;
+  const effective = current - nonlethal;
+  const conMod = ab.con;
+  if (effective >= max) hp.status = "Feelin' Fine!";
+  else if (effective >= max * 0.5) hp.status = 'Hurt';
+  else if (effective > 0) hp.status = 'Bloodied';
+  else if (effective > -Math.abs(conMod)) hp.status = 'Dying';
+  else hp.status = 'Dead';
+
+  updateDisplay();
+  saveToStorage();
+}
+```
+
+- [ ] **Step 3: Add CSS for grid-4 and grid-5**
+
+Add to `<style>`:
+
+```css
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+```
+
+- [ ] **Step 4: Test in browser**
+
+Open `index.html`. Verify:
+- AC changes when armor bonus, shield, natural, dex, size inputs change
+- Touch AC excludes armor/shield/natural
+- Flat-footed AC excludes dex and dodge
+- CMB updates with BAB + STR + Size
+- CMD updates with 10 + BAB + STR + DEX + Size
+- Saves update with base + ability mod + resistance + misc
+- Initiative updates with DEX + misc
+- Attack progression shows iterative attacks (e.g., BAB 12 → +16/+11/+6 with STR +4)
+- HP status changes based on current HP vs max
+- Size dropdown affects AC (Medium 0, Large -1, etc.)
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: combat stats with AC, CMB/CMD, saves, initiative, full attack progression"
+```
+
+---
+
+### Task 5: Weapons and Armor Tables with Equipped Toggle
+
+**Files:**
+- Modify: `index.html` (add to `tab-main` HTML, add to JS)
+
+**What this produces:** Editable weapon and armor tables. Armor equipped toggle affects AC and speed calculations.
+
+**Interfaces:**
+- Consumes: `state.combat.ac.*`, `state.abilityScores.*.mod` from Tasks 3-4
+- Produces: `state.weapons[]`, `state.armor[]` arrays, AC recalculated with armor bonuses
+
+- [ ] **Step 1: Add weapons table HTML**
+
+Add after the Attack Progression panel:
+
+```html
+<!-- Weapons -->
+<div class="panel">
+  <div class="panel-title">Weapons</div>
+  <table id="weaponsTable">
+    <thead>
+      <tr>
+        <th>Name</th><th>Damage</th><th>Atk Bonus</th><th>Crit</th><th>Type</th><th>Hand</th><th>Range</th><th>Notes</th><th></th>
+      </tr>
+    </thead>
+    <tbody id="weaponsBody"></tbody>
+  </table>
+  <button onclick="addWeapon()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Weapon</button>
+</div>
+```
+
+- [ ] **Step 2: Add armor table HTML**
+
+Add after Weapons panel:
+
+```html
+<!-- Armor -->
+<div class="panel">
+  <div class="panel-title">Armor</div>
+  <table id="armorTable">
+    <thead>
+      <tr>
+        <th>Eq</th><th>Name</th><th>AC Bonus</th><th>Enh</th><th>Type</th><th>Heavy?</th><th>Max Dex</th><th>Check Pen</th><th>Arcane Fail</th><th>Notes</th><th></th>
+      </tr>
+    </thead>
+    <tbody id="armorBody"></tbody>
+  </table>
+  <button onclick="addArmor()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Armor</button>
+</div>
+```
+
+- [ ] **Step 3: Add conditions section**
+
+Add after Armor panel:
+
+```html
+<!-- Conditions -->
+<div class="panel">
+  <div class="panel-title">Common Conditions</div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;">
+    <label><input type="checkbox" data-bind="conditions.blinded"> Blinded</label>
+    <label><input type="checkbox" data-bind="conditions.cowering"> Cowering</label>
+    <label><input type="checkbox" data-bind="conditions.dazzled"> Dazzled</label>
+    <label><input type="checkbox" data-bind="conditions.deafened"> Deafened</label>
+    <label><input type="checkbox" data-bind="conditions.entangled"> Entangled</label>
+    <label><input type="checkbox" data-bind="conditions.exhausted"> Exhausted</label>
+    <label><input type="checkbox" data-bind="conditions.fatigued"> Fatigued</label>
+    <label><input type="checkbox" data-bind="conditions.frightened"> Frightened</label>
+    <label><input type="checkbox" data-bind="conditions.grappled"> Grappled</label>
+    <label><input type="checkbox" data-bind="conditions.panicked"> Panicked</label>
+    <label><input type="checkbox" data-bind="conditions.pinned"> Pinned</label>
+    <label><input type="checkbox" data-bind="conditions.prone"> Prone</label>
+    <label><input type="checkbox" data-bind="conditions.shaken"> Shaken</label>
+    <label><input type="checkbox" data-bind="conditions.sickened"> Sickened</label>
+    <label><input type="checkbox" data-bind="conditions.stunned"> Stunned</label>
+    <label><input type="checkbox" data-bind="conditions.haste"> Haste</label>
+    <label><input type="checkbox" data-bind="conditions.prayer"> Prayer</label>
+    <label><input type="checkbox" data-bind="conditions.enlarge"> Enlarge</label>
+    <label><input type="checkbox" data-bind="conditions.reduce"> Reduce</label>
+    <label><input type="checkbox" data-bind="conditions.heroism"> Heroism</label>
+  </div>
+</div>
+```
+
+- [ ] **Step 4: Implement weapon table rendering and add/remove**
+
+```javascript
+function renderWeaponsTable() {
+  const tbody = document.getElementById('weaponsBody');
+  if (!tbody) return;
+  if (!state.weapons) state.weapons = [];
+  tbody.innerHTML = state.weapons.map((w, i) => `
+    <tr>
+      <td><input type="text" data-bind="weapons.${i}.name" style="width:100px"></td>
+      <td><input type="text" data-bind="weapons.${i}.damage" style="width:60px"></td>
+      <td><input type="text" data-bind="weapons.${i}.attackBonus" style="width:50px"></td>
+      <td><input type="text" data-bind="weapons.${i}.critRange" style="width:50px"></td>
+      <td><input type="text" data-bind="weapons.${i}.critMult" style="width:40px"></td>
+      <td><select data-bind="weapons.${i}.type"><option value="M">Melee</option><option value="R">Ranged</option></select></td>
+      <td><input type="text" data-bind="weapons.${i}.hand" style="width:50px"></td>
+      <td><input type="text" data-bind="weapons.${i}.range" style="width:50px"></td>
+      <td><input type="text" data-bind="weapons.${i}.notes" style="width:80px"></td>
+      <td><button onclick="removeWeapon(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
+    </tr>
+  `).join('');
+  bindInputs();
+}
+
+function addWeapon() {
+  if (!state.weapons) state.weapons = [];
+  if (state.weapons.length >= 8) return;
+  state.weapons.push({ name: '', damage: '', attackBonus: '', critRange: '', critMult: '', type: 'M', hand: '', range: '', notes: '' });
+  renderWeaponsTable();
+  saveToStorage();
+}
+
+function removeWeapon(index) {
+  state.weapons.splice(index, 1);
+  renderWeaponsTable();
+  saveToStorage();
+}
+```
+
+- [ ] **Step 5: Implement armor table rendering and add/remove**
+
+```javascript
+function renderArmorTable() {
+  const tbody = document.getElementById('armorBody');
+  if (!tbody) return;
+  if (!state.armor) state.armor = [];
+  tbody.innerHTML = state.armor.map((a, i) => `
+    <tr>
+      <td><input type="checkbox" data-bind="armor.${i}.equipped" onchange="onArmorToggle()"></td>
+      <td><input type="text" data-bind="armor.${i}.name" style="width:100px"></td>
+      <td><input type="number" data-bind="armor.${i}.acBonus" style="width:50px"></td>
+      <td><input type="number" data-bind="armor.${i}.enhBonus" style="width:50px"></td>
+      <td><select data-bind="armor.${i}.type"><option value="A">Armor</option><option value="S">Shield</option><option value="N">Natural</option><option value="D">Deflection</option></select></td>
+      <td><input type="checkbox" data-bind="armor.${i}.heavy"></td>
+      <td><input type="number" data-bind="armor.${i}.maxDex" style="width:50px"></td>
+      <td><input type="number" data-bind="armor.${i}.checkPenalty" style="width:50px"></td>
+      <td><input type="number" data-bind="armor.${i}.arcaneFail" style="width:50px"></td>
+      <td><input type="text" data-bind="armor.${i}.notes" style="width:80px"></td>
+      <td><button onclick="removeArmor(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
+    </tr>
+  `).join('');
+  bindInputs();
+}
+
+function addArmor() {
+  if (!state.armor) state.armor = [];
+  if (state.armor.length >= 6) return;
+  state.armor.push({ equipped: false, name: '', acBonus: 0, enhBonus: 0, type: 'A', heavy: false, maxDex: '', checkPenalty: 0, arcaneFail: 0, notes: '' });
+  renderArmorTable();
+  saveToStorage();
+}
+
+function removeArmor(index) {
+  state.armor.splice(index, 1);
+  renderArmorTable();
+  recalculate();
+  saveToStorage();
+}
+
+function onArmorToggle() {
+  // Small delay to let checkbox update state
+  setTimeout(() => recalculate(), 10);
+}
+```
+
+- [ ] **Step 6: Update recalculate() to use equipped armor for AC**
+
+Already handled in Task 4's recalculate() — the MaxDex cap logic reads `state.armor.filter(a => a.equipped)`. Verify it works with the new armor table.
+
+- [ ] **Step 7: Update renderAbilityScores to also render tables on character switch**
+
+Update `selectCharacter`, `newCharacter`, `duplicateCharacter` to call `renderWeaponsTable()` and `renderArmorTable()` after `bindInputs()`.
+
+- [ ] **Step 8: Test in browser**
+
+Open `index.html`. Verify:
+- Click "+ Add Weapon" — row appears with inputs
+- Fill in weapon data — persists on refresh
+- Click × — removes weapon row
+- Click "+ Add Armor" — row appears
+- Toggle "Eq" checkbox — AC total updates
+- Armor with Max Dex caps DEX mod in AC calculation
+- Multiple equipped armor items — lowest Max Dex applies
+- Conditions checkboxes work (informational only)
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: weapons and armor tables with equipped toggle affecting AC"
+```
+
+---
+
+### Task 6: Skills Tab with Full Auto-Calculation
+
+**Files:**
+- Modify: `index.html` (add `tab-skills` HTML, add to JS)
+
+**What this produces:** Complete skills table with auto-calculated totals, skill points counter, languages field.
+
+**Interfaces:**
+- Consumes: `state.abilityScores.*.mod`, equipped armor check penalties from Task 5
+- Produces: `state.skills.*`, `state.skillPoints.*`, `state.languages`
+
+- [ ] **Step 1: Define skill data structure**
+
+Add to JS:
+
+```javascript
+const SKILL_DEFS = [
+  { key: 'acrobatics', name: 'Acrobatics', ability: 'dex', armorPenalty: true },
+  { key: 'appraise', name: 'Appraise', ability: 'int', armorPenalty: false },
+  { key: 'bluff', name: 'Bluff', ability: 'cha', armorPenalty: false },
+  { key: 'climb', name: 'Climb', ability: 'str', armorPenalty: true },
+  { key: 'diplomacy', name: 'Diplomacy', ability: 'cha', armorPenalty: false },
+  { key: 'disableDevice', name: 'Disable Device', ability: 'int', armorPenalty: true, trainedOnly: true },
+  { key: 'disguise', name: 'Disguise', ability: 'cha', armorPenalty: false },
+  { key: 'escapeArtist', name: 'Escape Artist', ability: 'dex', armorPenalty: true },
+  { key: 'fly', name: 'Fly', ability: 'dex', armorPenalty: true },
+  { key: 'handleAnimal', name: 'Handle Animal', ability: 'cha', armorPenalty: false, trainedOnly: true },
+  { key: 'heal', name: 'Heal', ability: 'wis', armorPenalty: false },
+  { key: 'intimidate', name: 'Intimidate', ability: 'cha', armorPenalty: false },
+  { key: 'linguistics', name: 'Linguistics', ability: 'int', armorPenalty: false, trainedOnly: true },
+  { key: 'perception', name: 'Perception', ability: 'wis', armorPenalty: false },
+  { key: 'ride', name: 'Ride', ability: 'dex', armorPenalty: true },
+  { key: 'senseMotive', name: 'Sense Motive', ability: 'wis', armorPenalty: false },
+  { key: 'sleightOfHand', name: 'Sleight of Hand', ability: 'dex', armorPenalty: true, trainedOnly: true },
+  { key: 'spellcraft', name: 'Spellcraft', ability: 'int', armorPenalty: false, trainedOnly: true },
+  { key: 'stealth', name: 'Stealth', ability: 'dex', armorPenalty: true },
+  { key: 'survival', name: 'Survival', ability: 'wis', armorPenalty: false },
+  { key: 'swim', name: 'Swim', ability: 'str', armorPenalty: true },
+  { key: 'useMagicDevice', name: 'Use Magic Device', ability: 'cha', armorPenalty: false, trainedOnly: true },
+];
+
+const KNOWLEDGE_SKILLS = [
+  'Arcana', 'Dungeoneering', 'Engineering', 'Geography', 'History',
+  'Local', 'Nature', 'Nobility & Royalty', 'Religion', 'The Planes', 'Other'
+];
+
+const PERFORM_SKILLS = [
+  'Act', 'Comedy', 'Dance', 'Keyboard', 'Oratory',
+  'Percussion', 'Sing', 'String Instrument', 'Wind Instrument', 'Other'
+];
+```
+
+- [ ] **Step 2: Add skills tab HTML**
+
+Replace placeholder in `tab-skills`:
+
+```html
+<div id="tab-skills" class="tab-panel">
+  <!-- Skill Points -->
+  <div class="panel">
+    <div class="panel-title">Skill Points</div>
+    <div class="grid-3">
+      <div class="field-group">
+        <label class="field-label">Available</label>
+        <input type="number" data-bind="skillPoints.available">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Used</label>
+        <span class="derived" data-display="skillPoints.used">0</span>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Remaining</label>
+        <span class="derived" data-display="skillPoints.remaining">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skills Table -->
+  <div class="panel">
+    <div class="panel-title">Skills</div>
+    <div style="overflow-x:auto;">
+      <table id="skillsTable">
+        <thead>
+          <tr>
+            <th>CS</th><th>Skill</th><th>Ability</th><th>Total</th><th>Ranks</th>
+            <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
+            <th>Misc</th><th>Armor</th><th>Ab Mod</th>
+          </tr>
+        </thead>
+        <tbody id="skillsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Knowledge Skills -->
+  <div class="panel">
+    <div class="panel-title">Knowledge Skills</div>
+    <div style="overflow-x:auto;">
+      <table id="knowledgeTable">
+        <thead>
+          <tr>
+            <th>CS</th><th>Skill</th><th>Total</th><th>Ranks</th>
+            <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
+            <th>Misc</th><th>Ab Mod</th>
+          </tr>
+        </thead>
+        <tbody id="knowledgeBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Perform Skills -->
+  <div class="panel">
+    <div class="panel-title">Perform Skills</div>
+    <div style="overflow-x:auto;">
+      <table id="performTable">
+        <thead>
+          <tr>
+            <th>CS</th><th>Skill</th><th>Total</th><th>Ranks</th>
+            <th>CS Bonus</th><th>Comp</th><th>Circ</th><th>Feat</th><th>Race</th>
+            <th>Misc</th><th>Ab Mod</th>
+          </tr>
+        </thead>
+        <tbody id="performBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Craft / Profession -->
+  <div class="panel">
+    <div class="panel-title">Craft / Profession</div>
+    <div class="grid-2">
+      <div>
+        <h4 style="margin-bottom:8px;">Craft (Int)</h4>
+        <div id="craftSkills"></div>
+        <button onclick="addCraftSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Craft</button>
+      </div>
+      <div>
+        <h4 style="margin-bottom:8px;">Profession (Wis, Trained Only)</h4>
+        <div id="professionSkills"></div>
+        <button onclick="addProfessionSkill()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Profession</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Languages -->
+  <div class="panel">
+    <div class="panel-title">Languages</div>
+    <textarea data-bind="languages" rows="2" placeholder="Comma-separated list"></textarea>
+  </div>
+</div>
+```
+
+- [ ] **Step 3: Implement skills table rendering**
+
+```javascript
+function getArmorCheckPenalty() {
+  return (state.armor || [])
+    .filter(a => a.equipped)
+    .reduce((sum, a) => sum + (Number(a.checkPenalty) || 0), 0);
+}
+
+function ensureSkillData() {
+  if (!state.skills) state.skills = {};
+  SKILL_DEFS.forEach(s => {
+    if (!state.skills[s.key]) {
+      state.skills[s.key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0 };
+    }
+  });
+  KNOWLEDGE_SKILLS.forEach((name, i) => {
+    const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+    if (!state.skills[key]) {
+      state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, trainedOnly: true };
+    }
+  });
+  PERFORM_SKILLS.forEach((name, i) => {
+    const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+    if (!state.skills[key]) {
+      state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0 };
+    }
+  });
+}
+
+function calcSkillTotal(skill, key) {
+  const ab = state.abilityScores[skill.ability || 'int'];
+  const abMod = ab ? ab.mod : 0;
+  const ranks = Number(skill.ranks) || 0;
+  const classSkillBonus = (skill.classSkill && ranks > 0) ? 3 : 0;
+  let armorPen = 0;
+  if (skill.armorPenalty) {
+    armorPen = getArmorCheckPenalty();
+  }
+  return {
+    total: ranks + classSkillBonus + abMod + (Number(skill.competence) || 0)
+      + (Number(skill.circumstance) || 0) + (Number(skill.feat) || 0)
+      + (Number(skill.race) || 0) + (Number(skill.misc) || 0) + armorPen,
+    classSkillBonus,
+    abilityMod: abMod,
+    armorPenalty: armorPen
+  };
+}
+
+function renderSkillsTable() {
+  ensureSkillData();
+  const abbr = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
+  const tbody = document.getElementById('skillsBody');
+  if (!tbody) return;
+  tbody.innerHTML = SKILL_DEFS.map((s, i) => {
+    const sk = state.skills[s.key];
+    const calc = calcSkillTotal(sk, s.key);
+    return `
+      <tr>
+        <td><input type="checkbox" data-bind="skills.${s.key}.classSkill"></td>
+        <td>${s.name}${s.trainedOnly ? ' *' : ''}</td>
+        <td>${abbr[s.ability]}</td>
+        <td class="derived" data-display="skills.${s.key}.total">${calc.total}</td>
+        <td><input type="number" data-bind="skills.${s.key}.ranks" style="width:50px" min="0"></td>
+        <td class="derived">${calc.classSkillBonus}</td>
+        <td><input type="number" data-bind="skills.${s.key}.competence" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${s.key}.circumstance" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${s.key}.feat" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${s.key}.race" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${s.key}.misc" style="width:50px"></td>
+        <td class="derived">${calc.armorPenalty}</td>
+        <td class="derived">${calc.abilityMod >= 0 ? '+' : ''}${calc.abilityMod}</td>
+      </tr>
+    `;
+  }).join('');
+  bindInputs();
+}
+
+function renderKnowledgeTable() {
+  ensureSkillData();
+  const tbody = document.getElementById('knowledgeBody');
+  if (!tbody) return;
+  tbody.innerHTML = KNOWLEDGE_SKILLS.map((name, i) => {
+    const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+    const sk = state.skills[key];
+    const calc = calcSkillTotal({ ...sk, ability: 'int', armorPenalty: false }, key);
+    return `
+      <tr>
+        <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
+        <td>Knowledge (${name})</td>
+        <td class="derived" data-display="skills.${key}.total">${calc.total}</td>
+        <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
+        <td class="derived">${calc.classSkillBonus}</td>
+        <td><input type="number" data-bind="skills.${key}.competence" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.circumstance" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.feat" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.race" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.misc" style="width:50px"></td>
+        <td class="derived">+${calc.abilityMod}</td>
+      </tr>
+    `;
+  }).join('');
+  bindInputs();
+}
+
+function renderPerformTable() {
+  ensureSkillData();
+  const tbody = document.getElementById('performBody');
+  if (!tbody) return;
+  tbody.innerHTML = PERFORM_SKILLS.map((name, i) => {
+    const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+    const sk = state.skills[key];
+    const calc = calcSkillTotal({ ...sk, ability: 'cha', armorPenalty: false }, key);
+    return `
+      <tr>
+        <td><input type="checkbox" data-bind="skills.${key}.classSkill"></td>
+        <td>Perform (${name})</td>
+        <td class="derived" data-display="skills.${key}.total">${calc.total}</td>
+        <td><input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0"></td>
+        <td class="derived">${calc.classSkillBonus}</td>
+        <td><input type="number" data-bind="skills.${key}.competence" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.circumstance" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.feat" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.race" style="width:50px"></td>
+        <td><input type="number" data-bind="skills.${key}.misc" style="width:50px"></td>
+        <td class="derived">+${calc.abilityMod}</td>
+      </tr>
+    `;
+  }).join('');
+  bindInputs();
+}
+```
+
+- [ ] **Step 4: Implement Craft/Profession custom skills**
+
+```javascript
+function renderCraftProfession() {
+  ensureSkillData();
+  const craftContainer = document.getElementById('craftSkills');
+  const profContainer = document.getElementById('professionSkills');
+  if (!craftContainer || !profContainer) return;
+
+  const craftSkills = Object.entries(state.skills).filter(([k]) => k.startsWith('craft'));
+  const profSkills = Object.entries(state.skills).filter(([k]) => k.startsWith('profession'));
+
+  craftContainer.innerHTML = craftSkills.map(([key, sk], i) => `
+    <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
+      <input type="text" data-bind="skills.${key}.customName" placeholder="Craft name" style="width:120px">
+      <input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0" placeholder="Ranks">
+      <span class="derived" data-display="skills.${key}.total">0</span>
+      <button onclick="removeSkill('${key}')" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+    </div>
+  `).join('');
+
+  profContainer.innerHTML = profSkills.map(([key, sk], i) => `
+    <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
+      <input type="text" data-bind="skills.${key}.customName" placeholder="Profession name" style="width:120px">
+      <input type="number" data-bind="skills.${key}.ranks" style="width:50px" min="0" placeholder="Ranks">
+      <span class="derived" data-display="skills.${key}.total">0</span>
+      <button onclick="removeSkill('${key}')" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+    </div>
+  `).join('');
+
+  bindInputs();
+}
+
+function addCraftSkill() {
+  const count = Object.keys(state.skills).filter(k => k.startsWith('craft')).length;
+  if (count >= 5) return;
+  const key = 'craft' + (count + 1);
+  state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'int', armorPenalty: false, customName: '' };
+  renderCraftProfession();
+  saveToStorage();
+}
+
+function addProfessionSkill() {
+  const count = Object.keys(state.skills).filter(k => k.startsWith('profession')).length;
+  if (count >= 5) return;
+  const key = 'profession' + (count + 1);
+  state.skills[key] = { ranks: 0, classSkill: false, competence: 0, circumstance: 0, feat: 0, race: 0, misc: 0, ability: 'wis', armorPenalty: false, trainedOnly: true, customName: '' };
+  renderCraftProfession();
+  saveToStorage();
+}
+
+function removeSkill(key) {
+  delete state.skills[key];
+  renderCraftProfession();
+  saveToStorage();
+}
+```
+
+- [ ] **Step 5: Add skill points and remaining calculations to recalculate()**
+
+Add to end of `recalculate()`:
+
+```javascript
+  // Skill points
+  let usedPoints = 0;
+  Object.values(state.skills || {}).forEach(sk => {
+    usedPoints += Number(sk.ranks) || 0;
+  });
+  state.skillPoints.used = usedPoints;
+  state.skillPoints.remaining = (state.skillPoints.available || 0) - usedPoints;
+
+  // Re-render skills
+  renderSkillsTable();
+  renderKnowledgeTable();
+  renderPerformTable();
+  renderCraftProfession();
+```
+
+- [ ] **Step 6: Update character switch to render skills**
+
+Update `selectCharacter`, `newCharacter`, `duplicateCharacter` to call skill rendering functions.
+
+- [ ] **Step 7: Test in browser**
+
+Open `index.html`, switch to Skills tab. Verify:
+- Skills table shows all base skills with ability abbreviations
+- Changing ranks updates Total
+- Class Skill checkbox adds +3 bonus when ranks > 0
+- Armor penalty shows for armor-check-affected skills
+- Knowledge, Perform, Craft, Profession sections render
+- Add/remove Craft and Profession works
+- Skill Points Used auto-sums all ranks
+- Skill Points Remaining = Available - Used
+- Languages textarea works
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: skills tab with full auto-calculation and skill points"
+```
+
+---
+
+### Task 7: Spells Tab
+
+**Files:**
+- Modify: `index.html` (add `tab-spells` HTML, add to JS)
+
+**What this produces:** Up to 3 spell sets with slots tracking and spell lists.
+
+**Interfaces:**
+- Consumes: `state.abilityScores.*.mod` from Task 3
+- Produces: `state.spells[]` array
+
+- [ ] **Step 1: Add spells tab HTML**
+
+Replace placeholder in `tab-spells`:
+
+```html
+<div id="tab-spells" class="tab-panel">
+  <div id="spellSets"></div>
+  <button onclick="addSpellSet()" style="margin-top:12px;background:#6b4c1e;color:#e8d5a3;border:none;padding:6px 16px;cursor:pointer;">+ Add Spell Set</button>
+</div>
+```
+
+- [ ] **Step 2: Implement spell set rendering**
+
+```javascript
+function createSpellSet() {
+  const slots = {};
+  for (let i = 0; i <= 9; i++) {
+    slots[i] = { total: 0, used: 0 };
+  }
+  const spells = {};
+  for (let i = 0; i <= 9; i++) {
+    spells[i] = [];
+  }
+  return {
+    casterClass: '',
+    casterLevel: 0,
+    ability: 'int',
+    misc: 0,
+    concentration: 0,
+    slots,
+    spells
+  };
+}
+
+function renderSpellSets() {
+  const container = document.getElementById('spellSets');
+  if (!container) return;
+  if (!state.spells) state.spells = [];
+
+  container.innerHTML = state.spells.map((set, si) => {
+    const abMod = state.abilityScores[set.ability]?.mod || 0;
+    set.concentration = (Number(set.casterLevel) || 0) + abMod + (Number(set.misc) || 0);
+
+    let slotsHTML = '';
+    for (let lvl = 0; lvl <= 9; lvl++) {
+      const slot = set.slots[lvl] || { total: 0, used: 0 };
+      const remaining = Math.max(0, (slot.total || 0) - (slot.used || 0));
+      slotsHTML += `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span style="width:20px;color:#c9a84c;">${lvl}:</span>
+          <input type="number" data-bind="spells.${si}.slots.${lvl}.total" style="width:40px" min="0" placeholder="Total">
+          <span style="color:#8b6914;">Used:</span>
+          <input type="number" data-bind="spells.${si}.slots.${lvl}.used" style="width:40px" min="0">
+          <span class="derived">= ${remaining}</span>
+        </div>
+      `;
+    }
+
+    let spellListHTML = '';
+    for (let lvl = 0; lvl <= 9; lvl++) {
+      const spells = set.spells[lvl] || [];
+      const spellRows = spells.map((sp, spi) => `
+        <div style="display:flex;gap:6px;margin-bottom:2px;align-items:center;">
+          <input type="checkbox" data-bind="spells.${si}.spells.${lvl}.${spi}.expended">
+          <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.name" placeholder="Spell name" style="flex:1">
+          <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.notes" placeholder="Notes" style="width:100px">
+          <button onclick="removeSpell(${si},${lvl},${spi})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+        </div>
+      `).join('');
+
+      spellListHTML += `
+        <div style="margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#c9a84c;">Level ${lvl}</span>
+            <button onclick="addSpell(${si},${lvl})" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;font-size:11px;">+ Add</button>
+          </div>
+          ${spellRows}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="panel" style="margin-bottom:15px;">
+        <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Spell Set ${si + 1}</span>
+          <button onclick="removeSpellSet(${si})" style="background:#8b1a1a;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">Remove</button>
+        </div>
+        <div class="grid-4" style="margin-bottom:12px;">
+          <div class="field-group">
+            <label class="field-label">Caster Class</label>
+            <input type="text" data-bind="spells.${si}.casterClass" style="width:100%">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Caster Level</label>
+            <input type="number" data-bind="spells.${si}.casterLevel" style="width:100%">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ability</label>
+            <select data-bind="spells.${si}.ability">
+              <option value="int">Intelligence</option>
+              <option value="wis">Wisdom</option>
+              <option value="cha">Charisma</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Misc</label>
+            <input type="number" data-bind="spells.${si}.misc" style="width:100%">
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Concentration Check</label>
+          <span class="derived" data-display="spells.${si}.concentration" style="font-size:18px;">0</span>
+        </div>
+        <div class="panel-title" style="margin-top:12px;">Spell Slots</div>
+        ${slotsHTML}
+        <div class="panel-title" style="margin-top:12px;">Spell List</div>
+        <div style="max-height:400px;overflow-y:auto;">
+          ${spellListHTML}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  bindInputs();
+}
+
+function addSpellSet() {
+  if (!state.spells) state.spells = [];
+  if (state.spells.length >= 3) return;
+  state.spells.push(createSpellSet());
+  renderSpellSets();
+  saveToStorage();
+}
+
+function removeSpellSet(index) {
+  state.spells.splice(index, 1);
+  renderSpellSets();
+  saveToStorage();
+}
+
+function addSpell(setIndex, level) {
+  if (!state.spells[setIndex].spells[level]) {
+    state.spells[setIndex].spells[level] = [];
+  }
+  state.spells[setIndex].spells[level].push({ name: '', expended: false, notes: '' });
+  renderSpellSets();
+  saveToStorage();
+}
+
+function removeSpell(setIndex, level, spellIndex) {
+  state.spells[setIndex].spells[level].splice(spellIndex, 1);
+  renderSpellSets();
+  saveToStorage();
+}
+```
+
+- [ ] **Step 3: Add spell concentration to recalculate()**
+
+Add to `recalculate()`:
+
+```javascript
+  // Spell concentration
+  (state.spells || []).forEach((set, si) => {
+    const abMod = state.abilityScores[set.ability]?.mod || 0;
+    set.concentration = (Number(set.casterLevel) || 0) + abMod + (Number(set.misc) || 0);
+  });
+```
+
+- [ ] **Step 4: Update character switch to render spells**
+
+Update `selectCharacter`, `newCharacter`, `duplicateCharacter` to call `renderSpellSets()`.
+
+- [ ] **Step 5: Test in browser**
+
+Open `index.html`, switch to Spells tab. Verify:
+- Click "+ Add Spell Set" — appears with inputs
+- Set caster class, level, ability — concentration updates
+- Spell slots 0–9 show Total/Used/Remaining
+- Click "+ Add" on a spell level — spell row appears
+- Expended checkbox, name, notes fields work
+- Remove spell/set works
+- Up to 3 spell sets allowed
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: spells tab with slot tracking and spell lists"
+```
+
+---
+
+### Task 8: Inventory Tab with Carrying Capacity and Encumbrance
+
+**Files:**
+- Modify: `index.html` (add `tab-inventory` HTML, add to JS)
+
+**What this produces:** Currency inputs, carrying capacity table, encumbrance detection, inventory table with auto-sums.
+
+**Interfaces:**
+- Consumes: `state.abilityScores.str.base` from Task 3
+- Produces: `state.inventory.*` fields, carried weight, encumbrance badge
+
+- [ ] **Step 1: Add inventory tab HTML**
+
+Replace placeholder in `tab-inventory`:
+
+```html
+<div id="tab-inventory" class="tab-panel">
+  <!-- Currency -->
+  <div class="panel">
+    <div class="panel-title">Currency</div>
+    <div class="grid-5">
+      <div class="field-group">
+        <label class="field-label">Platinum</label>
+        <input type="number" data-bind="inventory.currency.platinum" min="0">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Gold</label>
+        <input type="number" data-bind="inventory.currency.gold" min="0">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Silver</label>
+        <input type="number" data-bind="inventory.currency.silver" min="0">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Copper</label>
+        <input type="number" data-bind="inventory.currency.copper" min="0">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Total (GP)</label>
+        <span class="derived" data-display="inventory.totalValueGP" style="font-size:18px;">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carrying Capacity -->
+  <div class="panel">
+    <div class="panel-title">Carrying Capacity</div>
+    <div class="grid-3">
+      <div class="field-group">
+        <label class="field-label">Size Modifier</label>
+        <select data-bind="inventory.sizeModifier">
+          <option value="0.5">Small (×3/4)</option>
+          <option value="1" selected>Medium (×1)</option>
+          <option value="2">Large (×2)</option>
+          <option value="4">Huge (×4)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Quadruped</label>
+        <input type="checkbox" data-bind="inventory.isQuadruped"> <span style="font-size:12px;">(×1.5 capacity)</span>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Current Load (lbs)</label>
+        <span class="derived" data-display="inventory.carriedWeight">0</span>
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:10px;">
+      <div class="field-group">
+        <label class="field-label">Light Load</label>
+        <span class="derived" data-display="inventory.carryingCapacity.light">0</span> lbs
+      </div>
+      <div class="field-group">
+        <label class="field-label">Medium Load</label>
+        <span class="derived" data-display="inventory.carryingCapacity.medium">0</span> lbs
+      </div>
+      <div class="field-group">
+        <label class="field-label">Heavy Load</label>
+        <span class="derived" data-display="inventory.carryingCapacity.heavy">0</span> lbs
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:10px;">
+      <div class="field-group">
+        <label class="field-label">Lift Over Head</label>
+        <span class="derived" data-display="inventory.liftOverHead">0</span> lbs
+      </div>
+      <div class="field-group">
+        <label class="field-label">Lift Off Ground</label>
+        <span class="derived" data-display="inventory.liftOffGround">0</span> lbs
+      </div>
+      <div class="field-group">
+        <label class="field-label">Push / Drag</label>
+        <span class="derived" data-display="inventory.pushDrag">0</span> lbs
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <label class="field-label">Encumbrance</label>
+      <span class="derived" data-display="inventory.encumbrance" style="font-size:18px;padding:4px 12px;border:1px solid #6b4c1e;border-radius:4px;">Light</span>
+      <span style="font-size:11px;color:#8b6914;margin-left:10px;">Informational only — not auto-applied to skills</span>
+    </div>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="panel">
+    <div class="panel-title">Inventory</div>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>Qty</th><th>Item</th><th>Value/unit (gp)</th><th>Weight/unit (lbs)</th>
+          <th>Total Value</th><th>Total Weight</th><th>Location</th><th>Notes</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="inventoryBody"></tbody>
+    </table>
+    <button onclick="addInventoryItem()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Item</button>
+  </div>
+
+  <!-- Not-Carried Locations -->
+  <div class="panel">
+    <div class="panel-title">Not-Carried Locations</div>
+    <p style="font-size:12px;color:#8b6914;margin-bottom:8px;">Items in these locations are excluded from carried weight:</p>
+    <textarea data-bind="inventory.notCarriedLocationsText" rows="2" placeholder="Comma-separated (e.g. Home, Handy Haversack)"></textarea>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Implement carrying capacity table**
+
+```javascript
+const CARRY_CAPACITY_TABLE = [
+  null, // index 0 unused
+  [3, 6, 10],     // STR 1
+  [6, 13, 20],    // STR 2
+  [10, 20, 30],   // STR 3
+  [13, 26, 40],   // STR 4
+  [16, 33, 50],   // STR 5
+  [20, 40, 60],   // STR 6
+  [23, 46, 70],   // STR 7
+  [26, 53, 80],   // STR 8
+  [30, 60, 90],   // STR 9
+  [33, 66, 100],  // STR 10
+  [38, 76, 115],  // STR 11
+  [43, 86, 130],  // STR 12
+  [50, 100, 150], // STR 13
+  [58, 116, 175], // STR 14
+  [66, 133, 200], // STR 15
+  [76, 153, 230], // STR 16
+  [86, 173, 260], // STR 17
+  [100, 200, 300],// STR 18
+  [116, 233, 350],// STR 19
+  [133, 266, 400] // STR 20
+];
+
+function getCarryingCapacity(strScore) {
+  if (strScore <= 0) return [0, 0, 0];
+  if (strScore <= 20) {
+    return CARRY_CAPACITY_TABLE[strScore].slice();
+  }
+  // STR 21+: each +10 quadruples
+  const extraTens = Math.floor((strScore - 20) / 10);
+  const remainder = ((strScore - 20) % 10) + 10; // map back to 10-19 range
+  const base = CARRY_CAPACITY_TABLE[Math.min(remainder, 20)] || CARRY_CAPACITY_TABLE[20];
+  const multiplier = Math.pow(4, extraTens);
+  return [base[0] * multiplier, base[1] * multiplier, base[2] * multiplier];
+}
+```
+
+- [ ] **Step 3: Implement inventory calculations in recalculate()**
+
+Add to `recalculate()`:
+
+```javascript
+  // Inventory
+  if (!state.inventory) state.inventory = {};
+  if (!state.inventory.currency) state.inventory.currency = { platinum: 0, gold: 0, silver: 0, copper: 0 };
+
+  const c = state.inventory.currency;
+  state.inventory.totalValueGP = (Number(c.platinum) || 0) * 10
+    + (Number(c.gold) || 0)
+    + (Number(c.silver) || 0) / 10
+    + (Number(c.copper) || 0) / 100;
+
+  // Carrying capacity
+  const strScore = Number(state.abilityScores.str.base) || 10;
+  const [light, medium, heavy] = getCarryingCapacity(strScore);
+  const sizeMod = Number(state.inventory.sizeModifier) || 1;
+  const quadMod = state.inventory.isQuadruped ? 1.5 : 1;
+  state.inventory.carryingCapacity.light = Math.round(light * sizeMod * quadMod);
+  state.inventory.carryingCapacity.medium = Math.round(medium * sizeMod * quadMod);
+  state.inventory.carryingCapacity.heavy = Math.round(heavy * sizeMod * quadMod);
+
+  state.inventory.liftOverHead = state.inventory.carryingCapacity.heavy;
+  state.inventory.liftOffGround = state.inventory.carryingCapacity.heavy * 2;
+  state.inventory.pushDrag = state.inventory.carryingCapacity.heavy * 5;
+
+  // Carried weight (exclude non-carried locations)
+  const notCarried = (state.inventory.notCarriedLocationsText || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  state.inventory.carriedWeight = (state.inventory.items || []).reduce((sum, item) => {
+    const loc = (item.location || '').trim().toLowerCase();
+    if (notCarried.includes(loc)) return sum;
+    return sum + (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
+  }, 0);
+
+  // Encumbrance badge
+  const cw = state.inventory.carriedWeight;
+  const cap = state.inventory.carryingCapacity;
+  if (cw <= cap.light) state.inventory.encumbrance = 'Light';
+  else if (cw <= cap.medium) state.inventory.encumbrance = 'Medium';
+  else if (cw <= cap.heavy) state.inventory.encumbrance = 'Heavy';
+  else state.inventory.encumbrance = 'Overloaded';
+```
+
+- [ ] **Step 4: Implement inventory table rendering**
+
+```javascript
+function renderInventoryTable() {
+  const tbody = document.getElementById('inventoryBody');
+  if (!tbody) return;
+  if (!state.inventory.items) state.inventory.items = [];
+
+  tbody.innerHTML = state.inventory.items.map((item, i) => {
+    const totalVal = (Number(item.qty) || 0) * (Number(item.valuePerUnit) || 0);
+    const totalWt = (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
+    return `
+      <tr>
+        <td><input type="number" data-bind="inventory.items.${i}.qty" style="width:50px" min="0"></td>
+        <td><input type="text" data-bind="inventory.items.${i}.name" style="width:120px"></td>
+        <td><input type="number" data-bind="inventory.items.${i}.valuePerUnit" style="width:70px" step="0.01"></td>
+        <td><input type="number" data-bind="inventory.items.${i}.weightPerUnit" style="width:70px" step="0.1"></td>
+        <td class="derived">${totalVal.toFixed(2)}</td>
+        <td class="derived">${totalWt.toFixed(1)}</td>
+        <td><input type="text" data-bind="inventory.items.${i}.location" style="width:100px"></td>
+        <td><input type="text" data-bind="inventory.items.${i}.notes" style="width:80px"></td>
+        <td><button onclick="removeInventoryItem(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  bindInputs();
+}
+
+function addInventoryItem() {
+  if (!state.inventory.items) state.inventory.items = [];
+  if (state.inventory.items.length >= 30) return;
+  state.inventory.items.push({ qty: 1, name: '', valuePerUnit: 0, weightPerUnit: 0, location: '', notes: '' });
+  renderInventoryTable();
+  saveToStorage();
+}
+
+function removeInventoryItem(index) {
+  state.inventory.items.splice(index, 1);
+  renderInventoryTable();
+  recalculate();
+  saveToStorage();
+}
+```
+
+- [ ] **Step 5: Update character switch to render inventory**
+
+Update `selectCharacter`, `newCharacter`, `duplicateCharacter` to call `renderInventoryTable()`.
+
+- [ ] **Step 6: Test in browser**
+
+Open `index.html`, switch to Inventory tab. Verify:
+- Currency inputs work, Total GP auto-calculates
+- Carrying capacity table shows correct values for STR scores
+- STR 21+ shows quadrupled values
+- Size modifier dropdown affects capacity
+- Quadruped checkbox multiplies by 1.5
+- Lift Over Head = Heavy, Lift Off Ground = Heavy×2, Push/Drag = Heavy×5
+- Inventory table rows add/remove
+- Total Value and Total Weight per row auto-calculate
+- Carried weight sums correctly (excluding non-carried locations)
+- Encumbrance badge changes (Light/Medium/Heavy/Overloaded)
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: inventory tab with carrying capacity and encumbrance"
+```
+
+---
+
+### Task 9: Abilities/Feats Tab
+
+**Files:**
+- Modify: `index.html` (add `tab-abilities` HTML, add to JS)
+
+**What this produces:** Feats, class talents, class features, racial features, and proficiencies sections.
+
+**Interfaces:**
+- Consumes: `state.featsAndFeatures.*`
+- Produces: `state.featsAndFeatures.feats[]`, `state.featsAndFeatures.classTalents[]`, etc.
+
+- [ ] **Step 1: Add abilities tab HTML**
+
+Replace placeholder in `tab-abilities`:
+
+```html
+<div id="tab-abilities" class="tab-panel">
+  <!-- Feats -->
+  <div class="panel">
+    <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Feats</span>
+      <button onclick="addFeat()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+    </div>
+    <div id="featsList"></div>
+  </div>
+
+  <!-- Class Talents -->
+  <div class="panel">
+    <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Class Talents / Rogue Talents / Discoveries</span>
+      <button onclick="addClassTalent()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+    </div>
+    <div id="classTalentsList"></div>
+  </div>
+
+  <!-- Class Features -->
+  <div class="panel">
+    <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Class Features</span>
+      <button onclick="addClassFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+    </div>
+    <div id="classFeaturesList"></div>
+  </div>
+
+  <!-- Racial Features -->
+  <div class="panel">
+    <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Racial Features & Traits</span>
+      <button onclick="addRacialFeature()" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">+ Add</button>
+    </div>
+    <div id="racialFeaturesList"></div>
+  </div>
+
+  <!-- Proficiencies -->
+  <div class="panel">
+    <div class="panel-title">Proficiencies</div>
+    <textarea data-bind="featsAndFeatures.proficiencies" rows="4" placeholder="List armor, weapons, and tools proficient with..."></textarea>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Implement feature list rendering**
+
+```javascript
+function renderFeatureList(containerId, stateKey, addFn, maxCount) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!state.featsAndFeatures[stateKey]) state.featsAndFeatures[stateKey] = [];
+
+  container.innerHTML = state.featsAndFeatures[stateKey].map((item, i) => `
+    <div style="border:1px solid #6b4c1e;border-radius:4px;padding:8px;margin-bottom:8px;background:#1a1410;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+        <input type="text" data-bind="featsAndFeatures.${stateKey}.${i}.name" placeholder="Name" style="flex:1">
+        <button onclick="removeFeature('${stateKey}',${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+      </div>
+      <textarea data-bind="featsAndFeatures.${stateKey}.${i}.description" rows="2" placeholder="Description (collapsible)"></textarea>
+    </div>
+  `).join('');
+
+  bindInputs();
+}
+
+function addFeat() {
+  if (!state.featsAndFeatures.feats) state.featsAndFeatures.feats = [];
+  if (state.featsAndFeatures.feats.length >= 20) return;
+  state.featsAndFeatures.feats.push({ name: '', description: '' });
+  renderFeatureList('featsList', 'feats');
+  saveToStorage();
+}
+
+function addClassTalent() {
+  if (!state.featsAndFeatures.classTalents) state.featsAndFeatures.classTalents = [];
+  if (state.featsAndFeatures.classTalents.length >= 15) return;
+  state.featsAndFeatures.classTalents.push({ name: '', description: '' });
+  renderFeatureList('classTalentsList', 'classTalents');
+  saveToStorage();
+}
+
+function addClassFeature() {
+  if (!state.featsAndFeatures.classFeatures) state.featsAndFeatures.classFeatures = [];
+  if (state.featsAndFeatures.classFeatures.length >= 15) return;
+  state.featsAndFeatures.classFeatures.push({ name: '', description: '' });
+  renderFeatureList('classFeaturesList', 'classFeatures');
+  saveToStorage();
+}
+
+function addRacialFeature() {
+  if (!state.featsAndFeatures.racialFeatures) state.featsAndFeatures.racialFeatures = [];
+  if (state.featsAndFeatures.racialFeatures.length >= 10) return;
+  state.featsAndFeatures.racialFeatures.push({ name: '', description: '' });
+  renderFeatureList('racialFeaturesList', 'racialFeatures');
+  saveToStorage();
+}
+
+function removeFeature(key, index) {
+  state.featsAndFeatures[key].splice(index, 1);
+  const containerMap = { feats: 'featsList', classTalents: 'classTalentsList', classFeatures: 'classFeaturesList', racialFeatures: 'racialFeaturesList' };
+  renderFeatureList(containerMap[key], key);
+  saveToStorage();
+}
+```
+
+- [ ] **Step 3: Update character switch to render abilities**
+
+Update `selectCharacter`, `newCharacter`, `duplicateCharacter` to call:
+```javascript
+renderFeatureList('featsList', 'feats');
+renderFeatureList('classTalentsList', 'classTalents');
+renderFeatureList('classFeaturesList', 'classFeatures');
+renderFeatureList('racialFeaturesList', 'racialFeatures');
+```
+
+- [ ] **Step 4: Test in browser**
+
+Open `index.html`, switch to Abilities tab. Verify:
+- Add/remove feats works (up to 20)
+- Add/remove class talents works (up to 15)
+- Add/remove class features works (up to 15)
+- Add/remove racial features works (up to 10)
+- Name and description fields persist
+- Proficiencies textarea works
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: abilities/feats tab with collapsible feature lists"
+```
+
+---
+
+### Task 10: Notes Tab
+
+**Files:**
+- Modify: `index.html` (add `tab-notes` HTML)
+
+**What this produces:** Three text areas for background, general notes, and campaign log.
+
+- [ ] **Step 1: Add notes tab HTML**
+
+Replace placeholder in `tab-notes`:
+
+```html
+<div id="tab-notes" class="tab-panel">
+  <div class="panel">
+    <div class="panel-title">Background / Backstory</div>
+    <textarea data-bind="notes.background" rows="10" placeholder="Character background, backstory, motivations..."></textarea>
+  </div>
+  <div class="panel">
+    <div class="panel-title">General Notes</div>
+    <textarea data-bind="notes.general" rows="10" placeholder="General notes, reminders, plans..."></textarea>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Party / Campaign Log</div>
+    <textarea data-bind="notes.log" rows="10" placeholder="Session notes, quest progress, important events..."></textarea>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Test in browser**
+
+Open `index.html`, switch to Notes tab. Verify:
+- Three text areas visible
+- Text persists after switching characters
+- Text survives page refresh (localStorage)
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: notes tab with background, general, and campaign log"
+```
+
+---
+
+### Task 11: Export/Import JSON
+
+**Files:**
+- Modify: `index.html` (verify existing export/import from Task 2 works with all tabs)
+
+**What this produces:** Working export single/all characters, import with merge/overwrite.
+
+- [ ] **Step 1: Verify export includes all tab data**
+
+Open `index.html`. Fill in data across all tabs. Export character. Open the JSON file. Verify all sections are present: main, abilityScores, combat, weapons, armor, conditions, skills, skillPoints, languages, featsAndFeatures, spells, inventory, notes.
+
+- [ ] **Step 2: Verify import restores all data**
+
+Import the exported JSON. Switch to each tab. Verify all data is restored correctly.
+
+- [ ] **Step 3: Test Export All with multiple characters**
+
+Create 2 characters with different data. Export All. Verify JSON contains both. Import the file — verify both characters appear in selector.
+
+- [ ] **Step 4: Commit (if any fixes needed)**
+
+```bash
+git add index.html
+git commit -m "fix: verify export/import covers all character data"
+```
+
+---
+
+### Task 12: Print CSS
+
+**Files:**
+- Modify: `index.html` (add to `<style>`)
+
+**What this produces:** Clean print layout with all sections stacked, black-on-white.
+
+- [ ] **Step 1: Add print styles**
+
+Add to `<style>`:
+
+```css
+@media print {
+  body { background: white; color: black; font-size: 12px; }
+  .tab-nav, .char-selector { display: none !important; }
+  .tab-panel { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
+  .panel { border: 1px solid #ccc; background: white; }
+  .panel-title { color: #333; border-bottom: 1px solid #ccc; }
+  input, select, textarea { border-bottom: 1px solid #999; color: black; background: transparent; }
+  input[type="checkbox"] { accent-color: black; }
+  .derived { color: #333; }
+  .field-label { color: #666; }
+  th { background: #eee; color: #333; }
+  td { background: white; }
+  button { display: none !important; }
+  h1, h2, h3, h4 { color: #333; }
+}
+```
+
+- [ ] **Step 2: Test print preview**
+
+Open `index.html`. Ctrl+P (or Cmd+P). Verify:
+- Tab navigation hidden
+- All 6 sections visible and stacked
+- Black text on white background
+- No buttons visible
+- Tables render cleanly
+- Page breaks between major sections
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: print CSS for clean black-on-white output"
+```
+
+---
+
+### Task 13: Final Polish and Responsive Layout
+
+**Files:**
+- Modify: `index.html` (CSS tweaks, responsive breakpoints)
+
+**What this produces:** Polished UI, responsive on smaller screens, no visual bugs.
+
+- [ ] **Step 1: Add responsive CSS**
+
+Add to `<style>`:
+
+```css
+@media (max-width: 900px) {
+  .grid-6 { grid-template-columns: repeat(3, 1fr); }
+  .grid-5 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 600px) {
+  .grid-6 { grid-template-columns: repeat(2, 1fr); }
+  .grid-5 { grid-template-columns: 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .tab-btn { padding: 8px 10px; font-size: 12px; }
+  table { font-size: 11px; }
+}
+```
+
+- [ ] **Step 2: Add scrollbar styling**
+
+```css
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1a1410; }
+::-webkit-scrollbar-thumb { background: #6b4c1e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #c9a84c; }
+```
+
+- [ ] **Step 3: Test on different viewport sizes**
+
+Resize browser window. Verify:
+- Layout adapts gracefully
+- No horizontal overflow on mobile widths
+- Tabs remain usable
+- Tables scroll horizontally if needed
+
+- [ ] **Step 4: Final test — create a complete character**
+
+Fill in a test character with:
+- All ability scores
+- HP, AC, saves, initiative
+- 2-3 weapons, 1-2 armor pieces
+- 5+ skills with ranks
+- 1 spell set with some spells
+- 5+ inventory items
+- A feat and a note
+
+Verify:
+- All calculations update correctly
+- Data persists after refresh
+- Export/Import works
+- Print looks clean
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html
+git commit -m "feat: responsive layout and final polish"
+```
+
+---
+
+## Summary
+
+| Task | Deliverable | Lines (est.) |
+|------|------------|--------------|
+| 1 | HTML skeleton + tabs + CSS | ~200 |
+| 2 | Multi-character + localStorage | ~120 |
+| 3 | Character info + ability scores | ~100 |
+| 4 | Combat stats (AC, saves, etc.) | ~200 |
+| 5 | Weapons/armor tables + conditions | ~120 |
+| 6 | Skills tab (full calculation) | ~250 |
+| 7 | Spells tab | ~150 |
+| 8 | Inventory + carrying capacity | ~200 |
+| 9 | Abilities/feats tab | ~100 |
+| 10 | Notes tab | ~30 |
+| 11 | Export/Import verification | ~20 |
+| 12 | Print CSS | ~40 |
+| 13 | Responsive + polish | ~50 |
+| **Total** | | **~1580** |
+
+Each task builds on the previous. Tasks 1-5 form the core character sheet. Tasks 6-10 add the remaining tabs. Tasks 11-13 are polish.
