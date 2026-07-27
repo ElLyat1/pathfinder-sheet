@@ -836,7 +836,18 @@
     </div>
   </div>
   <div id="tab-notes" class="tab-panel">
-    <p style="color: #8b6914; padding: 20px;">Notes tab — coming in Task 10.</p>
+    <div class="panel">
+      <div class="panel-title">Background / Backstory</div>
+      <textarea data-bind="notes.background" rows="10" placeholder="Character background, backstory, motivations..."></textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-title">General Notes</div>
+      <textarea data-bind="notes.general" rows="10" placeholder="General notes, reminders, plans..."></textarea>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Party / Campaign Log</div>
+      <textarea data-bind="notes.log" rows="10" placeholder="Session notes, quest progress, important events..."></textarea>
+    </div>
   </div>
 
   <script>
