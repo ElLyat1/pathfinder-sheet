@@ -685,7 +685,8 @@
     <p style="color: #8b6914; padding: 20px;">Abilities tab — coming in Task 9.</p>
   </div>
   <div id="tab-spells" class="tab-panel">
-    <p style="color: #8b6914; padding: 20px;">Spells tab — coming in Task 7.</p>
+    <div id="spellSets"></div>
+    <button onclick="addSpellSet()" style="margin-top:12px;background:#6b4c1e;color:#e8d5a3;border:none;padding:6px 16px;cursor:pointer;">+ Add Spell Set</button>
   </div>
   <div id="tab-inventory" class="tab-panel">
     <p style="color: #8b6914; padding: 20px;">Inventory tab — coming in Task 8.</p>
@@ -821,6 +822,7 @@
       renderKnowledgeTable();
       renderPerformTable();
       renderCraftProfession();
+      renderSpellSets();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -839,6 +841,7 @@
       renderKnowledgeTable();
       renderPerformTable();
       renderCraftProfession();
+      renderSpellSets();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -860,6 +863,7 @@
       renderKnowledgeTable();
       renderPerformTable();
       renderCraftProfession();
+      renderSpellSets();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -1039,11 +1043,20 @@
       state.skillPoints.used = usedPoints;
       state.skillPoints.remaining = (state.skillPoints.available || 0) - usedPoints;
 
+      // Spell concentration
+      (state.spells || []).forEach((set) => {
+        const abMod = state.abilityScores[set.ability]?.mod || 0;
+        set.concentration = (Number(set.casterLevel) || 0) + abMod + (Number(set.misc) || 0);
+      });
+
       // Re-render skills
       renderSkillsTable();
       renderKnowledgeTable();
       renderPerformTable();
       renderCraftProfession();
+
+      // Re-render spells
+      renderSpellSets();
 
       updateDisplay();
       saveToStorage();
@@ -1322,6 +1335,150 @@
     function removeSkill(key) {
       delete state.skills[key];
       renderCraftProfession();
+      saveToStorage();
+    }
+
+    // ============================================
+    // SPELLS
+    // ============================================
+    function createSpellSet() {
+      const slots = {};
+      for (let i = 0; i <= 9; i++) {
+        slots[i] = { total: 0, used: 0 };
+      }
+      const spells = {};
+      for (let i = 0; i <= 9; i++) {
+        spells[i] = [];
+      }
+      return {
+        casterClass: '',
+        casterLevel: 0,
+        ability: 'int',
+        misc: 0,
+        concentration: 0,
+        slots,
+        spells
+      };
+    }
+
+    function renderSpellSets() {
+      const container = document.getElementById('spellSets');
+      if (!container) return;
+      if (!state.spells) state.spells = [];
+
+      container.innerHTML = state.spells.map((set, si) => {
+        const abMod = state.abilityScores[set.ability]?.mod || 0;
+        set.concentration = (Number(set.casterLevel) || 0) + abMod + (Number(set.misc) || 0);
+
+        let slotsHTML = '';
+        for (let lvl = 0; lvl <= 9; lvl++) {
+          const slot = set.slots[lvl] || { total: 0, used: 0 };
+          const remaining = Math.max(0, (slot.total || 0) - (slot.used || 0));
+          slotsHTML += `
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <span style="width:20px;color:#c9a84c;">${lvl}:</span>
+              <input type="number" data-bind="spells.${si}.slots.${lvl}.total" style="width:40px" min="0" placeholder="Total">
+              <span style="color:#8b6914;">Used:</span>
+              <input type="number" data-bind="spells.${si}.slots.${lvl}.used" style="width:40px" min="0">
+              <span class="derived">= ${remaining}</span>
+            </div>
+          `;
+        }
+
+        let spellListHTML = '';
+        for (let lvl = 0; lvl <= 9; lvl++) {
+          const spellsAtLevel = set.spells[lvl] || [];
+          const spellRows = spellsAtLevel.map((sp, spi) => `
+            <div style="display:flex;gap:6px;margin-bottom:2px;align-items:center;">
+              <input type="checkbox" data-bind="spells.${si}.spells.${lvl}.${spi}.expended">
+              <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.name" placeholder="Spell name" style="flex:1">
+              <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.notes" placeholder="Notes" style="width:100px">
+              <button onclick="removeSpell(${si},${lvl},${spi})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+            </div>
+          `).join('');
+
+          spellListHTML += `
+            <div style="margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#c9a84c;">Level ${lvl}</span>
+                <button onclick="addSpell(${si},${lvl})" style="background:#6b4c1e;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;font-size:11px;">+ Add</button>
+              </div>
+              ${spellRows}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="panel" style="margin-bottom:15px;">
+            <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Spell Set ${si + 1}</span>
+              <button onclick="removeSpellSet(${si})" style="background:#8b1a1a;color:#e8d5a3;border:none;padding:2px 8px;cursor:pointer;">Remove</button>
+            </div>
+            <div class="grid-4" style="margin-bottom:12px;">
+              <div class="field-group">
+                <label class="field-label">Caster Class</label>
+                <input type="text" data-bind="spells.${si}.casterClass" style="width:100%">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Caster Level</label>
+                <input type="number" data-bind="spells.${si}.casterLevel" style="width:100%">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Ability</label>
+                <select data-bind="spells.${si}.ability">
+                  <option value="int">Intelligence</option>
+                  <option value="wis">Wisdom</option>
+                  <option value="cha">Charisma</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Misc</label>
+                <input type="number" data-bind="spells.${si}.misc" style="width:100%">
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Concentration Check</label>
+              <span class="derived" data-display="spells.${si}.concentration" style="font-size:18px;">0</span>
+            </div>
+            <div class="panel-title" style="margin-top:12px;">Spell Slots</div>
+            ${slotsHTML}
+            <div class="panel-title" style="margin-top:12px;">Spell List</div>
+            <div style="max-height:400px;overflow-y:auto;">
+              ${spellListHTML}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      bindInputs();
+    }
+
+    function addSpellSet() {
+      if (!state.spells) state.spells = [];
+      if (state.spells.length >= 3) return;
+      state.spells.push(createSpellSet());
+      renderSpellSets();
+      saveToStorage();
+    }
+
+    function removeSpellSet(index) {
+      state.spells.splice(index, 1);
+      renderSpellSets();
+      saveToStorage();
+    }
+
+    function addSpell(setIndex, level) {
+      if (!state.spells[setIndex].spells[level]) {
+        state.spells[setIndex].spells[level] = [];
+      }
+      state.spells[setIndex].spells[level].push({ name: '', expended: false, notes: '' });
+      renderSpellSets();
+      saveToStorage();
+    }
+
+    function removeSpell(setIndex, level, spellIndex) {
+      state.spells[setIndex].spells[level].splice(spellIndex, 1);
+      renderSpellSets();
       saveToStorage();
     }
 
