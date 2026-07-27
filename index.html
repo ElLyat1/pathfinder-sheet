@@ -689,7 +689,111 @@
     <button onclick="addSpellSet()" style="margin-top:12px;background:#6b4c1e;color:#e8d5a3;border:none;padding:6px 16px;cursor:pointer;">+ Add Spell Set</button>
   </div>
   <div id="tab-inventory" class="tab-panel">
-    <p style="color: #8b6914; padding: 20px;">Inventory tab — coming in Task 8.</p>
+    <!-- Currency -->
+    <div class="panel">
+      <div class="panel-title">Currency</div>
+      <div class="grid-5">
+        <div class="field-group">
+          <label class="field-label">Platinum</label>
+          <input type="number" data-bind="inventory.currency.platinum" min="0">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Gold</label>
+          <input type="number" data-bind="inventory.currency.gold" min="0">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Silver</label>
+          <input type="number" data-bind="inventory.currency.silver" min="0">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Copper</label>
+          <input type="number" data-bind="inventory.currency.copper" min="0">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Total (GP)</label>
+          <span class="derived" data-display="inventory.totalValueGP" style="font-size:18px;">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carrying Capacity -->
+    <div class="panel">
+      <div class="panel-title">Carrying Capacity</div>
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">Size Modifier</label>
+          <select data-bind="inventory.sizeModifier">
+            <option value="0.5">Small (×3/4)</option>
+            <option value="1" selected>Medium (×1)</option>
+            <option value="2">Large (×2)</option>
+            <option value="4">Huge (×4)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Quadruped</label>
+          <input type="checkbox" data-bind="inventory.isQuadruped"> <span style="font-size:12px;">(×1.5 capacity)</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Current Load (lbs)</label>
+          <span class="derived" data-display="inventory.carriedWeight">0</span>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:10px;">
+        <div class="field-group">
+          <label class="field-label">Light Load</label>
+          <span class="derived" data-display="inventory.carryingCapacity.light">0</span> lbs
+        </div>
+        <div class="field-group">
+          <label class="field-label">Medium Load</label>
+          <span class="derived" data-display="inventory.carryingCapacity.medium">0</span> lbs
+        </div>
+        <div class="field-group">
+          <label class="field-label">Heavy Load</label>
+          <span class="derived" data-display="inventory.carryingCapacity.heavy">0</span> lbs
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:10px;">
+        <div class="field-group">
+          <label class="field-label">Lift Over Head</label>
+          <span class="derived" data-display="inventory.liftOverHead">0</span> lbs
+        </div>
+        <div class="field-group">
+          <label class="field-label">Lift Off Ground</label>
+          <span class="derived" data-display="inventory.liftOffGround">0</span> lbs
+        </div>
+        <div class="field-group">
+          <label class="field-label">Push / Drag</label>
+          <span class="derived" data-display="inventory.pushDrag">0</span> lbs
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label class="field-label">Encumbrance</label>
+        <span class="derived" data-display="inventory.encumbrance" style="font-size:18px;padding:4px 12px;border:1px solid #6b4c1e;border-radius:4px;">Light</span>
+        <span style="font-size:11px;color:#8b6914;margin-left:10px;">Informational only — not auto-applied to skills</span>
+      </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="panel">
+      <div class="panel-title">Inventory</div>
+      <table id="inventoryTable">
+        <thead>
+          <tr>
+            <th>Qty</th><th>Item</th><th>Value/unit (gp)</th><th>Weight/unit (lbs)</th>
+            <th>Total Value</th><th>Total Weight</th><th>Location</th><th>Notes</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="inventoryBody"></tbody>
+      </table>
+      <button onclick="addInventoryItem()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;">+ Add Item</button>
+    </div>
+
+    <!-- Not-Carried Locations -->
+    <div class="panel">
+      <div class="panel-title">Not-Carried Locations</div>
+      <p style="font-size:12px;color:#8b6914;margin-bottom:8px;">Items in these locations are excluded from carried weight:</p>
+      <textarea data-bind="inventory.notCarriedLocationsText" rows="2" placeholder="Comma-separated (e.g. Home, Handy Haversack)"></textarea>
+    </div>
   </div>
   <div id="tab-notes" class="tab-panel">
     <p style="color: #8b6914; padding: 20px;">Notes tab — coming in Task 10.</p>
@@ -823,6 +927,7 @@
       renderPerformTable();
       renderCraftProfession();
       renderSpellSets();
+      renderInventoryTable();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -842,6 +947,7 @@
       renderPerformTable();
       renderCraftProfession();
       renderSpellSets();
+      renderInventoryTable();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -864,6 +970,7 @@
       renderPerformTable();
       renderCraftProfession();
       renderSpellSets();
+      renderInventoryTable();
       bindInputs();
       recalculate();
       updateDisplay();
@@ -1049,6 +1156,46 @@
         set.concentration = (Number(set.casterLevel) || 0) + abMod + (Number(set.misc) || 0);
       });
 
+      // Inventory
+      if (!state.inventory) state.inventory = {};
+      if (!state.inventory.currency) state.inventory.currency = { platinum: 0, gold: 0, silver: 0, copper: 0 };
+      if (!state.inventory.carryingCapacity) state.inventory.carryingCapacity = { light: 0, medium: 0, heavy: 0 };
+
+      const c = state.inventory.currency;
+      state.inventory.totalValueGP = (Number(c.platinum) || 0) * 10
+        + (Number(c.gold) || 0)
+        + (Number(c.silver) || 0) / 10
+        + (Number(c.copper) || 0) / 100;
+
+      // Carrying capacity
+      const strScore = Number(state.abilityScores.str.base) || 10;
+      const [light, medium, heavy] = getCarryingCapacity(strScore);
+      const sizeMod = Number(state.inventory.sizeModifier) || 1;
+      const quadMod = state.inventory.isQuadruped ? 1.5 : 1;
+      state.inventory.carryingCapacity.light = Math.round(light * sizeMod * quadMod);
+      state.inventory.carryingCapacity.medium = Math.round(medium * sizeMod * quadMod);
+      state.inventory.carryingCapacity.heavy = Math.round(heavy * sizeMod * quadMod);
+
+      state.inventory.liftOverHead = state.inventory.carryingCapacity.heavy;
+      state.inventory.liftOffGround = state.inventory.carryingCapacity.heavy * 2;
+      state.inventory.pushDrag = state.inventory.carryingCapacity.heavy * 5;
+
+      // Carried weight (exclude non-carried locations)
+      const notCarried = (state.inventory.notCarriedLocationsText || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      state.inventory.carriedWeight = (state.inventory.items || []).reduce((sum, item) => {
+        const loc = (item.location || '').trim().toLowerCase();
+        if (notCarried.includes(loc)) return sum;
+        return sum + (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
+      }, 0);
+
+      // Encumbrance badge
+      const cw = state.inventory.carriedWeight;
+      const cap = state.inventory.carryingCapacity;
+      if (cw <= cap.light) state.inventory.encumbrance = 'Light';
+      else if (cw <= cap.medium) state.inventory.encumbrance = 'Medium';
+      else if (cw <= cap.heavy) state.inventory.encumbrance = 'Heavy';
+      else state.inventory.encumbrance = 'Overloaded';
+
       // Re-render skills
       renderSkillsTable();
       renderKnowledgeTable();
@@ -1057,6 +1204,9 @@
 
       // Re-render spells
       renderSpellSets();
+
+      // Re-render inventory
+      renderInventoryTable();
 
       updateDisplay();
       saveToStorage();
@@ -1335,6 +1485,87 @@
     function removeSkill(key) {
       delete state.skills[key];
       renderCraftProfession();
+      saveToStorage();
+    }
+
+    // ============================================
+    // INVENTORY
+    // ============================================
+    const CARRY_CAPACITY_TABLE = [
+      null, // index 0 unused
+      [3, 6, 10],     // STR 1
+      [6, 13, 20],    // STR 2
+      [10, 20, 30],   // STR 3
+      [13, 26, 40],   // STR 4
+      [16, 33, 50],   // STR 5
+      [20, 40, 60],   // STR 6
+      [23, 46, 70],   // STR 7
+      [26, 53, 80],   // STR 8
+      [30, 60, 90],   // STR 9
+      [33, 66, 100],  // STR 10
+      [38, 76, 115],  // STR 11
+      [43, 86, 130],  // STR 12
+      [50, 100, 150], // STR 13
+      [58, 116, 175], // STR 14
+      [66, 133, 200], // STR 15
+      [76, 153, 230], // STR 16
+      [86, 173, 260], // STR 17
+      [100, 200, 300],// STR 18
+      [116, 233, 350],// STR 19
+      [133, 266, 400] // STR 20
+    ];
+
+    function getCarryingCapacity(strScore) {
+      if (strScore <= 0) return [0, 0, 0];
+      if (strScore <= 20) {
+        return CARRY_CAPACITY_TABLE[strScore].slice();
+      }
+      // STR 21+: each +10 quadruples
+      const extraTens = Math.floor((strScore - 20) / 10);
+      const remainder = ((strScore - 20) % 10) + 10; // map back to 10-19 range
+      const base = CARRY_CAPACITY_TABLE[Math.min(remainder, 20)] || CARRY_CAPACITY_TABLE[20];
+      const multiplier = Math.pow(4, extraTens);
+      return [base[0] * multiplier, base[1] * multiplier, base[2] * multiplier];
+    }
+
+    function renderInventoryTable() {
+      const tbody = document.getElementById('inventoryBody');
+      if (!tbody) return;
+      if (!state.inventory.items) state.inventory.items = [];
+
+      tbody.innerHTML = state.inventory.items.map((item, i) => {
+        const totalVal = (Number(item.qty) || 0) * (Number(item.valuePerUnit) || 0);
+        const totalWt = (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
+        return `
+          <tr>
+            <td><input type="number" data-bind="inventory.items.${i}.qty" style="width:50px" min="0"></td>
+            <td><input type="text" data-bind="inventory.items.${i}.name" style="width:120px"></td>
+            <td><input type="number" data-bind="inventory.items.${i}.valuePerUnit" style="width:70px" step="0.01"></td>
+            <td><input type="number" data-bind="inventory.items.${i}.weightPerUnit" style="width:70px" step="0.1"></td>
+            <td class="derived">${totalVal.toFixed(2)}</td>
+            <td class="derived">${totalWt.toFixed(1)}</td>
+            <td><input type="text" data-bind="inventory.items.${i}.location" style="width:100px"></td>
+            <td><input type="text" data-bind="inventory.items.${i}.notes" style="width:80px"></td>
+            <td><button onclick="removeInventoryItem(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
+          </tr>
+        `;
+      }).join('');
+
+      bindInputs();
+    }
+
+    function addInventoryItem() {
+      if (!state.inventory.items) state.inventory.items = [];
+      if (state.inventory.items.length >= 30) return;
+      state.inventory.items.push({ qty: 1, name: '', valuePerUnit: 0, weightPerUnit: 0, location: '', notes: '' });
+      renderInventoryTable();
+      saveToStorage();
+    }
+
+    function removeInventoryItem(index) {
+      state.inventory.items.splice(index, 1);
+      renderInventoryTable();
+      recalculate();
       saveToStorage();
     }
 
