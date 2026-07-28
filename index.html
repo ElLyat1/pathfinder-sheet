@@ -2374,7 +2374,7 @@
         const ac = cbt.ac || {};
         const sv = cbt.saves || {};
 
-        // Load official Paizo sheet images from Autosheet
+        // Load official Paizo sheet images + NotoSans font for Cyrillic support
         async function loadImg(url) {
           try {
             const resp = await fetch(url);
@@ -2389,14 +2389,40 @@
             return null;
           }
         }
-        const [bg1, bg2] = await Promise.all([
+        async function loadFontB64(url) {
+          try {
+            const resp = await fetch(url);
+            const blob = await resp.blob();
+            return await new Promise((res, rej) => {
+              const r = new FileReader();
+              r.onerror = rej;
+              r.onload = () => res(r.result.split(',')[1]);
+              r.readAsDataURL(blob);
+            });
+          } catch { return null; }
+        }
+        const FONT_URL = 'https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io@main/fonts/NotoSans/unhinted/ttf/NotoSans-Regular.ttf';
+        const [bg1, bg2, fontData] = await Promise.all([
           loadImg('https://lewisc64.github.io/Autosheet/images/page1.png'),
-          loadImg('https://lewisc64.github.io/Autosheet/images/page2.png')
+          loadImg('https://lewisc64.github.io/Autosheet/images/page2.png'),
+          loadFontB64(FONT_URL)
         ]);
+        let hasFont = false;
+        if (fontData) {
+          try {
+            doc.addFileToVFS('NotoSans-Regular.ttf', fontData);
+            doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+            hasFont = true;
+          } catch(e) { console.warn('Font load failed, using Helvetica', e); }
+        }
+        doc.setFont(hasFont ? 'NotoSans' : 'helvetica');
 
         // Convert CSS percent positions to mm
-        const LX = p => PW * p / 100;
-        const LY = b => PH * (100 - b) / 100;
+        // Global pixel offsets: the sheet images have ~15px white borders;
+        // these shift data right/down to align with the printable area
+        const OX = 2, OY = 1.5;
+        const LX = p => PW * p / 100 + OX;
+        const LY = b => PH * (100 - b) / 100 + OY;
         const CEN = (t, x, w, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x + w/2, y, { align: 'center' }); };
         const MID = (t, x, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x, y); };
         const RGT = (t, x, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x, y, { align: 'right' }); };
@@ -2470,7 +2496,7 @@
         MID(m.eyes||'', LX(s.eyes.x)+0.5, LY(s.eyes.b)-1.5, 7);
 
         // ── HP ──
-        CEN(String(hp.max||0), LX(s.hpTotal.x), s.hpTotal.w, LY(s.hpTotal.b)-2, 11);
+        CEN(String(hp.max||0), LX(s.hpTotal.x), s.hpTotal.w, LY(s.hpTotal.b)-2.5, 11);
         MID(String(cbt.dr||'—'), LX(s.hpDR.x)+0.3, LY(s.hpDR.b)-2, 8);
         CEN(String(hp.current||0), LX(s.hpCurrent.x), s.hpCurrent.w, LY(s.hpCurrent.b)-2, 10);
         CEN(String(hp.nonlethal||0), LX(s.hpNonlethal.x), s.hpNonlethal.w, LY(s.hpNonlethal.b)-2, 10);
@@ -2491,8 +2517,8 @@
           const a = ab[k]||{};
           const b = abBottoms[i];
           const modStr = (a.mod>=0?'+':'')+(a.mod||0);
-          CEN(String(a.base||10), LX(11.5), 3, LY(b)-2, 11);
-          CEN(modStr, LX(16), 3, LY(b)-2.5, 10);
+          CEN(String(a.base||10), LX(11.5), 3, LY(b)-1.5, 11);
+          CEN(modStr, LX(16), 3, LY(b)-1, 10);
         });
 
         // ── Initiative ──
@@ -2590,8 +2616,6 @@
           const misc = (d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
           const tot = (d.ranks||0)+cs+am+misc;
           const y = LY(b);
-          MID(label, LX(52.2)+2, y-2, isSub?6.5:7);
-          MID(abKey.toUpperCase(), LX(79.9)+0.3, y-2, 6);
           CEN(tot>=0?'+'+tot:tot, LX(71.8), 3.4, y-2, 7);
           CEN(String(d.ranks||0), LX(85.1), 3.4, y-2, 7);
           CEN(misc?String(misc):'—', LX(90.3), 3.4, y-2, 6.5);
