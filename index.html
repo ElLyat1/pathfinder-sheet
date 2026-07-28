@@ -2360,536 +2360,351 @@
       input.click();
     }
 
-    function exportPDF() {
+    async function exportPDF() {
       try {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape', 'mm', 'letter');
-        const PW = doc.internal.pageSize.getWidth();
-        const PH = doc.internal.pageSize.getHeight();
-        const L = 6, T = 5, W = PW - L - 6;
-        let Y = T, page = 1;
-
-        function TXT(t, x, y, o) {
-          doc.setFontSize(o?.s || 7);
-          const txt = String(t ?? '');
-          if (o?.c) doc.text(txt, x, y, { align: 'center' });
-          else if (o?.r) doc.text(txt, x, y, { align: 'right' });
-          else doc.text(txt, x, y);
-        }
-        function BOX(x, y, w, h, lw) { doc.setLineWidth(lw || 0.2); doc.rect(x, y, w, h); }
-        function CELL(t, x, y, w, h, o) { BOX(x, y, w, h, o?.lw); TXT(t, x + (o?.c ? w/2 : 0.5), y + h - 1, o); }
-        function FILL(x, y, w, h, c) { doc.setFillColor(c || 0); doc.rect(x, y, w, h, 'F'); }
-        function NEWP() { if (Y > PH - 18) { doc.addPage(); Y = T; page++; } }
+        const doc = new jsPDF('portrait', 'mm', 'letter');
+        const PW = doc.internal.pageSize.getWidth(); // 215.9
+        const PH = doc.internal.pageSize.getHeight(); // 279.4
 
         const m = state.main || {};
+        const ab = state.abilityScores || {};
         const cbt = state.combat || {};
         const hp = cbt.hp || {};
         const ac = cbt.ac || {};
         const sv = cbt.saves || {};
-        const ab = state.abilityScores || {};
+
+        // Load official Paizo sheet images from Autosheet
+        async function loadImg(url) {
+          try {
+            const resp = await fetch(url);
+            const blob = await resp.blob();
+            return await new Promise((res, rej) => {
+              const r = new FileReader();
+              r.onerror = rej;
+              r.onload = () => res(r.result);
+              r.readAsDataURL(blob);
+            });
+          } catch {
+            return null;
+          }
+        }
+        const [bg1, bg2] = await Promise.all([
+          loadImg('https://lewisc64.github.io/Autosheet/images/page1.png'),
+          loadImg('https://lewisc64.github.io/Autosheet/images/page2.png')
+        ]);
+
+        // Convert CSS percent positions to mm
+        const LX = p => PW * p / 100;
+        const LY = b => PH * (100 - b) / 100;
+        const CEN = (t, x, w, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x + w/2, y, { align: 'center' }); };
+        const MID = (t, x, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x, y); };
+        const RGT = (t, x, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x, y, { align: 'right' }); };
+
+        // ═══ PAGE 1 ═══
+        if(bg1) doc.addImage(bg1, 'PNG', 0, 0, PW, PH);
+
+        // ── Header ──
+        const s = {
+          name: { x:39.5, w:20.5, b:93.7 },
+          alignment: { x:61.3, w:6.7, b:93.7 },
+          player: { x:69.5, w:22.4, b:93.7 },
+          classLvl: { x:39.5, w:28.6, b:91.3 },
+          deity: { x:69.5, w:12.7, b:91.3 },
+          homeland: { x:82.9, w:9, b:91.3 },
+          race: { x:39.5, w:13, b:88.8 },
+          size: { x:53.3, w:4.7, b:88.8 },
+          gender: { x:59, w:4.8, b:88.8 },
+          age: { x:64.6, w:3.7, b:88.8 },
+          height: { x:69.5, w:5.4, b:88.8 },
+          weight: { x:75.7, w:5.7, b:88.8 },
+          hair: { x:81.9, w:5.2, b:88.8 },
+          eyes: { x:87.6, w:4.6, b:88.8 },
+          hpTotal: { x:40, w:4.4, b:84.8 },
+          hpDR: { x:47.8, w:3, b:84.8 },
+          hpCurrent: { x:30, w:21, b:81.4 },
+          hpNonlethal: { x:30, w:21, b:76 },
+          speed: { x:60.4, w:4, b:84.8 },
+          speedArmor: { x:73.5, w:4, b:84.8 },
+          speedFly: { x:53, w:4, b:81.7 },
+          speedSwim: { x:66, w:4, b:81.7 },
+          speedClimb: { x:72.8, w:4, b:81.7 },
+          speedBurrow: { x:79.6, w:4, b:81.7 },
+          init: { x:39.2, b:72.6 },
+          initDex: { x:43.7, b:72.6 },
+          initMisc: { x:48.2, b:72.6 },
+          acTotal: { x:11.3, b:69.1 },
+          acArmor: { x:19.4, b:69.1 },
+          acShield: { x:24.2, b:69.1 },
+          acDex: { x:29, b:69.1 },
+          acSize: { x:33.8, b:69.1 },
+          acNatural: { x:38.6, b:69.1 },
+          acDeflection: { x:43.4, b:69.1 },
+          acMisc: { x:48.2, b:69.1 },
+          acTouch: { x:11.2, b:65.5 },
+          acFlat: { x:25.5, b:65.5 },
+          bab: { x:28.6, w:5.2, b:54.2 },
+          sr: { x:46.4, b:54.2 },
+          cmbTotal: { x:20.8, w:4, b:51.7 },
+          cmdBab: { x:26.7, b:51.7 },
+          cmbStr: { x:31.7, b:51.7 },
+          cmbSize: { x:36.7, b:51.7 },
+          cmdDex: { x:36.7, b:48.1 },
+          cmdSize: { x:41.9, b:48.1 }
+        };
+
+        // ── Header text fields ──
+        CEN(m.name||'', LX(s.name.x), s.name.w, LY(s.name.b)+1.5, 10);
+        CEN(m.alignment||'', LX(s.alignment.x), s.alignment.w, LY(s.alignment.b)+1.5, 8);
+        MID(state.meta?.name||'', LX(s.player.x)+0.5, LY(s.player.b)+1.5, 8);
+        CEN((m.class||'')+' '+(m.level||''), LX(s.classLvl.x), s.classLvl.w, LY(s.classLvl.b)+1.5, 8);
+        MID(m.deity||'', LX(s.deity.x)+0.5, LY(s.deity.b)+1.5, 7);
+        MID(m.homeland||'', LX(s.homeland.x)+0.5, LY(s.homeland.b)+1.5, 7);
+        MID(m.race||'', LX(s.race.x)+0.5, LY(s.race.b)+1.5, 8);
+        CEN(m.size||'', LX(s.size.x), s.size.w, LY(s.size.b)+1.5, 7);
+        CEN(m.gender||'', LX(s.gender.x), s.gender.w, LY(s.gender.b)+1.5, 7);
+        CEN(String(m.age||''), LX(s.age.x), s.age.w, LY(s.age.b)+1.5, 7);
+        CEN(m.height||'', LX(s.height.x), s.height.w, LY(s.height.b)+1.5, 7);
+        CEN(m.weight||'', LX(s.weight.x), s.weight.w, LY(s.weight.b)+1.5, 7);
+        MID(m.hair||'', LX(s.hair.x)+0.5, LY(s.hair.b)+1.5, 7);
+        MID(m.eyes||'', LX(s.eyes.x)+0.5, LY(s.eyes.b)+1.5, 7);
+
+        // ── HP ──
+        CEN(String(hp.max||0), LX(s.hpTotal.x), s.hpTotal.w, LY(s.hpTotal.b)+2, 11);
+        MID(String(cbt.dr||'—'), LX(s.hpDR.x)+0.3, LY(s.hpDR.b)+2, 8);
+        CEN(String(hp.current||0), LX(s.hpCurrent.x), s.hpCurrent.w, LY(s.hpCurrent.b)+2, 10);
+        CEN(String(hp.nonlethal||0), LX(s.hpNonlethal.x), s.hpNonlethal.w, LY(s.hpNonlethal.b)+2, 10);
+
+        // ── Speed ──
+        const spd = cbt.speed||{};
+        CEN(spd.ground||'', LX(s.speed.x), s.speed.w, LY(s.speed.b)+1.5, 8);
+        CEN(spd.armor||'', LX(s.speedArmor.x), s.speedArmor.w, LY(s.speedArmor.b)+1.5, 8);
+        CEN(spd.fly||'', LX(s.speedFly.x), s.speedFly.w, LY(s.speedFly.b)+1.5, 7);
+        CEN(spd.swim||'', LX(s.speedSwim.x), s.speedSwim.w, LY(s.speedSwim.b)+1.5, 7);
+        CEN(spd.climb||'', LX(s.speedClimb.x), s.speedClimb.w, LY(s.speedClimb.b)+1.5, 7);
+        CEN(spd.burrow||'', LX(s.speedBurrow.x), s.speedBurrow.w, LY(s.speedBurrow.b)+1.5, 7);
+
+        // ── Ability Scores ──
         const abKeys = ['str','dex','con','int','wis','cha'];
-        const abNames = ['STR','DEX','CON','INT','WIS','CHA'];
-        const abFull = ['Strength','Dexterity','Constitution','Intelligence','Wisdom','Charisma'];
-
-        // ═══════════════════════════════════════════════════
-        // PAGE 1: HEADER
-        // ═══════════════════════════════════════════════════
-        const portW = 42, portH = 48;
-        const portX = PW - 6 - portW;
-        const hdrX = portX - 2;
-        const hdrW = hdrX - L;
-
-        // Title row
-        TXT('Pathfinder 1e Character Sheet', L, Y + 3.5, { s: 7 });
-        TXT(`Page ${page}`, PW-6, Y+3.5, { s: 6, r: true });
-        Y += 5;
-
-        // Name + Portrait in one row
-        BOX(L, Y, hdrW, 8, 0.4);
-        TXT('CHARACTER NAME', L+0.5, Y+2, { s: 4.5 });
-        TXT(String(m.name||''), L+1, Y+6.5, { s: 10 });
-        BOX(portX, Y, portW, portH, 0.4);
-        TXT('PORTRAIT', portX+portW/2, Y+portH/2+1, { s: 5, c: true });
-        Y += 9;
-
-        // Info fields - row 1
-        const iw = hdrW / 5;
-        const ih = 5.5;
-        [
-          ['CLASS / LEVEL', `${m.class||''} ${m.level||''}`],
-          ['RACE', m.race||''],
-          ['ALIGNMENT', m.alignment||''],
-          ['DEITY', m.deity||''],
-          ['PLAYER', state.meta?.name||'']
-        ].forEach(([l,v],i)=>{
-          CELL(l, L+i*iw, Y, iw, ih, { s: 4.5, lw: 0.3 });
-          TXT(v||'', L+i*iw+0.5, Y+ih-1, { s: 5.5 });
-        });
-        Y += ih;
-
-        // Info fields - row 2
-        const iw2 = hdrW / 4;
-        [
-          ['XP', m.xp||0],
-          ['HOMELAND', m.homeland||''],
-          ['GENDER', m.gender||''],
-          ['AGE', m.age||'']
-        ].forEach(([l,v],i)=>{
-          CELL(l, L+i*iw2, Y, iw2, ih, { s: 4.5, lw: 0.3 });
-          TXT(String(v||''), L+i*iw2+0.5, Y+ih-1, { s: 5.5 });
-        });
-        Y += ih + 1;
-
-        // Info fields - row 3
-        const iw3 = hdrW / 4;
-        [
-          ['SIZE', m.size||''],
-          ['HEIGHT', m.height||''],
-          ['WEIGHT', m.weight||''],
-          ['HAIR / EYES', ((m.hair||'')+' / '+(m.eyes||'')).replace(/^ \/ /,'').replace(/\/ $/,'')]
-        ].forEach(([l,v],i)=>{
-          CELL(l, L+i*iw3, Y, iw3, ih, { s: 4.5, lw: 0.3 });
-          TXT(String(v||''), L+i*iw3+0.5, Y+ih-1, { s: 5.5 });
-        });
-        Y += ih + 2;
-
-        // ═══════════════════════════════════════════════════
-        // PAGE 1: ABILITY SCORES (left column)
-        // ═══════════════════════════════════════════════════
-        const abX = L, abW2 = 30;
-        const combatX = abX + abW2 + 1;
-        const combatW = hdrW - abW2 - 1;
-        const skillsX = hdrX + 1;
-        const skillsW = portX - hdrX - 1;
-
-        // Draw ability score boxes - vertical stack on far left
-        const abH2 = 17;
-        const abStartY = Y;
-
-        const abTopY = Y;
-
+        const abBottoms = [83.8, 81.5, 79.3, 77.1, 74.9, 72.6];
         abKeys.forEach((k,i)=>{
           const a = ab[k]||{};
-          const ay = Y + i * (abH2 + 1.5);
-          const mod = (a.mod>=0?'+':'')+(a.mod||0);
-
-          // Outer box
-          BOX(abX, ay, abW2, abH2, 0.4);
-
-          // Ability name bar at top
-          FILL(abX, ay, abW2, 4, 180);
-          TXT(abNames[i], abX+abW2/2, ay+3, { s: 5.5, c: true });
-
-          // Score (large number)
-          TXT(String(a.base||10), abX+abW2/2, ay+10, { s: 11, c: true });
-
-          // Modifier box inset
-          const modBoxW = 14, modBoxH = 6;
-          const modBoxX = abX + abW2 - modBoxW - 1.5;
-          const modBoxY = ay + abH2 - modBoxH - 1;
-          BOX(modBoxX, modBoxY, modBoxW, modBoxH, 0.3);
-          TXT(mod, modBoxX+modBoxW/2, modBoxY+4.5, { s: 7, c: true });
+          const b = abBottoms[i];
+          const modStr = (a.mod>=0?'+':'')+(a.mod||0);
+          CEN(String(a.base||10), LX(11.5), 3, LY(b)+2, 11);
+          CEN(modStr, LX(16), 3, LY(b)+2.5, 10);
         });
 
-        Y = abStartY;
+        // ── Initiative ──
+        const initTotal = cbt.initiative?.total ?? ((ab.dex?.mod||0)+(cbt.initiative?.misc||0));
+        CEN(String(initTotal), LX(s.init.x), 3, LY(s.init.b)+1.5, 9);
+        CEN(String(ab.dex?.mod||0), LX(s.initDex.x), 3, LY(s.initDex.b)+1.5, 8);
+        CEN(String(cbt.initiative?.misc||0), LX(s.initMisc.x), 3, LY(s.initMisc.b)+1.5, 8);
 
-        // ═══════════════════════════════════════════════════
-        // PAGE 1: COMBAT STATS (middle column)
-        // ═══════════════════════════════════════════════════
-        // Section border around combat stats
-        const cbtTop = Y;
-        const cbtH = abKeys.length * (abH2 + 1.5) + 2; // same height as abilities
+        // ── AC ──
+        CEN(String(ac.total||10), LX(s.acTotal.x), 3, LY(s.acTotal.b)+2, 11);
+        CEN(String(ac.armor||0), LX(s.acArmor.x), 3, LY(s.acArmor.b)+2, 8);
+        CEN(String(ac.shield||0), LX(s.acShield.x), 3, LY(s.acShield.b)+2, 8);
+        CEN(String(ac.dex||0), LX(s.acDex.x), 3, LY(s.acDex.b)+2, 8);
+        CEN(String(ac.size||0), LX(s.acSize.x), 3, LY(s.acSize.b)+2, 8);
+        CEN(String(ac.natural||0), LX(s.acNatural.x), 3, LY(s.acNatural.b)+2, 8);
+        CEN(String(ac.deflection||0), LX(s.acDeflection.x), 3, LY(s.acDeflection.b)+2, 8);
+        CEN(String(ac.misc||0), LX(s.acMisc.x), 3, LY(s.acMisc.b)+2, 8);
+        CEN(String(ac.touch||10), LX(s.acTouch.x), 3, LY(s.acTouch.b)+2, 9);
+        CEN(String(ac.flatFooted||10), LX(s.acFlat.x), 3, LY(s.acFlat.b)+2, 9);
 
-        // HP section box
-        const hpBoxW = combatW * 0.48;
-        const hpX = combatX;
-        BOX(combatX, Y, combatW, cbtH, 0.5);
-
-        // HP
-        TXT('HIT POINTS', combatX+1, Y+2.5, { s: 5 });
-        const hpRows = [['Max', hp.max||0], ['Current', hp.current||0], ['Temp', hp.temp||0], ['Nonlethal', hp.nonlethal||0]];
-        hpRows.forEach(([l,v],i)=>{
-          CELL(l, combatX+1, Y+3.5+i*4.5, 14, 4, { s: 4.5 });
-          TXT(String(v||''), combatX+16, Y+7+i*4.5, { s: 5.5 });
-        });
-
-        // AC section
-        const acY = Y;
-        const acX = combatX + combatW * 0.5;
-        TXT('ARMOR CLASS', acX+1, acY+2.5, { s: 5 });
-
-        const acRows = [
-          ['Total', ac.total||10, 'Touch', ac.touch||10, 'Flat-Footed', ac.flatFooted||10],
-          ['Armor', ac.armor||0, 'Shield', ac.shield||0, 'Natural', ac.natural||0],
-          ['Dex', ac.dex||0, 'Size', ac.size||0, 'Deflect', ac.deflection||0],
-          ['Dodge', ac.dodge||0, 'Misc', ac.misc||0]
+        // ── Saving Throws ──
+        const svDefs = [
+          {k:'fort', ab:'con', b:61.4},
+          {k:'ref', ab:'dex', b:59.1},
+          {k:'will', ab:'wis', b:57}
         ];
-        const acColW = (combatW * 0.5 - 2) / 3;
-        acRows.forEach((row,ri)=>{
-          for(let ci=0; ci<3; ci++){
-            const l = row[ci*2], v = row[ci*2+1];
-            if(l === undefined) continue;
-            CELL(l, acX+1+ci*acColW, acY+3.5+ri*4.5, acColW-0.5, 4, { s: 4 });
-            TXT(String(v??''), acX+1+ci*acColW+acColW/2, acY+7+ri*4.5, { s: 5, c: true });
-          }
-        });
-
-        // Touch / Flat-Footed
-        const tffY = acY+3.5+acRows.length*4.5+0.5;
-        CELL('TOUCH', acX+1, tffY, acColW*1.5-0.3, 4, { s: 4 });
-        TXT(String(ac.touch||10), acX+1+acColW*0.75, tffY+3, { s: 5.5, c: true });
-        CELL('FLAT-FOOTED', acX+1+acColW*1.5, tffY, acColW*1.5-0.3, 4, { s: 4 });
-        TXT(String(ac.flatFooted||10), acX+1+acColW*2.25, tffY+3, { s: 5.5, c: true });
-
-        // Saving Throws
-        const svY = tffY + 5;
-        TXT('SAVING THROWS', combatX+1, svY+2.5, { s: 5 });
-        const svRows = [
-          {k:'fort', n:'FORTITUDE', ab:'con'},
-          {k:'ref', n:'REFLEX', ab:'dex'},
-          {k:'will', n:'WILL', ab:'wis'}
-        ];
-        svRows.forEach(({k,n,ab},ri)=>{
+        svDefs.forEach(({k,ab,b})=>{
           const s = sv[k]||{};
           const abMod = (state.abilityScores[ab]||{}).mod||0;
           const total = (s.base||0)+abMod+(s.resistance||0)+(s.misc||0);
-          const sy = svY + 3.5 + ri*5.5;
-
-          // Save name + total (big box)
-          CELL(n.substring(0,4), combatX+1, sy, 13, 5, { s: 4.5, c: true });
-          TXT(String(total), combatX+15, sy+4, { s: 7 });
-
-          // Base save, ability, magic, misc
-          let sx = combatX+22;
-          [['Base', s.base||0], [ab.toUpperCase(), abMod], ['Res', s.resistance||0], ['Misc', s.misc||0]].forEach(([l,v])=>{
-            CELL(l, sx, sy, 9, 5, { s: 3.5, c: true });
-            TXT(String(v??''), sx+4.5, sy+3.5, { s: 4.5, c: true });
-            sx += 9.5;
-          });
+          const y = LY(b);
+          CEN(String(total), LX(17.3), 3, y+2, 10);
+          CEN(String(s.base||0), LX(21.9), 3, y+2, 8);
+          CEN(String(abMod), LX(26.5), 3, y+2, 8);
+          CEN(String(s.resistance||0), LX(31.2), 3, y+2, 8);
+          CEN(String(s.misc||0), LX(35.8), 3, y+2, 8);
+          MID(String(s.temp||''), LX(40.2)+0.3, y+2, 7);
         });
 
-        // CMB / CMD / Initiative
-        const cmbY = svY + 3.5 + 3*5.5 + 2;
+        // ── BAB / SR ──
         const bab = cbt.bab?.value || 0;
-        const cmb = cbt.cmb?.total || (bab + (ab.str?.mod||0));
-        const cmd = cbt.cmd?.total || (10 + bab + (ab.str?.mod||0) + (ab.dex?.mod||0));
-        const init = cbt.initiative?.total || (ab.dex?.mod||0);
-        const initMisc = cbt.initiative?.misc||0;
-        const sp = cbt.speed||{};
+        CEN('+'+(bab>=0?'':'')+bab, LX(s.bab.x), s.bab.w, LY(s.bab.b)+2, 10);
+        CEN(String(cbt.sr||'—'), LX(s.sr.x), 3, LY(s.sr.b)+2, 9);
 
-        BOX(combatX+1, cmbY, combatW-2, 20, 0.3);
-        TXT('CMB: '+cmb+'  |  CMD: '+cmd, combatX+3, cmbY+2.5, { s: 5 });
-        TXT('BAB: +'+bab+'  |  Initiative: '+(init>=0?'+':'')+init+' (Dex '+(ab.dex?.mod||0)+' + Misc '+initMisc+')', combatX+3, cmbY+6, { s: 4.5 });
-        TXT('Speed: '+sp.ground+'ft  |  Climb: '+(sp.climb||'—')+'  Swim: '+(sp.swim||'—')+'  Fly: '+(sp.fly||'—'), combatX+3, cmbY+9.5, { s: 4.5 });
-        if(cbt.bab?.meleeString) TXT('Melee: '+cbt.bab.meleeString, combatX+3, cmbY+13, { s: 4.5 });
-        if(cbt.bab?.rangedString) TXT('Ranged: '+cbt.bab.rangedString, combatX+3, cmbY+16, { s: 4.5 });
-        TXT('DR: '+(cbt.dr||'—')+'  SR: '+(cbt.sr||'—')+'  Resist: '+(cbt.resist||'—'), combatX+3, cmbY+19, { s: 4.5 });
+        // ── CMB / CMD ──
+        const cmbTot = cbt.cmb?.total ?? (bab + (ab.str?.mod||0) + (Number(cbt.cmb?.size)||0) + (cbt.cmb?.misc||0));
+        CEN(String(cmbTot), LX(s.cmbTotal.x), s.cmbTotal.w, LY(s.cmbTotal.b)+2, 9);
+        CEN(String(bab), LX(s.cmdBab.x), 3, LY(s.cmbTotal.b)+2, 8);
+        CEN(String(ab.str?.mod||0), LX(s.cmbStr.x), 3, LY(s.cmbTotal.b)+2, 8);
+        CEN(String(Number(cbt.cmb?.size)||0), LX(s.cmbSize.x), 3, LY(s.cmbSize.b)+2, 8);
 
-        Y = cbtTop + cbtH + 1;
+        const cmdTot = cbt.cmd?.total ?? (10 + bab + (ab.str?.mod||0) + (ab.dex?.mod||0) + (Number(cbt.cmd?.size)||0) + (cbt.cmd?.misc||0));
+        CEN(String(cmdTot), LX(20.8), 4, LY(48.1)+2, 9);
+        CEN(String(bab), LX(26.7), 3, LY(48.1)+2, 8);
+        CEN(String(ab.str?.mod||0), LX(31.7), 3, LY(48.1)+2, 8);
+        CEN(String(ab.dex?.mod||0), LX(36.7), 3, LY(48.1)+2, 8);
+        CEN(String(Number(cbt.cmd?.size)||0), LX(41.9), 3, LY(48.1)+2, 8);
 
-        // ═══════════════════════════════════════════════════
-        // PAGE 1: SKILLS (right column, same height as abilities)
-        // ═══════════════════════════════════════════════════
-        const skTop = cbtTop + 1;
-        const skH = cbtH - 1;
-        BOX(skillsX, skTop, skillsW, skH, 0.5);
+        // ── Weapons (5 rows, each row has name/atk/crit and type/range/ammo/dmg lines) ──
+        const weapons = state.weapons || [];
+        const wBottoms = [42.8, 39.6, 34.7, 31.5, 26.6, 23.4, 18.7, 15.5, 10.6, 7.4];
+        const wNameX = 4.7, wNameW = 29;
+        const wAtkX = 35, wAtkW = 9.5;
+        const wCritX = 45.8, wCritW = 5;
+        const wTypeX = 4.7, wTypeW = 4.4;
+        const wRangeX = 10.2, wRangeW = 6.8;
+        const wAmmoX = 18.1, wAmmoW = 15.6;
+        const wDmgX = 34.9, wDmgW = 15.9;
 
-        TXT('SKILLS', skillsX+skillsW/2, skTop+2.5, { s: 6, c: true });
-        const skY0 = skTop + 4;
+        weapons.forEach((w, i)=>{
+          if(i >= 5) return;
+          const yName = LY(wBottoms[i*2]);
+          const yDmg = LY(wBottoms[i*2+1]);
+          MID(w.name||'', LX(wNameX)+0.5, yName+1.5, 8);
+          MID(w.attackBonus||'', LX(wAtkX)+0.5, yName+1.5, 8);
+          CEN((w.critRange||'')+(w.critMult?'/x'+w.critMult:''), LX(wCritX), wCritW, yName+1.5, 8);
+          MID(w.type||'', LX(wTypeX)+0.5, yDmg+1.5, 7);
+          CEN(w.range||'', LX(wRangeX), wRangeW, yDmg+1.5, 7);
+          MID(w.ammunition||'', LX(wAmmoX)+0.5, yDmg+1.5, 7);
+          MID(w.damage||'', LX(wDmgX)+0.5, yDmg+1.5, 8);
+        });
 
-        // Skill column headers
-        const sCols = [
-          {x:0, w:7, l:'T'},
-          {x:7, w:skillsW-7-30, l:'Skill'},
-          {x:skillsW-30, w:8, l:'Ab'},
-          {x:skillsW-22, w:7, l:'Tot'},
-          {x:skillsW-15, w:7, l:'Rk'},
-          {x:skillsW-8, w:8, l:'Misc'}
+        // ── Skills ──
+        const skillBottoms = [
+          74.4, 73, 71.5, 70.1, 68.6, 67.2, 65.7, 64.2, 62.8, 61.3,
+          59.9, 58.4, 56.9, 55.5, 54.1, 52.6, 51.1, 49.7, 48.2, 46.7,
+          45.3, 43.8, 42.4, 40.9, 39.5, 38, 36.6, 35.1, 33.6, 32.2,
+          30.7, 29.2, 27.8, 26.3, 24.9, 23.4, 22, 20.5, 19.1
         ];
-        sCols.forEach(c=>{ CELL(c.l, skillsX+c.x, skY0, c.w, 3.5, { s: 4, c: true }); });
 
-        let sy = skY0 + 4;
-        const SKILL_COLS = [
-          (sd,d,am,cs,tot) => {
-            TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
-          },
-          (sd,d,am,cs,tot) => {
+        function putSkill(key, b, label, abKey, isSub) {
+          const d = state.skills[key]||{};
+          const am = (state.abilityScores[abKey]||{}).mod||0;
+          const cs = (d.classSkill&&d.ranks>0)?3:0;
+          const misc = (d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
+          const tot = (d.ranks||0)+cs+am+misc;
+          const y = LY(b);
+          MID(label, LX(52.2)+2, y+2, isSub?6.5:7);
+          MID(abKey.toUpperCase(), LX(79.9)+0.3, y+2, 6);
+          CEN(tot>=0?'+'+tot:tot, LX(71.8), 3.4, y+2, 7);
+          CEN(String(d.ranks||0), LX(85.1), 3.4, y+2, 7);
+          CEN(misc?String(misc):'—', LX(90.3), 3.4, y+2, 6.5);
+        }
+
+        SKILL_DEFS.forEach((sd, i)=>{
+          if(i < skillBottoms.length) {
             const sn = (i18n[currentLang]?.['skill_'+sd.key])||sd.name;
-            TXT(sn, skillsX+8, sy+2.5, { s: 5 });
-          },
-          (sd,d,am,cs,tot) => { TXT(sd.ability.toUpperCase(), skillsX+skillsW-29, sy+2.5, { s: 4.5 }); },
-          (sd,d,am,cs,tot) => { TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true }); },
-          (sd,d,am,cs,tot) => { TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true }); },
-          (sd,d,am,cs,tot) => {
-            const misc = (d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0)+cs;
-            TXT(misc?String(misc):'—', skillsX+skillsW-4, sy+2.5, { s: 5, c: true });
+            putSkill(sd.key, skillBottoms[i], sn, sd.ability, false);
           }
-        ];
-
-        function drawSkillRow(sd, alt) {
-          if(sy > skTop + skH - 10) return;
-          const d = state.skills[sd.key]||{ranks:0,classSkill:false};
-          const am = (state.abilityScores[sd.ability]||{}).mod||0;
-          const cs = (d.classSkill&&d.ranks>0)?3:0;
-          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
-          if(alt) FILL(skillsX, sy, skillsW, 3.8, 240);
-          SKILL_COLS.forEach(fn=>fn(sd,d,am,cs,tot));
-          sy += 3.8;
-        }
-
-        SKILL_DEFS.forEach((sd,i)=>{
-          if(sy > skTop + skH - 4) return;
-          drawSkillRow(sd, i%2===1);
         });
 
-        // Knowledge skills
-        KNOWLEDGE_SKILLS.forEach(name=>{
-          if(sy > skTop + skH - 4) return;
-          const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
-          const d = state.skills[key]||{};
-          const am = (ab.int||{}).mod||0;
-          const cs = (d.classSkill&&d.ranks>0)?3:0;
-          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
-          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
-          TXT('Knowledge ('+name+')', skillsX+8, sy+2.5, { s: 4.5 });
-          TXT('INT', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
-          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
-          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
-          sy += 3.8;
-        });
-
-        // Perform skills
-        PERFORM_SKILLS.forEach(name=>{
-          if(sy > skTop + skH - 4) return;
-          const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
-          const d = state.skills[key]||{};
-          const am = (ab.cha||{}).mod||0;
-          const cs = (d.classSkill&&d.ranks>0)?3:0;
-          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
-          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
-          TXT('Perform ('+name+')', skillsX+8, sy+2.5, { s: 4.5 });
-          TXT('CHA', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
-          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
-          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
-          sy += 3.8;
-        });
-
-        // Craft/Profession at bottom of skills
-        Object.entries(state.skills||{}).filter(([k])=>k.startsWith('craft')).forEach(([key, d])=>{
-          if(sy > skTop + skH - 4) return;
-          const am = (ab.int||{}).mod||0;
-          const cs = (d.classSkill&&d.ranks>0)?3:0;
-          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
-          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
-          TXT('Craft', skillsX+8, sy+2.5, { s: 4.5 });
-          TXT('INT', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
-          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
-          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
-          sy += 3.8;
-        });
-        Object.entries(state.skills||{}).filter(([k])=>k.startsWith('profession')).forEach(([key, d])=>{
-          if(sy > skTop + skH - 4) return;
-          const am = (ab.wis||{}).mod||0;
-          const cs = (d.classSkill&&d.ranks>0)?3:0;
-          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
-          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
-          TXT('Profession', skillsX+8, sy+2.5, { s: 4.5 });
-          TXT('WIS', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
-          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
-          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
-          sy += 3.8;
-        });
-
-        // Languages
-        const lng = (state.notes?.languages||'');
-        if(lng){
-          if(sy > skTop + skH - 6) sy = skTop + skH - 8;
-          TXT('Languages: '+lng, skillsX+1, sy+2, { s: 4 });
-          sy += 3.5;
-        }
-
-        Y = sy + 2;
-
-        // ═══════════════════════════════════════════════════
-        // PAGE 1: WEAPONS + FEATS (bottom)
-        // ═══════════════════════════════════════════════════
-        const bottomY = Y;
-        const btmH = PH - Y - 8;
-
-        // Weapons (left 60% of bottom)
-        const weapW = W * 0.58;
-        const featX = L + weapW + 1;
-        const featW = W - weapW - 1;
-
-        if(state.weapons?.length){
-          BOX(L, bottomY, weapW, btmH, 0.5);
-          TXT('WEAPONS', L+weapW/2, bottomY+2.5, { s: 6, c: true });
-
-          const wCols = [
-            {x:0, w:weapW*0.28, l:'Name'},
-            {x:weapW*0.28, w:weapW*0.13, l:'Attack'},
-            {x:weapW*0.41, w:weapW*0.13, l:'Damage'},
-            {x:weapW*0.54, w:weapW*0.11, l:'Crit'},
-            {x:weapW*0.65, w:weapW*0.08, l:'Type'},
-            {x:weapW*0.73, w:weapW*0.08, l:'Range'},
-            {x:weapW*0.81, w:weapW*0.19, l:'Notes'}
-          ];
-          let wy = bottomY + 4;
-          wCols.forEach(c=>{ CELL(c.l, L+c.x, wy, c.w, 4, { s: 4.5, c: true }); });
-          wy += 4.5;
-
-          state.weapons.forEach((w,i)=>{
-            if(wy > bottomY+btmH-5) return;
-            const vals = [
-              w.name,
-              w.attackBonus,
-              w.damage,
-              (w.critRange||'')+(w.critMult?'/x'+w.critMult:''),
-              w.type,
-              w.range,
-              w.notes
-            ];
-            if(i%2===1) FILL(L, wy, weapW-0.5, 4.2, 240);
-            wCols.forEach((c,ci)=>{
-              TXT(String(vals[ci]??''), L+c.x+0.5, wy+3, { s: 4.5 });
-            });
-            wy += 4.2;
-          });
-
-          // Feats in right portion of bottom
-          const ff = state.featsAndFeatures||{};
-          const fi = [...(ff.feats||[]),...(ff.classTalents||[]),...(ff.classFeatures||[]),...(ff.racialFeatures||[])];
-          if(fi.length){
-            BOX(featX, bottomY, featW, btmH, 0.5);
-            TXT('FEATS & ABILITIES', featX+featW/2, bottomY+2.5, { s: 6, c: true });
-            let fy = bottomY + 4;
-            fi.forEach((f,i)=>{
-              if(fy > bottomY+btmH-4) return;
-              TXT('• '+(f.name||''), featX+1, fy+2.5, { s: 4.5 });
-              fy += 3.5;
-            });
+        // Knowledge skills (reuse some bottom positions that overlap with skills area)
+        const knowSkills = KNOWLEDGE_SKILLS.slice(0, 6); // fit what we can
+        knowSkills.forEach((name, i)=>{
+          const idx = SKILL_DEFS.length + i;
+          if(idx < skillBottoms.length) {
+            const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+            putSkill(key, skillBottoms[idx], name, 'int', true);
           }
-        }
+        });
 
-        // ═══════════════════════════════════════════════════
-        // PAGE 2: ARMOR + INVENTORY (left) / SPELLS (right)
-        // ═══════════════════════════════════════════════════
-        doc.addPage(); Y = T; page++;
+        // ═══ PAGE 2 ═══
+        doc.addPage();
+        if(bg2) doc.addImage(bg2, 'PNG', 0, 0, PW, PH);
 
-        const p2ColL = L;
-        const p2ColW = W * 0.42;
-        const p2ColR = L + p2ColW + 2;
-        const p2ColRW = W - p2ColW - 2;
+        // ── Armor items ──
+        const armor = state.armor || [];
+        const acItemBottoms = [90.3, 88, 85.7, 83.4, 81];
+        armor.forEach((a, i)=>{
+          if(i >= 5) return;
+          const y = LY(acItemBottoms[i]);
+          MID(a.name||'', LX(6.3)+0.5, y+2, 7);
+          CEN(String(a.acBonus??''), LX(25), 4.1, y+2, 7);
+          CEN(a.type||'', LX(30.5), 6.6, y+2, 6.5);
+          CEN(String(a.checkPenalty??''), LX(38.5), 6.7, y+2, 7);
+          CEN(String(a.arcaneFail??'')+'%', LX(46.8), 5.9, y+2, 7);
+          CEN(String(a.weight??''), LX(54.1), 4.8, y+2, 7);
+          MID(a.properties||'', LX(60.4)+0.5, y+2, 6.5);
+        });
 
-        // ── LEFT COLUMN: Armor, Inventory, Currency, Capacity, XP ──
-        TXT('ARMOR & EQUIPMENT', p2ColL+p2ColW/2, Y, { s: 7, c: true }); Y += 4;
+        // ── Gear ──
+        const gearItems = state.inventory?.items || [];
+        const gearBottoms = [72.5, 70.7, 68.9, 66.9, 64.9, 63.1, 61.3, 59.5, 57.6, 55.8, 54, 52, 50, 48.2, 46.4, 44.6, 42.7, 40.9, 39, 37.1, 35.1, 33.3, 31.5, 29.6, 27.8, 26];
+        gearItems.forEach((item, i)=>{
+          if(i >= gearBottoms.length) return;
+          const y = LY(gearBottoms[i]);
+          MID(item.name||'', LX(6.1)+0.5, y+2, 6.5);
+          const totalW = (Number(item.qty)||0) * (Number(item.weightPerUnit)||0);
+          CEN(totalW?String(totalW):'', LX(25), 2.4, y+2, 6.5);
+        });
 
-        if(state.armor?.length){
-          const aCols = [
-            {x:0, w:p2ColW*0.3, l:'Name'},
-            {x:p2ColW*0.3, w:p2ColW*0.08, l:'AC'},
-            {x:p2ColW*0.38, w:p2ColW*0.08, l:'Enh'},
-            {x:p2ColW*0.46, w:p2ColW*0.1, l:'MaxDex'},
-            {x:p2ColW*0.56, w:p2ColW*0.1, l:'Check'},
-            {x:p2ColW*0.66, w:p2ColW*0.1, l:'Fail'},
-            {x:p2ColW*0.76, w:p2ColW*0.24, l:'Notes'}
-          ];
-          aCols.forEach(c=>{ CELL(c.l, p2ColL+c.x, Y, c.w, 4, { s: 4, c: true }); });
-          Y += 4.5;
-          state.armor.forEach((a,i)=>{
-            NEWP();
-            const vals = [a.name, a.acBonus, a.enh, a.maxDex, a.checkPenalty, a.arcaneFail, a.notes];
-            if(i%2===1) FILL(p2ColL, Y, p2ColW, 4, 240);
-            aCols.forEach((c,ci)=>{ TXT(String(vals[ci]??''), p2ColL+c.x+0.5, Y+3, { s: 4.5 }); });
-            Y += 4;
-          }); Y += 1;
-        }
+        // ── Money ──
+        const cur = state.inventory?.currency||{};
+        const moneyBottoms = { cp:12.1, sp:10.3, gp:8.5, pp:6.7 };
+        CEN(String(cur.copper||0), LX(9.1), 17.6, LY(moneyBottoms.cp)+2, 8);
+        CEN(String(cur.silver||0), LX(9.1), 17.6, LY(moneyBottoms.sp)+2, 8);
+        CEN(String(cur.gold||0), LX(9.1), 17.6, LY(moneyBottoms.gp)+2, 8);
+        CEN(String(cur.platinum||0), LX(9.1), 17.6, LY(moneyBottoms.pp)+2, 8);
 
-        // Inventory
-        if(state.inventory?.items?.length){
-          TXT('GEAR / INVENTORY', p2ColL+p2ColW/2, Y, { s: 6, c: true }); Y += 3.5;
-          const cur = state.inventory.currency||{};
-          TXT('PP: '+cur.platinum+'  GP: '+cur.gold+'  SP: '+cur.silver+'  CP: '+cur.copper, p2ColL+1, Y, { s: 4.5 }); Y += 3.5;
+        // ── Carrying Capacity ──
+        const cap = state.inventory?.carryingCapacity||{};
+        const cw = state.inventory?.carriedWeight||0;
+        CEN(String(cap.light||0), LX(11.8), 3.1, LY(21.5)+2, 8);
+        CEN(String(cap.medium||0), LX(11.8), 3.1, LY(19.2)+2, 8);
+        CEN(String(cap.heavy||0), LX(11.8), 3.1, LY(16.9)+2, 8);
+        CEN(String(state.inventory?.liftOverHead||cap.heavy||0), LX(23.6), 3.1, LY(21.5)+2, 8);
+        CEN(String(state.inventory?.liftOffGround||(cap.heavy||0)*2), LX(23.6), 3.1, LY(19.2)+2, 8);
+        CEN(String(state.inventory?.pushDrag||(cap.heavy||0)*5), LX(23.6), 3.1, LY(16.9)+2, 8);
 
-          const iCols = [
-            {x:0, w:p2ColW*0.7, l:'Item'},
-            {x:p2ColW*0.7, w:p2ColW*0.12, l:'Qty'},
-            {x:p2ColW*0.82, w:p2ColW*0.18, l:'Weight'}
-          ];
-          iCols.forEach(c=>{ CELL(c.l, p2ColL+c.x, Y, c.w, 3.5, { s: 4, c: true }); });
-          Y += 4;
-          state.inventory.items.forEach((item,i)=>{
-            NEWP();
-            if(i%2===1) FILL(p2ColL, Y, p2ColW, 3.8, 240);
-            TXT(item.name||'', p2ColL+0.5, Y+2.5, { s: 4.5 });
-            TXT(String(item.qty||''), p2ColL+p2ColW*0.7+p2ColW*0.06, Y+2.5, { s: 4.5, c: true });
-            TXT(String(item.weightPerUnit||''), p2ColL+p2ColW*0.82+p2ColW*0.09, Y+2.5, { s: 4.5, c: true });
-            Y += 3.8;
-          }); Y += 1;
-        }
+        // ── XP ──
+        CEN(String(m.xp||0), LX(30.8), 24.5, LY(6.4)+2, 8);
+        CEN(String(m.nextLevel||'—'), LX(57.3), 10.1, LY(6.4)+2, 8);
 
-        // Carrying capacity & XP
-        const capY = Y;
-        if(state.inventory?.carryingCapacity){
-          const cap = state.inventory.carryingCapacity;
-          const cw = state.inventory.carriedWeight||0;
-          BOX(p2ColL, capY, p2ColW, 25, 0.3);
-          TXT('CARRYING CAPACITY', p2ColL+p2ColW/2, capY+2.5, { s: 5, c: true });
-          TXT('Light: '+cap.light+'  Medium: '+cap.medium+'  Heavy: '+cap.heavy, p2ColL+1, capY+5.5, { s: 4.5 });
-          TXT('Carried: '+cw+' lbs  Encumbrance: '+(state.inventory.encumbrance||'Light'), p2ColL+1, capY+9, { s: 4.5 });
-          const lo = state.inventory.liftOverHead||cap.heavy;
-          const lg = state.inventory.liftOffGround||cap.heavy*2;
-          const pd = state.inventory.pushDrag||cap.heavy*5;
-          TXT('Lift Over Head: '+lo+' lbs', p2ColL+1, capY+12.5, { s: 4.5 });
-          TXT('Lift Off Ground: '+lg+' lbs', p2ColL+1, capY+16, { s: 4.5 });
-          TXT('Push/Drag: '+pd+' lbs', p2ColL+1, capY+19.5, { s: 4.5 });
-          TXT('XP: '+(m.xp||0)+'  Next: '+(m.nextLevel||'—'), p2ColL+1, capY+23, { s: 4.5 });
-          Y = capY + 26;
-        }
+        // ── Feats & Special Abilities (middle column) ──
+        const ff = state.featsAndFeatures||{};
+        const allFeats = [...(ff.feats||[]), ...(ff.classTalents||[]), ...(ff.classFeatures||[]), ...(ff.racialFeatures||[])];
+        const featBottoms = [72.8, 70.9, 69, 67.2, 65.3, 63.4, 61.6, 59.7, 57.8, 55.9, 54.1, 52.2,
+          46.7, 44.9, 43, 41.1, 39.3, 37.4, 35.5, 33.6, 31.8, 29.9, 28, 26.1, 24.2, 22.4, 20.5, 18.7, 16.8, 14.9, 13.1, 11.1];
+        allFeats.forEach((f, i)=>{
+          if(i < featBottoms.length) MID(f.name||'', LX(29.7)+0.5, LY(featBottoms[i])+1.5, 6);
+        });
 
-        // ── RIGHT COLUMN: Spells ──
-        Y = T;
+        // ── Spells (right side) ──
         if(state.spells?.length){
-          BOX(p2ColR, Y, p2ColRW, PH - 20 - Y, 0.5);
-          TXT('SPELLS', p2ColR+p2ColRW/2, Y+2.5, { s: 7, c: true }); Y += 5;
-
+          const spellLevelBottoms = [87.45, 85.37, 83.05, 80.9, 78.6, 76.5, 74.2, 72.06, 69.74, 67.6];
           state.spells.forEach(set=>{
             if(!set.spells) return;
-            const casterInfo = (set.casterClass||'')+' (CL '+(set.casterLevel||'?')+', Conc '+(set.concentration||'?')+')';
-            TXT(casterInfo, p2ColR+1, Y, { s: 5 }); Y += 3.5;
-            const ability = set.ability||'int';
-
-            const spellLvls = Object.keys(set.spells).sort();
-            spellLvls.forEach((lvl, li)=>{
-              const list = set.spells[lvl]; if(!list?.length) return;
-              NEWP();
-              if(li%2===1) FILL(p2ColR+1, Y, p2ColRW-2, 3.5, 240);
-              TXT('Lv '+lvl+' ('+list.length+')', p2ColR+1, Y+2.5, { s: 5 });
-              Y += 4;
-              list.forEach((sp,i)=>{
-                NEWP();
-                if(Y > PH - 25) return;
-                TXT('• '+(sp.name||''), p2ColR+3, Y, { s: 4.5 });
-                Y += 3.2;
-              });
-              Y += 0.5;
+            Object.keys(set.spells).forEach(lvl=>{
+              const li = parseInt(lvl);
+              if(li < 0 || li > 9) return;
+              const list = set.spells[lvl];
+              if(!list?.length) return;
+              const y = LY(spellLevelBottoms[li]);
+              CEN(String(list.length||0), LX(71.4), 3, y+2, 8);
+              CEN(set.saveDC?.[li]||'—', LX(76.35), 3, y+2, 8);
+              CEN(String(set.perDay?.[li]||0), LX(86.62), 3, y+2, 8);
+              CEN(String(set.bonus?.[li]||0), LX(91.85), 3, y+2, 8);
             });
           });
-        } else {
-          TXT('No spells prepared', p2ColR+p2ColRW/2, Y+5, { s: 6, c: true });
         }
 
-        // ── BOTTOM: Feats continued + Background ──
-        const botY = Math.max(Y, PH - 35);
-        Y = botY;
+        // ── Spell text areas ──
+        // Spell text positions are complex - skip for now, they're in the spell-text areas
+        // The sheet image already shows these areas as blank lines
+
+        // ── Background/Notes at bottom of page 2 ──
         if(state.notes?.background){
-          NEWP();
-          TXT('BACKGROUND', L+W/2, Y, { s: 6, c: true }); Y += 3.5;
-          const lines = doc.splitTextToSize(state.notes.background, W-10);
-          lines.forEach(l=>{
-            NEWP();
-            TXT(l, L+2, Y, { s: 4.5 });
-            Y += 3.2;
+          const lines = doc.splitTextToSize(state.notes.background, 100);
+          let by = PH - 15;
+          lines.slice(0, 6).reverse().forEach(l => {
+            MID(l, LX(5), by, 6);
+            by -= 3.5;
           });
         }
 
