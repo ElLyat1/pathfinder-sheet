@@ -3452,6 +3452,10 @@
       currentSpellSetIndex = -1;
     }
 
+    function spellDisplayName(spell) {
+      return (currentLang === 'ru' && spell.name_ru) ? spell.name_ru : spell.name;
+    }
+
     function filterSpellBrowser() {
       if (!spellDatabase) return;
       const search = (document.getElementById('spellBrowserSearch').value || '').toLowerCase();
@@ -3462,7 +3466,7 @@
       let filtered = spellDatabase;
 
       if (search) {
-        filtered = filtered.filter(s => s.name.toLowerCase().includes(search));
+        filtered = filtered.filter(s => spellDisplayName(s).toLowerCase().includes(search));
       }
       if (cls) {
         filtered = filtered.filter(s => s.classes.some(c => c.name === cls));
@@ -3481,7 +3485,7 @@
     function renderSpellBrowserList(spells) {
       const container = document.getElementById('spellBrowserList');
       const countEl = document.getElementById('spellBrowserCount');
-      countEl.textContent = `${spells.length} spells found`;
+      countEl.textContent = currentLang === 'ru' ? `Найдено заклинаний: ${spells.length}` : `${spells.length} spells found`;
 
       container.innerHTML = spells.map((spell, i) => {
         const classList = spell.classes.map(c => `${c.name} ${c.level}`).join(', ');
@@ -3489,7 +3493,7 @@
         return `
           <div class="spell-browser-item" id="sbi-${i}" onclick="toggleSpellBrowserItem(${i})">
             <div class="spell-browser-item-header">
-              <span class="spell-name">${spell.name}</span>
+              <span class="spell-name">${spellDisplayName(spell)}</span>
               <span class="spell-level">Lv${spell.level}</span>
               <span class="spell-school">${spell.school}${descriptors}</span>
             </div>
@@ -3558,7 +3562,7 @@
       ].filter(Boolean).join('\n');
 
       set.spells[level].push({
-        name: spell.name,
+        name: spellDisplayName(spell),
         expended: false,
         notes: description
       });
