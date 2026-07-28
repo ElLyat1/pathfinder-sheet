@@ -773,15 +773,15 @@
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_size_mod">Size</label>
           <select data-bind="combat.ac.size">
-            <option value="8">Fine (+8)</option>
-            <option value="4">Diminutive (+4)</option>
-            <option value="2">Tiny (+2)</option>
-            <option value="1">Small (+1)</option>
-            <option value="0" selected>Medium (0)</option>
-            <option value="-1">Large (-1)</option>
-            <option value="-2">Huge (-2)</option>
-            <option value="-4">Gargantuan (-4)</option>
-            <option value="-8">Colossal (-8)</option>
+            <option value="8" data-i18n="ac_fine">Fine (+8)</option>
+            <option value="4" data-i18n="ac_diminutive">Diminutive (+4)</option>
+            <option value="2" data-i18n="ac_tiny">Tiny (+2)</option>
+            <option value="1" data-i18n="ac_small">Small (+1)</option>
+            <option value="0" selected data-i18n="ac_medium">Medium (0)</option>
+            <option value="-1" data-i18n="ac_large">Large (-1)</option>
+            <option value="-2" data-i18n="ac_huge">Huge (-2)</option>
+            <option value="-4" data-i18n="ac_gargantuan">Gargantuan (-4)</option>
+            <option value="-8" data-i18n="ac_colossal">Colossal (-8)</option>
           </select>
         </div>
         <div class="field-group">
@@ -837,15 +837,15 @@
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_size_cmb">Size</label>
           <select data-bind="combat.cmb.size">
-            <option value="-8">Fine (-8)</option>
-            <option value="-4">Diminutive (-4)</option>
-            <option value="-2">Tiny (-2)</option>
-            <option value="-1">Small (-1)</option>
-            <option value="0" selected>Medium (0)</option>
-            <option value="1">Large (+1)</option>
-            <option value="2">Huge (+2)</option>
-            <option value="4">Gargantuan (+4)</option>
-            <option value="8">Colossal (+8)</option>
+            <option value="-8" data-i18n="cmb_fine">Fine (-8)</option>
+            <option value="-4" data-i18n="cmb_diminutive">Diminutive (-4)</option>
+            <option value="-2" data-i18n="cmb_tiny">Tiny (-2)</option>
+            <option value="-1" data-i18n="cmb_small">Small (-1)</option>
+            <option value="0" selected data-i18n="cmb_medium">Medium (0)</option>
+            <option value="1" data-i18n="cmb_large">Large (+1)</option>
+            <option value="2" data-i18n="cmb_huge">Huge (+2)</option>
+            <option value="4" data-i18n="cmb_gargantuan">Gargantuan (+4)</option>
+            <option value="8" data-i18n="cmb_colossal">Colossal (+8)</option>
           </select>
         </div>
       </div>
@@ -1171,10 +1171,10 @@
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_size_mod_inv">Size Modifier</label>
           <select data-bind="inventory.sizeModifier">
-            <option value="0.5">Small (×3/4)</option>
-            <option value="1" selected>Medium (×1)</option>
-            <option value="2">Large (×2)</option>
-            <option value="4">Huge (×4)</option>
+            <option value="0.5" data-i18n="size_small">Small (×3/4)</option>
+            <option value="1" selected data-i18n="size_medium">Medium (×1)</option>
+            <option value="2" data-i18n="size_large">Large (×2)</option>
+            <option value="4" data-i18n="size_huge">Huge (×4)</option>
           </select>
         </div>
         <div class="field-group">
@@ -1319,6 +1319,24 @@
         lbl_shield_bonus: "Shield Bonus",
         lbl_natural_armor: "Natural Armor",
         lbl_size_mod: "Size Mod",
+        ac_fine: "Fine (+8)",
+        ac_diminutive: "Diminutive (+4)",
+        ac_tiny: "Tiny (+2)",
+        ac_small: "Small (+1)",
+        ac_medium: "Medium (0)",
+        ac_large: "Large (-1)",
+        ac_huge: "Huge (-2)",
+        ac_gargantuan: "Gargantuan (-4)",
+        ac_colossal: "Colossal (-8)",
+        cmb_fine: "Fine (-8)",
+        cmb_diminutive: "Diminutive (-4)",
+        cmb_tiny: "Tiny (-2)",
+        cmb_small: "Small (-1)",
+        cmb_medium: "Medium (0)",
+        cmb_large: "Large (+1)",
+        cmb_huge: "Huge (+2)",
+        cmb_gargantuan: "Gargantuan (+4)",
+        cmb_colossal: "Colossal (+8)",
         lbl_deflection: "Deflection",
         lbl_dodge: "Dodge",
         lbl_misc_ac: "Misc AC",
@@ -1442,6 +1460,10 @@
         lbl_copper: "Copper",
         panel_carrying: "Carrying Capacity",
         lbl_size_mod_inv: "Size Modifier",
+        size_small: "Small (×3/4)",
+        size_medium: "Medium (×1)",
+        size_large: "Large (×2)",
+        size_huge: "Huge (×4)",
         lbl_quadruped: "Quadruped",
         lbl_current_load: "Current Load (lbs)",
         lbl_light_load: "Light Load",
@@ -1535,6 +1557,12 @@
         ability_int: "Intelligence",
         ability_wis: "Wisdom",
         ability_cha: "Charisma",
+        abbr_str: "STR",
+        abbr_dex: "DEX",
+        abbr_con: "CON",
+        abbr_int: "INT",
+        abbr_wis: "WIS",
+        abbr_cha: "CHA",
         type_melee: "Melee",
         type_ranged: "Ranged",
         type_armor: "Armor",
@@ -1592,6 +1620,24 @@
         lbl_shield_bonus: "Бонус щита",
         lbl_natural_armor: "Природная броня",
         lbl_size_mod: "Мод. размера",
+        ac_fine: "Мизерный (+8)",
+        ac_diminutive: "Крошечный (+4)",
+        ac_tiny: "Маленький (+2)",
+        ac_small: "Малый (+1)",
+        ac_medium: "Средний (0)",
+        ac_large: "Большой (-1)",
+        ac_huge: "Огромный (-2)",
+        ac_gargantuan: "Гигантский (-4)",
+        ac_colossal: "Колоссальный (-8)",
+        cmb_fine: "Мизерный (-8)",
+        cmb_diminutive: "Крошечный (-4)",
+        cmb_tiny: "Маленький (-2)",
+        cmb_small: "Малый (-1)",
+        cmb_medium: "Средний (0)",
+        cmb_large: "Большой (+1)",
+        cmb_huge: "Огромный (+2)",
+        cmb_gargantuan: "Гигантский (+4)",
+        cmb_colossal: "Колоссальный (+8)",
         lbl_deflection: "Отражение",
         lbl_dodge: "Уклонение",
         lbl_misc_ac: "Разное КД",
@@ -1715,6 +1761,10 @@
         lbl_copper: "Медь",
         panel_carrying: "Несущая способность",
         lbl_size_mod_inv: "Мод. размера",
+        size_small: "Малый (×3/4)",
+        size_medium: "Средний (×1)",
+        size_large: "Большой (×2)",
+        size_huge: "Огромный (×4)",
         lbl_quadruped: "Четвероногий",
         lbl_current_load: "Текущая нагрузка (фн)",
         lbl_light_load: "Лёгкая",
@@ -1808,6 +1858,12 @@
         ability_int: "Интеллект",
         ability_wis: "Мудрость",
         ability_cha: "Харизма",
+        abbr_str: "СИЛ",
+        abbr_dex: "ЛОВ",
+        abbr_con: "ТЕЛ",
+        abbr_int: "ИНТ",
+        abbr_wis: "МДР",
+        abbr_cha: "ХАР",
         type_melee: "Ближний",
         type_ranged: "Дальний",
         type_armor: "Доспех",
@@ -2409,10 +2465,10 @@
       const container = document.getElementById('abilityScores');
       if (!container) return;
       const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-      const labels = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+      const i18nKeys = { str: 'abbr_str', dex: 'abbr_dex', con: 'abbr_con', int: 'abbr_int', wis: 'abbr_wis', cha: 'abbr_cha' };
       container.innerHTML = abilities.map(ab => `
         <div class="field-group" style="text-align:center;">
-          <label class="field-label">${labels[ab]}</label>
+          <label class="field-label" data-i18n="${i18nKeys[ab]}">${i18n[ab] ? i18n[ab][i18nKeys[ab]] : i18nKeys[ab].replace('abbr_','').toUpperCase()}</label>
           <input type="number" data-bind="abilityScores.${ab}.base" min="1" max="100" style="width:50px;text-align:center;">
           <div class="derived" data-display="abilityScores.${ab}.mod">+0</div>
         </div>
@@ -2573,7 +2629,8 @@
 
     function renderSkillsTable() {
       ensureSkillData();
-      const abbr = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
+      const abbrKeys = { str: 'abbr_str', dex: 'abbr_dex', con: 'abbr_con', int: 'abbr_int', wis: 'abbr_wis', cha: 'abbr_cha' };
+      const abbrFallback = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
       const tbody = document.getElementById('skillsBody');
       if (!tbody) return;
       tbody.innerHTML = SKILL_DEFS.map((s) => {
@@ -2586,7 +2643,7 @@
               <button class="comment-toggle" type="button" onclick="toggleSkillComment('${s.key}')">\uD83D\uDCAC</button>
               <div class="comment-area"><textarea data-comment="skill.${s.key}" placeholder="Comment..." oninput="if(!state.comments)state.comments={};state.comments['skill.${s.key}']=this.value;saveToStorage();">${commentText}</textarea></div>
             </td>
-            <td>${abbr[s.ability]}</td>
+            <td><span data-i18n="${abbrKeys[s.ability]}">${abbrFallback[s.ability]}</span></td>
             <td class="derived" data-display="skills.${s.key}.total"></td>
             <td><input type="number" data-bind="skills.${s.key}.ranks" style="width:50px" min="0"></td>
             <td class="derived" data-display="skills.${s.key}.classSkillBonus"></td>
@@ -3163,14 +3220,24 @@
     const DICE_TYPES = [4, 6, 8, 10, 12, 20, 100];
     let diceMenuOpen = false;
 
-    const DICE_SVG = {
-      4: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,4 36,36 4,36" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="28" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">4</text></svg>',
-      6: '<svg viewBox="0 0 40 40" width="24" height="24"><rect x="7" y="7" width="26" height="26" rx="3" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">6</text></svg>',
-      8: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,3 37,20 20,37 3,20" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">8</text></svg>',
-      10: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,3 36,14 33,35 7,35 4,14" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="27" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">10</text></svg>',
-      12: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="10,5 30,5 38,14 34,32 6,32 2,14" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="24" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">12</text></svg>',
-      20: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,3 35,12 37,28 24,38 16,38 3,28 5,12" fill="none" stroke="#c9a84c" stroke-width="2"/><line x1="20" y1="3" x2="20" y2="38" stroke="#c9a84c" stroke-width="1" opacity="0.4"/><text x="20" y="24" text-anchor="middle" font-size="9" fill="#c9a84c" font-family="Cinzel,Georgia,serif">20</text></svg>',
-      100: '<svg viewBox="0 0 40 40" width="24" height="24"><circle cx="20" cy="20" r="17" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">%</text></svg>'
+    const DICE_BG = {
+      4: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,4 36,36 4,36" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>',
+      6: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><rect x="8" y="8" width="24" height="24" rx="2" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>',
+      8: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,4 36,20 20,36 4,20" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>',
+      10: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,4 36,14 33,35 7,35 4,14" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>',
+      12: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="10,5 30,5 38,14 34,32 6,32 2,14" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>',
+      20: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,3 35,12 37,28 24,38 16,38 3,28 5,12" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>',
+      100: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><circle cx="20" cy="20" r="16" fill="none" stroke="#6b4c1e" stroke-width="1.5" opacity="0.5"/></svg>'
+    };
+
+    const DICE_BG_RESULT = {
+      4: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,4 36,36 4,36" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>',
+      6: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><rect x="8" y="8" width="24" height="24" rx="2" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>',
+      8: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,4 36,20 20,36 4,20" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>',
+      10: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,4 36,14 33,35 7,35 4,14" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>',
+      12: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="10,5 30,5 38,14 34,32 6,32 2,14" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>',
+      20: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><polygon points="20,3 35,12 37,28 24,38 16,38 3,28 5,12" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>',
+      100: '<svg viewBox="0 0 40 40" width="100%" height="100%" style="position:absolute;inset:0;"><circle cx="20" cy="20" r="16" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.3"/></svg>'
     };
 
     const DICE_LABELS = { 4: 'd4', 6: 'd6', 8: 'd8', 10: 'd10', 12: 'd12', 20: 'd20', 100: 'd100' };
@@ -3188,7 +3255,7 @@
       const result = Math.floor(Math.random() * sides) + 1;
       const popup = document.getElementById('dicePopup');
       const popupText = document.getElementById('dicePopupText');
-      popupText.innerHTML = DICE_SVG[sides] + '<span style="font-size:40px;color:#c9a84c;font-family:\'Cinzel\',Georgia,serif;margin-left:8px;">' + result + '</span>';
+      popupText.innerHTML = '<div style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;">' + DICE_BG_RESULT[sides] + '<span style="font-size:40px;color:#c9a84c;font-family:\'Cinzel\',Georgia,serif;z-index:1;">' + result + '</span></div>';
       popup.style.display = 'flex';
       setTimeout(() => { popup.style.display = 'none'; }, 2000);
     }
@@ -3205,10 +3272,10 @@
   </script>
 
   <!-- Dice Roller Widget -->
-  <div id="diceWidget" style="position:fixed;bottom:20px;left:20px;z-index:1000;">
-    <div id="diceMenu" style="display:none;flex-direction:column;gap:4px;position:absolute;bottom:50px;left:0;background:#2a2018;border:2px solid #6b4c1e;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
+  <div id="diceWidget" style="position:fixed;bottom:20px;right:20px;z-index:1000;">
+    <div id="diceMenu" style="display:none;flex-direction:column;gap:4px;position:absolute;bottom:50px;right:0;background:#2a2018;border:2px solid #6b4c1e;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
     </div>
-    <button onclick="toggleDiceMenu()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#5a421e,#3a2a10);border:2px solid #c9a84c;color:#c9a84c;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;" title="Dice Roller"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="20,3 35,12 37,28 24,38 16,38 3,28 5,12" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="24" text-anchor="middle" font-size="9" fill="#c9a84c" font-family="Cinzel,Georgia,serif">20</text></svg></button>
+    <button onclick="toggleDiceMenu()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#5a421e,#3a2a10);border:2px solid #c9a84c;color:#c9a84c;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:18px;font-family:'Cinzel',Georgia,serif;font-weight:bold;" title="Dice Roller">🎲</button>
   </div>
   <div id="dicePopup" onclick="closeDicePopup()" style="display:none;position:fixed;bottom:80px;left:20px;z-index:2000;cursor:pointer;">
     <div style="background:#2a2018;border:2px solid #c9a84c;border-radius:12px;padding:16px 24px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();">
@@ -3220,9 +3287,9 @@
       const menu = document.getElementById('diceMenu');
       DICE_TYPES.forEach(function(sides) {
         var btn = document.createElement('button');
-        btn.innerHTML = DICE_SVG[sides];
+        btn.innerHTML = '<div style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;">' + DICE_BG[sides] + '<span style="position:relative;z-index:1;color:#e8d5a3;font-family:\'Cinzel\',Georgia,serif;font-size:13px;font-weight:bold;">' + DICE_LABELS[sides] + '</span></div>';
         btn.title = DICE_LABELS[sides];
-        btn.style.cssText = 'background:linear-gradient(180deg,#5a421e,#3a2a10);color:#e8d5a3;border:1px solid #6b4c1e;padding:6px 10px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;';
+        btn.style.cssText = 'background:linear-gradient(180deg,#5a421e,#3a2a10);border:1px solid #6b4c1e;width:42px;height:42px;padding:0;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;';
         btn.onmouseover = function() { btn.style.borderColor = '#c9a84c'; };
         btn.onmouseout = function() { btn.style.borderColor = '#6b4c1e'; };
         btn.onclick = function() { rollDie(sides); };
