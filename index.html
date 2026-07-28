@@ -725,7 +725,6 @@
       border-radius: 3px;
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 </head>
 <body>
@@ -2361,56 +2360,327 @@
       input.click();
     }
 
-    async function exportPDF() {
-      if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined' && typeof html2canvas === 'undefined') {
-        window.print();
-        return;
+    let _pdfFont = null;
+
+    async function _loadPdfFont() {
+      if (_pdfFont) return _pdfFont;
+      const url = 'https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io@main/hinted/ttf/NotoSans/NotoSans-Regular.ttf';
+      try {
+        const resp = await fetch(url);
+        const buf = await resp.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let bin = '';
+        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        const b64 = btoa(bin);
+        _pdfFont = { name: 'NotoSans', b64 };
+        return _pdfFont;
+      } catch (e) {
+        return null;
       }
+    }
+
+    function _pdfText(doc, text, x, y, opts) {
+      const size = opts?.size || 8;
+      doc.setFontSize(size);
+      doc.text(String(text || ''), x, y, { align: opts?.align || 'left' });
+    }
+
+    function _pdfRect(doc, x, y, w, h) {
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.3);
+      doc.rect(x, y, w, h);
+    }
+
+    function _pdfCell(doc, text, x, y, w, h, opts) {
+      _pdfRect(doc, x, y, w, h);
+      const fs = opts?.size || 7;
+      const bx = x + 1;
+      const by = y + (opts?.center ? h / 2 + fs / 3 : h - 2);
+      doc.setFontSize(fs);
+      doc.text(String(text || ''), bx, by);
+    }
+
+    async function exportPDF() {
       const { jsPDF } = window.jspdf || jspdf;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const wrapper = document.querySelector('.content-wrapper');
-      const panels = document.querySelectorAll('.tab-panel');
-      const origDisplay = [];
-      panels.forEach((p, i) => {
-        origDisplay[i] = p.style.display;
-        p.style.display = 'block';
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+
+      const fontInfo = await _loadPdfFont();
+      if (fontInfo) {
+        doc.addFileToVFS('NotoSans-Regular.ttf', fontInfo.b64);
+        doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+        doc.setFont('NotoSans');
+      }
+
+      const pgW = doc.internal.pageSize.getWidth();
+      const pgH = doc.internal.pageSize.getHeight();
+      const L = 10, R = pgW - 10;
+      const T = (t, x, y, opts) => _pdfText(doc, t, x, y, opts);
+      const RECT = (x, y, w, h) => _pdfRect(doc, x, y, w, h);
+      const CELL = (t, x, y, w, h, o) => _pdfCell(doc, t, x, y, w, h, o);
+
+      let y = L;
+
+      // ═══ HEADER ═══
+      const m = state.main || {};
+      T(m.name || '', L, y + 4, { size: 16 });
+      T('Pathfinder 1e Character Sheet', R, y + 4, { size: 8, align: 'right' });
+      y += 8;
+
+      const rowH = 5.5;
+      const colW = (R - L) / 4;
+
+      const hdrFields = [
+        ['Class & Level', `${m.class || ''} ${m.level || ''}`],
+        ['Race', m.race || ''],
+        ['Alignment', m.alignment || ''],
+        ['Deity', m.deity || ''],
+      ];
+      hdrFields.forEach(([lbl, val], i) => {
+        const cx = L + i * colW;
+        RECT(cx, y, colW, rowH);
+        T(lbl, cx + 1, y + 3, { size: 6 });
+        T(val || '', cx + 1, y + rowH - 1, { size: 7 });
       });
-      wrapper.style.maxWidth = '100%';
-      wrapper.style.padding = '0';
-      const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const margin = 5;
-      const availW = pageW - margin * 2;
-      const ratio = canvas.height / canvas.width;
-      let imgH = availW * ratio;
-      let y = margin;
-      if (imgH + margin * 2 <= pageH) {
-        doc.addImage(imgData, 'PNG', margin, margin, availW, imgH);
-      } else {
-        const pageImgH = availW * (pageH - margin * 2) / availW * ratio;
-        const sliceH = pageH - margin * 2;
-        let srcY = 0;
-        let first = true;
-        while (srcY < canvas.height) {
-          if (!first) doc.addPage();
-          const sh = Math.min(sliceH, (canvas.height - srcY) * availW / canvas.width);
-          const sliceCanvas = document.createElement('canvas');
-          sliceCanvas.width = canvas.width;
-          sliceCanvas.height = canvas.height - srcY;
-          const ctx = sliceCanvas.getContext('2d');
-          ctx.drawImage(canvas, 0, -srcY);
-          const sliceData = sliceCanvas.toDataURL('image/png');
-          doc.addImage(sliceData, 'PNG', margin, margin, availW, sh);
-          srcY += (sliceH / availW) * canvas.width;
-          first = false;
+      y += rowH + 1;
+
+      const miscLabels = ['XP', 'XP Next', 'Gender', 'Age', 'Height', 'Weight', 'Eyes', 'Hair', 'Skin'];
+      const miscVals = [m.xp, m.xpNext, m.gender, m.age, m.height, m.weight, m.eyes, m.hair, m.skin];
+      const mcW = (R - L) / miscLabels.length;
+      miscLabels.forEach((lbl, i) => {
+        const cx = L + i * mcW;
+        RECT(cx, y, mcW, rowH);
+        T(lbl, cx + 1, y + 3, { size: 5 });
+        T(String(miscVals[i] ?? ''), cx + 1, y + rowH - 1, { size: 6 });
+      });
+      y += rowH + 3;
+
+      // ═══ ABILITY SCORES ═══
+      const ab = state.abilityScores || {};
+      const abNames = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+      const abFull = { str: 'Strength', dex: 'Dexterity', con: 'Constitution', int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma' };
+      const abKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+      const abW = (R - L) / 6;
+
+      const asY = y;
+      T('ABILITY SCORES', L, y, { size: 8 });
+      y += 4;
+
+      abKeys.forEach((k, i) => {
+        const cx = L + i * abW;
+        const a = ab[k] || {};
+        RECT(cx, y, abW - 0.5, 28);
+        const midX = cx + (abW - 0.5) / 2;
+        T(abNames[k], midX, y + 3.5, { size: 7, align: 'center' });
+        T(String(a.base || 10), midX, y + 10, { size: 12, align: 'center' });
+        T('(' + (a.mod >= 0 ? '+' : '') + (a.mod || 0) + ')', midX, y + 16, { size: 7, align: 'center' });
+        T(abFull[k], midX, y + 25, { size: 5, align: 'center' });
+      });
+      const abBottomY = y + 31;
+
+      // ═══ COMBAT ═══
+      const c = state.combat || {};
+      const hp = c.hp || {};
+      const ac = c.ac || {};
+      const sv = c.saves || {};
+
+      // HP (left column, starts below abilities)
+      y = abBottomY;
+      const hpX = L;
+      T('HIT POINTS', hpX, y, { size: 7 });
+      y += 3.5;
+      const hpBlock = [
+        'Max HP: ' + (hp.max || 0),
+        'Current: ' + (hp.current || 0),
+        'Temp: ' + (hp.temp || 0),
+        'Nonlethal: ' + (hp.nonlethal || 0),
+      ];
+      hpBlock.forEach((l, i) => CELL(l, hpX, y + i * 5.5, (R - L) / 3, 5, { size: 6 }));
+      y += hpBlock.length * 5.5 + 1;
+      T('DR: ' + (c.dr || '-') + '  SR: ' + (c.sr || '-'), hpX, y, { size: 6 });
+      T('Fast Heal: ' + (c.fastHealing || '-'), hpX + 65, y, { size: 6 });
+      y = abBottomY; // reset for right column
+
+      // AC + Saves + CMB (right 2/3)
+      const rightX = L + (R - L) / 3 + 3;
+      const rW = R - rightX;
+
+      T('ARMOR CLASS', rightX, y, { size: 7 });
+      y += 3.5;
+      const acList = [
+        ['Total', ac.total || 10, 'Touch', ac.touch || 10, 'Flat-Footed', ac.flatFooted || 10],
+        ['Armor', ac.armor || 0, 'Shield', ac.shield || 0, 'Natural', ac.natural || 0],
+        ['Dex', ac.dex || 0, 'Size', ac.size || 0, 'Deflection', ac.deflection || 0],
+        ['Dodge', ac.dodge || 0, 'Misc', ac.misc || 0, '', ''],
+      ];
+      const acCW = rW / 3;
+      acList.forEach(row => {
+        for (let i = 0; i < row.length; i += 2) {
+          if (!row[i]) continue;
+          T(row[i] + ': ' + row[i + 1], rightX + (i / 2) * acCW + 1, y, { size: 6 });
+        }
+        y += 4;
+      });
+      y += 1;
+
+      T('INIT: ' + (c.initiative?.total || 0) + '  (Dex: ' + (c.initiative?.dexMod || 0) + ', Misc: ' + (c.initiative?.misc || 0) + ')', rightX, y, { size: 6 });
+      y += 4;
+
+      if (c.bab) {
+        T('BAB: ' + (c.bab.value || 0), rightX, y, { size: 6 });
+        if (c.bab.meleeAttacks?.length) T('Melee: ' + c.bab.meleeAttacks.join(' / '), rightX + 30, y, { size: 6 });
+        y += 4;
+        if (c.bab.rangedAttacks?.length) {
+          T('Ranged: ' + c.bab.rangedAttacks.join(' / '), rightX, y, { size: 6 });
+          y += 4;
         }
       }
+      y += 1;
+
+      T('SAVES', rightX, y, { size: 7 });
+      y += 3.5;
+      const saveMap = [
+        { k: 'fort', n: 'FORT', abMod: 'conMod' },
+        { k: 'ref', n: 'REF', abMod: 'dexMod' },
+        { k: 'will', n: 'WILL', abMod: 'wisMod' },
+      ];
+      saveMap.forEach(({ k, n, abMod }) => {
+        const s = sv[k] || {};
+        const abilityMod = s[abMod] || 0;
+        const total = (s.base || 0) + abilityMod + (s.resistance || 0) + (s.misc || 0);
+        T(`${n}: ${total}  [Base ${s.base} | Ab ${abilityMod} | Res ${s.resistance} | Misc ${s.misc}]`, rightX, y, { size: 5.5 });
+        y += 3.5;
+      });
+      y += 2;
+
+      const cmb = c.cmb || {};
+      const cmd = c.cmd || {};
+      T(`CMB: ${cmb.total || 0}  CMD: ${cmd.total || 0}`, rightX, y, { size: 6 });
+      y += 4;
+      const sp = c.speed || {};
+      T(`Speed: ${sp.ground || 30}ft  Climb: ${sp.climb || 0}ft  Swim: ${sp.swim || 0}ft  Fly: ${sp.fly || 0}ft`, rightX, y, { size: 5.5 });
+      y += 6;
+
+      // ═══ SKILLS ═══
+      y = Math.max(y, abBottomY + 50);
+
+      T('SKILLS', L, y, { size: 8 });
+      y += 4;
+
+      const skillTableW = R - L;
+      const skillColW = [10, 7, 5, skillTableW - 10 - 7 - 5 - 12, 12];
+      const skillCols = ['Total', 'Ranks', 'CS', 'Skill', 'Ab Mod'];
+
+      // Header
+      let sx = L;
+      skillCols.forEach((c, i) => {
+        CELL(c, sx, y, skillColW[i], 4.5, { size: 6, center: true });
+        sx += skillColW[i];
+      });
+      y += 5;
+
+      SKILL_DEFS.forEach(sd => {
+        if (y > pgH - 12) { doc.addPage(); y = L + 5; }
+        const data = state.skills[sd.key] || { ranks: 0, classSkill: false };
+        const abMod = (state.abilityScores[sd.ability] || {}).mod || 0;
+        const csBonus = (data.classSkill && data.ranks > 0) ? 3 : 0;
+        const total = (data.ranks || 0) + csBonus + abMod + (data.competence || 0) + (data.circumstance || 0) + (data.feat || 0) + (data.race || 0) + (data.misc || 0);
+        const i18nKey = 'skill_' + sd.key;
+        const skillName = (i18n[currentLang] && i18n[currentLang][i18nKey]) || sd.name;
+
+        sx = L;
+        CELL(total, sx, y, skillColW[0], 4, { size: 6.5, center: true }); sx += skillColW[0];
+        CELL(data.ranks || 0, sx, y, skillColW[1], 4, { size: 6.5, center: true }); sx += skillColW[1];
+        CELL(data.classSkill ? 'Y' : '', sx, y, skillColW[2], 4, { size: 6.5, center: true }); sx += skillColW[2];
+        T(skillName, sx + 1, y + 3, { size: 6 }); sx += skillColW[3];
+        T('(' + sd.ability.toUpperCase() + ')', sx + 1, y + 3, { size: 5 });
+        y += 4.2;
+      });
+      y += 4;
+
+      // ═══ WEAPONS ═══
+      if (state.weapons?.length) {
+        T('WEAPONS', L, y, { size: 8 });
+        y += 4;
+        const wColW = [45, 18, 22, 18, 10, 15, R - L - 128];
+        const wHdr = ['Name', 'Attack', 'Damage', 'Crit', 'Type', 'Range', 'Notes'];
+        sx = L;
+        wHdr.forEach((c, i) => { CELL(c, sx, y, wColW[i], 5, { size: 6 }); sx += wColW[i]; });
+        y += 5.5;
+        state.weapons.forEach(w => {
+          if (y > pgH - 15) { doc.addPage(); y = L + 5; }
+          sx = L;
+          const vals = [w.name, w.attackBonus, w.damage, (w.critRange || '') + (w.critMult ? '/x' + w.critMult : ''), w.type, w.range, w.notes];
+          vals.forEach((v, i) => { CELL(v || '', sx, y, wColW[i], 5, { size: 6 }); sx += wColW[i]; });
+          y += 5.5;
+        });
+        y += 3;
+      }
+
+      // ═══ SPELLS ═══
+      if (state.spells?.length) {
+        T('SPELLS', L, y, { size: 8 });
+        y += 4;
+        state.spells.forEach(set => {
+          if (!set.spells) return;
+          Object.keys(set.spells).forEach(lvl => {
+            const list = set.spells[lvl];
+            if (!list?.length) return;
+            if (y > pgH - 15) { doc.addPage(); y = L + 5; }
+            T((set.casterClass || '') + ' Level ' + lvl, L, y, { size: 7 });
+            y += 3.5;
+            list.forEach(sp => {
+              if (y > pgH - 10) { doc.addPage(); y = L + 5; }
+              T('• ' + (sp.name || '(unnamed)'), L + 2, y, { size: 6 });
+              y += 4.5;
+            });
+            y += 2;
+          });
+        });
+      }
+
+      // ═══ FEATS & FEATURES ═══
+      const ff = state.featsAndFeatures || {};
+      const featItems = [...(ff.feats || []), ...(ff.classTalents || []), ...(ff.classFeatures || []), ...(ff.racialFeatures || [])];
+      if (featItems.length) {
+        if (y > pgH - 15) { doc.addPage(); y = L + 5; }
+        T('FEATS & FEATURES', L, y, { size: 8 });
+        y += 4;
+        featItems.forEach(f => {
+          if (y > pgH - 10) { doc.addPage(); y = L + 5; }
+          T('• ' + (f.name || '(unnamed)'), L + 2, y, { size: 6 });
+          y += 4.5;
+        });
+        y += 2;
+      }
+
+      // ═══ INVENTORY ═══
+      if (state.inventory?.items?.length) {
+        if (y > pgH - 15) { doc.addPage(); y = L + 5; }
+        T('INVENTORY', L, y, { size: 8 });
+        y += 4;
+        const cur = state.inventory.currency || {};
+        T(`PP: ${cur.platinum || 0}  GP: ${cur.gold || 0}  SP: ${cur.silver || 0}  CP: ${cur.copper || 0}`, L, y, { size: 6 });
+        y += 4.5;
+        state.inventory.items.forEach(item => {
+          if (y > pgH - 10) { doc.addPage(); y = L + 5; }
+          T('• ' + (item.name || '') + (item.qty ? ' (x' + item.qty + ')' : ''), L + 2, y, { size: 6 });
+          y += 4.5;
+        });
+      }
+
+      // ═══ BACKGROUND ═══
+      if (state.notes?.background) {
+        if (y > pgH - 10) { doc.addPage(); y = L + 5; }
+        T('BACKGROUND', L, y, { size: 8 });
+        y += 4;
+        doc.splitTextToSize(state.notes.background, R - L - 5).forEach(l => {
+          if (y > pgH - 10) { doc.addPage(); y = L + 5; }
+          T(l, L + 1, y, { size: 6 });
+          y += 3.5;
+        });
+      }
+
       doc.save((state.meta.name || 'character') + '.pdf');
-      panels.forEach((p, i) => { p.style.display = origDisplay[i]; });
-      wrapper.style.maxWidth = '';
-      wrapper.style.padding = '';
     }
 
     // ============================================
