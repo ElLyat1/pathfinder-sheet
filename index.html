@@ -526,6 +526,7 @@
       th { background: #eee; color: #333; }
       td { background: white; }
       button { display: none !important; }
+      #diceWidget, #dicePopup { display: none !important; }
       h1, h2, h3, h4 { color: #333; }
       .lang-btn { display: none !important; }
     }
@@ -580,6 +581,8 @@
       border-radius: 3px;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 </head>
 <body>
   <div class="title-banner">
@@ -600,6 +603,7 @@
     <button onclick="exportCharacter()" data-i18n="btn_export">Export</button>
     <button onclick="exportAll()" data-i18n="btn_export_all">Export All</button>
     <button onclick="importCharacter()" data-i18n="btn_import">Import</button>
+    <button onclick="exportPDF()" data-i18n="btn_pdf">PDF</button>
   </div>
 
   <!-- Tab Navigation -->
@@ -1279,6 +1283,7 @@
         btn_export: "Export",
         btn_export_all: "Export All",
         btn_import: "Import",
+        btn_pdf: "PDF",
         lbl_character: "Character:",
         panel_character_info: "Character Info",
         lbl_name: "Name",
@@ -1551,6 +1556,7 @@
         btn_export: "Экспорт",
         btn_export_all: "Экспорт всех",
         btn_import: "Импорт",
+        btn_pdf: "PDF",
         lbl_character: "Персонаж:",
         panel_character_info: "Информация о персонаже",
         lbl_name: "Имя",
@@ -1825,6 +1831,12 @@
         const key = el.dataset.i18nPlaceholder;
         if (strings[key] !== undefined) {
           el.placeholder = strings[key];
+        }
+      });
+      document.querySelectorAll('option[data-i18n]').forEach(opt => {
+        const key = opt.dataset.i18n;
+        if (strings[key] !== undefined) {
+          opt.textContent = strings[key];
         }
       });
       const langBtn = document.getElementById('langToggle');
@@ -2105,6 +2117,58 @@
       input.click();
     }
 
+    async function exportPDF() {
+      if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined' && typeof html2canvas === 'undefined') {
+        window.print();
+        return;
+      }
+      const { jsPDF } = window.jspdf || jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const wrapper = document.querySelector('.content-wrapper');
+      const panels = document.querySelectorAll('.tab-panel');
+      const origDisplay = [];
+      panels.forEach((p, i) => {
+        origDisplay[i] = p.style.display;
+        p.style.display = 'block';
+      });
+      wrapper.style.maxWidth = '100%';
+      wrapper.style.padding = '0';
+      const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 5;
+      const availW = pageW - margin * 2;
+      const ratio = canvas.height / canvas.width;
+      let imgH = availW * ratio;
+      let y = margin;
+      if (imgH + margin * 2 <= pageH) {
+        doc.addImage(imgData, 'PNG', margin, margin, availW, imgH);
+      } else {
+        const pageImgH = availW * (pageH - margin * 2) / availW * ratio;
+        const sliceH = pageH - margin * 2;
+        let srcY = 0;
+        let first = true;
+        while (srcY < canvas.height) {
+          if (!first) doc.addPage();
+          const sh = Math.min(sliceH, (canvas.height - srcY) * availW / canvas.width);
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = canvas.height - srcY;
+          const ctx = sliceCanvas.getContext('2d');
+          ctx.drawImage(canvas, 0, -srcY);
+          const sliceData = sliceCanvas.toDataURL('image/png');
+          doc.addImage(sliceData, 'PNG', margin, margin, availW, sh);
+          srcY += (sliceH / availW) * canvas.width;
+          first = false;
+        }
+      }
+      doc.save((state.meta.name || 'character') + '.pdf');
+      panels.forEach((p, i) => { p.style.display = origDisplay[i]; });
+      wrapper.style.maxWidth = '';
+      wrapper.style.padding = '';
+    }
+
     // ============================================
     // DATA BINDING ENGINE
     // ============================================
@@ -2338,6 +2402,7 @@
       renderFeatureList('classTalentsList', 'classTalents');
       renderFeatureList('classFeaturesList', 'classFeatures');
       renderFeatureList('racialFeaturesList', 'racialFeatures');
+      applyLanguage();
     }
 
     function renderAbilityScores() {
@@ -2388,7 +2453,7 @@
           clone.addEventListener('change', handler);
         }
 
-        if (clone.type !== 'checkbox' && clone.type !== 'hidden' && clone.type !== 'file' && clone.tagName !== 'TEXTAREA' && !clone.classList.contains('comment-toggle') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput') && !clone.closest('table') && !clone.closest('#spellSets') && !clone.closest('.item-card')) {
+        if (clone.type !== 'checkbox' && clone.type !== 'hidden' && clone.type !== 'file' && clone.tagName !== 'TEXTAREA' && !clone.classList.contains('comment-toggle') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput') && !clone.closest('table') && !clone.closest('#spellSets') && !clone.closest('.item-card') && !clone.closest('#abilityScores')) {
           const parent = clone.parentNode;
           const existingWrap = clone.closest('.comment-wrap');
           if (!existingWrap) {
@@ -3096,8 +3161,19 @@
     // DICE ROLLER
     // ============================================
     const DICE_TYPES = [4, 6, 8, 10, 12, 20, 100];
-    const DICE_LABELS = { 4: 'd4', 6: 'd6', 8: 'd8', 10: 'd10', 12: 'd12', 20: 'd20', 100: 'd100' };
     let diceMenuOpen = false;
+
+    const DICE_SVG = {
+      4: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,4 36,36 4,36" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="28" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">4</text></svg>',
+      6: '<svg viewBox="0 0 40 40" width="24" height="24"><rect x="7" y="7" width="26" height="26" rx="3" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">6</text></svg>',
+      8: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,3 37,20 20,37 3,20" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">8</text></svg>',
+      10: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,3 36,14 33,35 7,35 4,14" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="27" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">10</text></svg>',
+      12: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="10,5 30,5 38,14 34,32 6,32 2,14" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="24" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">12</text></svg>',
+      20: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="20,3 35,12 37,28 24,38 16,38 3,28 5,12" fill="none" stroke="#c9a84c" stroke-width="2"/><line x1="20" y1="3" x2="20" y2="38" stroke="#c9a84c" stroke-width="1" opacity="0.4"/><text x="20" y="24" text-anchor="middle" font-size="9" fill="#c9a84c" font-family="Cinzel,Georgia,serif">20</text></svg>',
+      100: '<svg viewBox="0 0 40 40" width="24" height="24"><circle cx="20" cy="20" r="17" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-size="10" fill="#c9a84c" font-family="Cinzel,Georgia,serif">%</text></svg>'
+    };
+
+    const DICE_LABELS = { 4: 'd4', 6: 'd6', 8: 'd8', 10: 'd10', 12: 'd12', 20: 'd20', 100: 'd100' };
 
     function toggleDiceMenu() {
       diceMenuOpen = !diceMenuOpen;
@@ -3112,7 +3188,7 @@
       const result = Math.floor(Math.random() * sides) + 1;
       const popup = document.getElementById('dicePopup');
       const popupText = document.getElementById('dicePopupText');
-      popupText.innerHTML = '<span style="font-size:48px;color:#c9a84c;font-family:\'Cinzel\',Georgia,serif;">' + result + '</span><br><span style="font-size:16px;color:#8b6914;">' + DICE_LABELS[sides] + '</span>';
+      popupText.innerHTML = DICE_SVG[sides] + '<span style="font-size:40px;color:#c9a84c;font-family:\'Cinzel\',Georgia,serif;margin-left:8px;">' + result + '</span>';
       popup.style.display = 'flex';
       setTimeout(() => { popup.style.display = 'none'; }, 2000);
     }
@@ -3129,13 +3205,13 @@
   </script>
 
   <!-- Dice Roller Widget -->
-  <div id="diceWidget" style="position:fixed;bottom:20px;right:20px;z-index:1000;">
-    <div id="diceMenu" style="display:none;flex-direction:column;gap:4px;position:absolute;bottom:50px;right:0;background:#2a2018;border:2px solid #6b4c1e;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
+  <div id="diceWidget" style="position:fixed;bottom:20px;left:20px;z-index:1000;">
+    <div id="diceMenu" style="display:none;flex-direction:column;gap:4px;position:absolute;bottom:50px;left:0;background:#2a2018;border:2px solid #6b4c1e;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
     </div>
-    <button onclick="toggleDiceMenu()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#5a421e,#3a2a10);border:2px solid #c9a84c;color:#c9a84c;font-size:22px;font-family:'Cinzel',Georgia,serif;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;" title="Dice Roller">d20</button>
+    <button onclick="toggleDiceMenu()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#5a421e,#3a2a10);border:2px solid #c9a84c;color:#c9a84c;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;" title="Dice Roller"><svg viewBox="0 0 40 40" width="28" height="28"><polygon points="20,3 35,12 37,28 24,38 16,38 3,28 5,12" fill="none" stroke="#c9a84c" stroke-width="2"/><text x="20" y="24" text-anchor="middle" font-size="9" fill="#c9a84c" font-family="Cinzel,Georgia,serif">20</text></svg></button>
   </div>
-  <div id="dicePopup" onclick="closeDicePopup()" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;cursor:pointer;">
-    <div style="background:#2a2018;border:2px solid #c9a84c;border-radius:12px;padding:30px 50px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.8);" onclick="event.stopPropagation();">
+  <div id="dicePopup" onclick="closeDicePopup()" style="display:none;position:fixed;bottom:80px;left:20px;z-index:2000;cursor:pointer;">
+    <div style="background:#2a2018;border:2px solid #c9a84c;border-radius:12px;padding:16px 24px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();">
       <div id="dicePopupText"></div>
     </div>
   </div>
@@ -3144,8 +3220,9 @@
       const menu = document.getElementById('diceMenu');
       DICE_TYPES.forEach(function(sides) {
         var btn = document.createElement('button');
-        btn.textContent = DICE_LABELS[sides];
-        btn.style.cssText = 'background:linear-gradient(180deg,#5a421e,#3a2a10);color:#e8d5a3;border:1px solid #6b4c1e;padding:6px 14px;font-family:"Cinzel",Georgia,serif;font-size:14px;cursor:pointer;border-radius:4px;white-space:nowrap;';
+        btn.innerHTML = DICE_SVG[sides];
+        btn.title = DICE_LABELS[sides];
+        btn.style.cssText = 'background:linear-gradient(180deg,#5a421e,#3a2a10);color:#e8d5a3;border:1px solid #6b4c1e;padding:6px 10px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;';
         btn.onmouseover = function() { btn.style.borderColor = '#c9a84c'; };
         btn.onmouseout = function() { btn.style.borderColor = '#6b4c1e'; };
         btn.onclick = function() { rollDie(sides); };
