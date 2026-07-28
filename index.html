@@ -204,33 +204,61 @@
     }
 
     input[type="text"], input:not([type]), select, textarea {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(210, 190, 150, 0.18);
     }
     input[type="number"] {
       background: rgba(0, 0, 0, 0.45);
       color: #f0e0b0;
     }
 
-    input, select, textarea {
-      min-width: 0;
+    input[type="text"], input:not([type]) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 60px;
     }
+    select, textarea { min-width: 0; }
     .field-group input, .field-group select {
       width: 100%;
+    }
+
+    .comment-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      width: 100%;
+    }
+    .comment-wrap > input[type="text"],
+    .comment-wrap > input:not([type]),
+    .comment-wrap > select {
+      flex: 1 !important;
+      min-width: 0 !important;
+      width: auto !important;
     }
 
     .comment-toggle {
       background: none; border: none; color: #6b5020; cursor: pointer;
       font-size: 12px; padding: 0 4px; vertical-align: middle;
       opacity: 0.6; transition: opacity 0.2s;
+      flex-shrink: 0;
     }
     .comment-toggle:hover { opacity: 1; color: #c9a84c; }
-    .comment-area { display: none; width: 100%; margin-top: 4px; }
+    .comment-area {
+      position: absolute; top: 100%; left: 0; z-index: 20;
+      width: 260px; display: none; margin-top: 4px;
+      background: #2a2018; border: 1px solid #6b4c1e;
+      padding: 6px; border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
     .comment-area textarea {
       width: 100%; font-size: 12px; min-height: 40px;
       background: rgba(0,0,0,0.2); border: 1px solid #3a2a15;
       color: #c9a84c; padding: 4px 6px; border-radius: 2px;
     }
     .field-group.comment-open .comment-area { display: block; }
+    td.comment-open .comment-area { display: block; }
+    .comment-wrap.comment-open .comment-area { display: block; }
 
     /* Button styling */
     button, .btn {
@@ -435,6 +463,17 @@
       .tab-panel.wide {
         max-width: 100%;
       }
+      #tab-main > div:first-child {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+      #tab-main > div:first-child > .panel:first-child {
+        align-self: center;
+      }
+      #portraitPreview {
+        width: 160px !important;
+        height: 200px !important;
+      }
     }
   </style>
 
@@ -549,79 +588,80 @@
   <!-- Tab Panels -->
   <div class="content-wrapper">
   <div id="tab-main" class="tab-panel active">
-    <div class="panel" style="text-align:center;">
-      <div class="field-group" style="display:inline-block;">
-        <label class="field-label" data-i18n="lbl_portrait">Portrait</label>
-        <div id="portraitPreview" style="width:120px;height:150px;border:2px dashed #5a421e;border-radius:4px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="document.getElementById('portraitInput').click()">
-          <span style="color:#6b5020;font-size:12px;" data-i18n="lbl_no_photo">No photo</span>
+    <div style="display:flex;gap:15px;align-items:flex-start;">
+      <div class="panel" style="flex-shrink:0;text-align:center;padding:12px;">
+        <div class="field-group" style="display:inline-block;">
+          <label class="field-label" data-i18n="lbl_portrait">Portrait</label>
+          <div id="portraitPreview" style="width:200px;height:260px;border:2px dashed #5a421e;border-radius:4px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="document.getElementById('portraitInput').click()">
+            <span style="color:#6b5020;font-size:12px;" data-i18n="lbl_no_photo">No photo</span>
+          </div>
+          <input type="file" id="portraitInput" accept="image/*" style="display:none;" onchange="handlePortraitUpload(event)">
         </div>
-        <input type="file" id="portraitInput" accept="image/*" style="display:none;" onchange="handlePortraitUpload(event)">
       </div>
-    </div>
 
-    <!-- Character Info Bar -->
-    <div class="panel">
-      <div class="panel-title" data-i18n="panel_character_info">Character Info</div>
-      <div class="grid-3">
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_name">Name</label>
-          <input type="text" data-bind="meta.name">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_class">Class</label>
-          <input type="text" data-bind="main.class">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_level">Level</label>
-          <input type="number" data-bind="main.level" min="1">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_race">Race</label>
-          <input type="text" data-bind="main.race">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_alignment">Alignment</label>
-          <input type="text" data-bind="main.alignment">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_deity">Deity</label>
-          <input type="text" data-bind="main.deity">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_xp">XP</label>
-          <input type="number" data-bind="main.xp">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_xp_next">XP to Next</label>
-          <input type="number" data-bind="main.xpNext">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_gender">Gender</label>
-          <input type="text" data-bind="main.gender">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_age">Age</label>
-          <input type="text" data-bind="main.age">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_height">Height</label>
-          <input type="text" data-bind="main.height">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_weight">Weight</label>
-          <input type="text" data-bind="main.weight">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_hair">Hair</label>
-          <input type="text" data-bind="main.hair">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_eyes">Eyes</label>
-          <input type="text" data-bind="main.eyes">
-        </div>
-        <div class="field-group">
-          <label class="field-label" data-i18n="lbl_skin">Skin</label>
-          <input type="text" data-bind="main.skin">
+      <div class="panel" style="flex:1;min-width:0;">
+        <div class="panel-title" data-i18n="panel_character_info">Character Info</div>
+        <div class="grid-3">
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_name">Name</label>
+            <input type="text" data-bind="meta.name">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_class">Class</label>
+            <input type="text" data-bind="main.class">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_level">Level</label>
+            <input type="number" data-bind="main.level" min="1">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_race">Race</label>
+            <input type="text" data-bind="main.race">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_alignment">Alignment</label>
+            <input type="text" data-bind="main.alignment">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_deity">Deity</label>
+            <input type="text" data-bind="main.deity">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_xp">XP</label>
+            <input type="number" data-bind="main.xp">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_xp_next">XP to Next</label>
+            <input type="number" data-bind="main.xpNext">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_gender">Gender</label>
+            <input type="text" data-bind="main.gender">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_age">Age</label>
+            <input type="text" data-bind="main.age">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_height">Height</label>
+            <input type="text" data-bind="main.height">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_weight">Weight</label>
+            <input type="text" data-bind="main.weight">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_hair">Hair</label>
+            <input type="text" data-bind="main.hair">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_eyes">Eyes</label>
+            <input type="text" data-bind="main.eyes">
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="lbl_skin">Skin</label>
+            <input type="text" data-bind="main.skin">
+          </div>
         </div>
       </div>
     </div>
@@ -1924,8 +1964,10 @@
     function toggleComment(path) {
       const el = document.querySelector('[data-bind="' + path + '"]');
       if (!el) return;
+      const wrap = el.closest('.comment-wrap');
       const fg = el.closest('.field-group');
-      if (fg) fg.classList.toggle('comment-open');
+      if (wrap) wrap.classList.toggle('comment-open');
+      else if (fg) fg.classList.toggle('comment-open');
     }
 
     function selectCharacter(id) {
@@ -2331,18 +2373,22 @@
           clone.addEventListener('change', handler);
         }
 
-        if (clone.type !== 'checkbox' && !clone.closest('table') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput')) {
-          const fg = clone.closest('.field-group');
-          if (fg && !fg.querySelector('.comment-toggle')) {
-            const label = fg.querySelector('.field-label') || fg.querySelector('label');
-            if (label) {
-              const btn = document.createElement('button');
-              btn.className = 'comment-toggle';
-              btn.type = 'button';
-              btn.textContent = '\uD83D\uDCAC';
-              btn.setAttribute('onclick', "toggleComment('" + path + "')");
-              label.appendChild(btn);
-            }
+        if (clone.type !== 'checkbox' && clone.type !== 'hidden' && clone.type !== 'file' && clone.tagName !== 'TEXTAREA' && !clone.classList.contains('comment-toggle') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput')) {
+          const parent = clone.parentNode;
+          const existingWrap = clone.closest('.comment-wrap');
+          if (!existingWrap) {
+            const wrap = document.createElement('span');
+            wrap.className = 'comment-wrap';
+            parent.insertBefore(wrap, clone);
+            wrap.appendChild(clone);
+
+            const btn = document.createElement('button');
+            btn.className = 'comment-toggle';
+            btn.type = 'button';
+            btn.textContent = '\uD83D\uDCAC';
+            btn.setAttribute('onclick', "toggleComment('" + path + "')");
+            wrap.appendChild(btn);
+
             const commentArea = document.createElement('div');
             commentArea.className = 'comment-area';
             const ta = document.createElement('textarea');
@@ -2355,7 +2401,7 @@
               saveToStorage();
             });
             commentArea.appendChild(ta);
-            fg.appendChild(commentArea);
+            wrap.appendChild(commentArea);
           }
         }
       });
