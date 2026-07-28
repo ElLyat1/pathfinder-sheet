@@ -2373,6 +2373,7 @@
         const hp = cbt.hp || {};
         const ac = cbt.ac || {};
         const sv = cbt.saves || {};
+        ensureSkillData();
 
         // Load official Paizo sheet images + NotoSans font for Cyrillic support
         async function loadImg(url) {
