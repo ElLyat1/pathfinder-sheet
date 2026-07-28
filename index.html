@@ -203,6 +203,35 @@
       width: 100%;
     }
 
+    input[type="text"], input:not([type]), select, textarea {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    input[type="number"] {
+      background: rgba(0, 0, 0, 0.45);
+      color: #f0e0b0;
+    }
+
+    input, select, textarea {
+      min-width: 0;
+    }
+    .field-group input, .field-group select {
+      width: 100%;
+    }
+
+    .comment-toggle {
+      background: none; border: none; color: #6b5020; cursor: pointer;
+      font-size: 12px; padding: 0 4px; vertical-align: middle;
+      opacity: 0.6; transition: opacity 0.2s;
+    }
+    .comment-toggle:hover { opacity: 1; color: #c9a84c; }
+    .comment-area { display: none; width: 100%; margin-top: 4px; }
+    .comment-area textarea {
+      width: 100%; font-size: 12px; min-height: 40px;
+      background: rgba(0,0,0,0.2); border: 1px solid #3a2a15;
+      color: #c9a84c; padding: 4px 6px; border-radius: 2px;
+    }
+    .field-group.comment-open .comment-area { display: block; }
+
     /* Button styling */
     button, .btn {
       background: linear-gradient(180deg, #5a421e 0%, #3a2a10 50%, #2a1c0a 100%);
@@ -520,69 +549,79 @@
   <!-- Tab Panels -->
   <div class="content-wrapper">
   <div id="tab-main" class="tab-panel active">
+    <div class="panel" style="text-align:center;">
+      <div class="field-group" style="display:inline-block;">
+        <label class="field-label" data-i18n="lbl_portrait">Portrait</label>
+        <div id="portraitPreview" style="width:120px;height:150px;border:2px dashed #5a421e;border-radius:4px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="document.getElementById('portraitInput').click()">
+          <span style="color:#6b5020;font-size:12px;" data-i18n="lbl_no_photo">No photo</span>
+        </div>
+        <input type="file" id="portraitInput" accept="image/*" style="display:none;" onchange="handlePortraitUpload(event)">
+      </div>
+    </div>
+
     <!-- Character Info Bar -->
     <div class="panel">
       <div class="panel-title" data-i18n="panel_character_info">Character Info</div>
       <div class="grid-3">
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_name">Name</label>
-          <input type="text" data-bind="meta.name" style="width:100%">
+          <input type="text" data-bind="meta.name">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_class">Class</label>
-          <input type="text" data-bind="main.class" style="width:100%">
+          <input type="text" data-bind="main.class">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_level">Level</label>
-          <input type="number" data-bind="main.level" min="1" style="width:100%">
+          <input type="number" data-bind="main.level" min="1">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_race">Race</label>
-          <input type="text" data-bind="main.race" style="width:100%">
+          <input type="text" data-bind="main.race">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_alignment">Alignment</label>
-          <input type="text" data-bind="main.alignment" style="width:100%">
+          <input type="text" data-bind="main.alignment">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_deity">Deity</label>
-          <input type="text" data-bind="main.deity" style="width:100%">
+          <input type="text" data-bind="main.deity">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_xp">XP</label>
-          <input type="number" data-bind="main.xp" style="width:100%">
+          <input type="number" data-bind="main.xp">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_xp_next">XP to Next</label>
-          <input type="number" data-bind="main.xpNext" style="width:100%">
+          <input type="number" data-bind="main.xpNext">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_gender">Gender</label>
-          <input type="text" data-bind="main.gender" style="width:100%">
+          <input type="text" data-bind="main.gender">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_age">Age</label>
-          <input type="text" data-bind="main.age" style="width:100%">
+          <input type="text" data-bind="main.age">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_height">Height</label>
-          <input type="text" data-bind="main.height" style="width:100%">
+          <input type="text" data-bind="main.height">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_weight">Weight</label>
-          <input type="text" data-bind="main.weight" style="width:100%">
+          <input type="text" data-bind="main.weight">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_hair">Hair</label>
-          <input type="text" data-bind="main.hair" style="width:100%">
+          <input type="text" data-bind="main.hair">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_eyes">Eyes</label>
-          <input type="text" data-bind="main.eyes" style="width:100%">
+          <input type="text" data-bind="main.eyes">
         </div>
         <div class="field-group">
           <label class="field-label" data-i18n="lbl_skin">Skin</label>
-          <input type="text" data-bind="main.skin" style="width:100%">
+          <input type="text" data-bind="main.skin">
         </div>
       </div>
     </div>
@@ -1119,6 +1158,12 @@
         </div>
       </div>
       <div style="margin-top:12px;">
+        <div style="margin-bottom:8px;">
+          <label style="color:#c9a84c;font-size:12px;cursor:pointer;">
+            <input type="checkbox" data-bind="inventory.weightDisabled" style="margin-right:6px;">
+            <span data-i18n="lbl_weight_disabled">Disable weight tracking</span>
+          </label>
+        </div>
         <label class="field-label" data-i18n="lbl_encumbrance">Encumbrance</label>
         <span class="derived" data-display="inventory.encumbrance" style="font-size:18px;padding:4px 12px;border:1px solid #6b4c1e;border-radius:4px;">Light</span>
         <span style="font-size:11px;color:#8b6914;margin-left:10px;" data-i18n="lbl_info_only">Informational only — not auto-applied to skills</span>
@@ -1390,6 +1435,10 @@
         enc_heavy: "Heavy",
         enc_overloaded: "Overloaded",
         lang_toggle: "EN",
+        lbl_portrait: "Portrait",
+        lbl_no_photo: "No photo",
+        lbl_spell_dc: "Spell DC",
+        lbl_weight_disabled: "Disable weight tracking",
         skill_acrobatics: "Acrobatics",
         skill_appraise: "Appraise",
         skill_bluff: "Bluff",
@@ -1658,6 +1707,10 @@
         enc_heavy: "Тяжёлая",
         enc_overloaded: "Перегрузка",
         lang_toggle: "RU",
+        lbl_portrait: "Портрет",
+        lbl_no_photo: "Нет фото",
+        lbl_spell_dc: "Сложность заклинания",
+        lbl_weight_disabled: "Отключить подсчёт веса",
         skill_acrobatics: "Акробатика",
         skill_appraise: "Оценка",
         skill_bluff: "Обман",
@@ -1758,7 +1811,7 @@
 
     function createDefaultState() {
       return {
-        meta: { id: generateId(), name: 'New Character', created: Date.now() },
+        meta: { id: generateId(), name: 'New Character', created: Date.now(), portrait: '' },
         main: { name: '', class: '', level: 1, race: '', alignment: '', deity: '', xp: 0, xpNext: 0, gender: '', age: '', height: '', weight: '', hair: '', eyes: '', skin: '' },
         abilityScores: {
           str: { base: 10, mod: 0 }, dex: { base: 10, mod: 0 },
@@ -1789,8 +1842,9 @@
         languages: '',
         featsAndFeatures: { feats: [], classTalents: [], classFeatures: [], racialFeatures: [], proficiencies: '' },
         spells: [],
-        inventory: { currency: { platinum: 0, gold: 0, silver: 0, copper: 0 }, totalValueGP: 0, carryingCapacity: { light: 0, medium: 0, heavy: 0 }, encumbrance: 'Light', carriedWeight: 0, sizeModifier: '1', isQuadruped: false, notCarriedLocations: [], items: [] },
-        notes: { background: '', general: '', log: '' }
+        inventory: { currency: { platinum: 0, gold: 0, silver: 0, copper: 0 }, totalValueGP: 0, carryingCapacity: { light: 0, medium: 0, heavy: 0 }, encumbrance: 'Light', carriedWeight: 0, sizeModifier: '1', isQuadruped: false, weightDisabled: false, notCarriedLocations: [], items: [] },
+        notes: { background: '', general: '', log: '' },
+        comments: {}
       };
     }
 
@@ -1844,6 +1898,36 @@
       }
     }
 
+    function handlePortraitUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        state.meta.portrait = e.target.result;
+        renderPortrait();
+        saveToStorage();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderPortrait() {
+      const preview = document.getElementById('portraitPreview');
+      if (!preview) return;
+      if (state.meta && state.meta.portrait) {
+        preview.innerHTML = '<img src="' + state.meta.portrait + '" style="width:100%;height:100%;object-fit:cover;">';
+      } else {
+        preview.innerHTML = '<span style="color:#6b5020;font-size:12px;" data-i18n="lbl_no_photo">No photo</span>';
+        applyLanguage();
+      }
+    }
+
+    function toggleComment(path) {
+      const el = document.querySelector('[data-bind="' + path + '"]');
+      if (!el) return;
+      const fg = el.closest('.field-group');
+      if (fg) fg.classList.toggle('comment-open');
+    }
+
     function selectCharacter(id) {
       currentCharId = id;
       const loaded = loadFromStorage(id);
@@ -1857,6 +1941,7 @@
       recalculate();
       updateDerived();
       applyLanguage();
+      renderPortrait();
     }
 
     function newCharacter() {
@@ -1888,6 +1973,7 @@
       recalculate();
       updateDerived();
       applyLanguage();
+      renderPortrait();
     }
 
     function renameCharacter() {
@@ -2096,20 +2182,25 @@
       state.inventory.pushDrag = state.inventory.carryingCapacity.heavy * 5;
 
       // Carried weight (exclude non-carried locations)
-      const notCarried = (state.inventory.notCarriedLocationsText || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-      state.inventory.carriedWeight = (state.inventory.items || []).reduce((sum, item) => {
-        const loc = (item.location || '').trim().toLowerCase();
-        if (notCarried.includes(loc)) return sum;
-        return sum + (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
-      }, 0);
+      if (state.inventory.weightDisabled) {
+        state.inventory.carriedWeight = 0;
+        state.inventory.encumbrance = 'Light';
+      } else {
+        const notCarried = (state.inventory.notCarriedLocationsText || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        state.inventory.carriedWeight = (state.inventory.items || []).reduce((sum, item) => {
+          const loc = (item.location || '').trim().toLowerCase();
+          if (notCarried.includes(loc)) return sum;
+          return sum + (Number(item.qty) || 0) * (Number(item.weightPerUnit) || 0);
+        }, 0);
 
-      // Encumbrance badge
-      const cw = state.inventory.carriedWeight;
-      const cap = state.inventory.carryingCapacity;
-      if (cw <= cap.light) state.inventory.encumbrance = 'Light';
-      else if (cw <= cap.medium) state.inventory.encumbrance = 'Medium';
-      else if (cw <= cap.heavy) state.inventory.encumbrance = 'Heavy';
-      else state.inventory.encumbrance = 'Overloaded';
+        // Encumbrance badge
+        const cw = state.inventory.carriedWeight;
+        const cap = state.inventory.carryingCapacity;
+        if (cw <= cap.light) state.inventory.encumbrance = 'Light';
+        else if (cw <= cap.medium) state.inventory.encumbrance = 'Medium';
+        else if (cw <= cap.heavy) state.inventory.encumbrance = 'Heavy';
+        else state.inventory.encumbrance = 'Overloaded';
+      }
 
       // Compute skill totals into state for data-display binding
       ensureSkillData();
@@ -2238,6 +2329,34 @@
         clone.addEventListener('input', handler);
         if (clone.type === 'checkbox') {
           clone.addEventListener('change', handler);
+        }
+
+        if (clone.type !== 'checkbox' && !clone.closest('table') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput')) {
+          const fg = clone.closest('.field-group');
+          if (fg && !fg.querySelector('.comment-toggle')) {
+            const label = fg.querySelector('.field-label') || fg.querySelector('label');
+            if (label) {
+              const btn = document.createElement('button');
+              btn.className = 'comment-toggle';
+              btn.type = 'button';
+              btn.textContent = '\uD83D\uDCAC';
+              btn.setAttribute('onclick', "toggleComment('" + path + "')");
+              label.appendChild(btn);
+            }
+            const commentArea = document.createElement('div');
+            commentArea.className = 'comment-area';
+            const ta = document.createElement('textarea');
+            ta.setAttribute('data-comment', path);
+            ta.placeholder = 'Comment...';
+            if (state.comments && state.comments[path]) ta.value = state.comments[path];
+            ta.addEventListener('input', () => {
+              if (!state.comments) state.comments = {};
+              state.comments[path] = ta.value;
+              saveToStorage();
+            });
+            commentArea.appendChild(ta);
+            fg.appendChild(commentArea);
+          }
         }
       });
     }
@@ -2572,19 +2691,19 @@
 
       container.innerHTML = state.spells.map((set, si) => {
         const abMod = state.abilityScores[set.ability]?.mod || 0;
-        set.concentration = (Number(set.casterLevel) || 0) + abMod + (Number(set.misc) || 0);
-
         let slotsHTML = '';
         for (let lvl = 0; lvl <= 9; lvl++) {
           const slot = set.slots[lvl] || { total: 0, used: 0 };
           const remaining = Math.max(0, (slot.total || 0) - (slot.used || 0));
+          const spellDC = 10 + lvl + abMod;
           slotsHTML += `
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
               <span style="width:20px;color:#c9a84c;">${lvl}:</span>
               <input type="number" data-bind="spells.${si}.slots.${lvl}.total" style="width:40px" min="0" placeholder="Total">
               <span style="color:#8b6914;" data-i18n="lbl_used">Used:</span>
               <input type="number" data-bind="spells.${si}.slots.${lvl}.used" style="width:40px" min="0">
               <span class="derived">= ${remaining}</span>
+              <span style="margin-left:8px;color:#6b5020;font-size:11px;"><span data-i18n="lbl_spell_dc">Spell DC</span>: <span style="color:#c9a84c;">${spellDC}</span></span>
             </div>
           `;
         }
@@ -2593,11 +2712,13 @@
         for (let lvl = 0; lvl <= 9; lvl++) {
           const spellsAtLevel = set.spells[lvl] || [];
           const spellRows = spellsAtLevel.map((sp, spi) => `
-            <div style="display:flex;gap:6px;margin-bottom:2px;align-items:center;">
-              <input type="checkbox" data-bind="spells.${si}.spells.${lvl}.${spi}.expended">
-              <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.name" placeholder="Spell name" style="flex:1">
-              <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.notes" placeholder="Notes" style="width:100px">
-              <button onclick="removeSpell(${si},${lvl},${spi})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+            <div style="margin-bottom:4px;padding:4px 6px;border:1px solid #3a2a15;border-radius:3px;background:rgba(0,0,0,0.15);">
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="checkbox" data-bind="spells.${si}.spells.${lvl}.${spi}.expended">
+                <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.name" placeholder="Spell name" style="flex:1;min-width:120px;">
+                <button onclick="removeSpell(${si},${lvl},${spi})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button>
+              </div>
+              <input type="text" data-bind="spells.${si}.spells.${lvl}.${spi}.notes" placeholder="Notes / Description" style="width:100%;margin-top:4px;background:rgba(0,0,0,0.15);border-color:#3a2a15;font-size:11px;">
             </div>
           `).join('');
 
@@ -2621,11 +2742,11 @@
             <div class="grid-4" style="margin-bottom:12px;">
               <div class="field-group">
                 <label class="field-label" data-i18n="lbl_caster_class">Caster Class</label>
-                <input type="text" data-bind="spells.${si}.casterClass" style="width:100%">
+                <input type="text" data-bind="spells.${si}.casterClass">
               </div>
               <div class="field-group">
                 <label class="field-label" data-i18n="lbl_caster_level">Caster Level</label>
-                <input type="number" data-bind="spells.${si}.casterLevel" style="width:100%">
+                <input type="number" data-bind="spells.${si}.casterLevel">
               </div>
               <div class="field-group">
                 <label class="field-label" data-i18n="lbl_ability">Ability</label>
@@ -2637,7 +2758,7 @@
               </div>
               <div class="field-group">
                 <label class="field-label" data-i18n="lbl_misc_spell">Misc</label>
-                <input type="number" data-bind="spells.${si}.misc" style="width:100%">
+                <input type="number" data-bind="spells.${si}.misc">
               </div>
             </div>
             <div class="field-group">
