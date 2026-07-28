@@ -2454,35 +2454,35 @@
         };
 
         // ── Header text fields ──
-        CEN(m.name||'', LX(s.name.x), s.name.w, LY(s.name.b)+1.5, 10);
-        CEN(m.alignment||'', LX(s.alignment.x), s.alignment.w, LY(s.alignment.b)+1.5, 8);
-        MID(state.meta?.name||'', LX(s.player.x)+0.5, LY(s.player.b)+1.5, 8);
-        CEN((m.class||'')+' '+(m.level||''), LX(s.classLvl.x), s.classLvl.w, LY(s.classLvl.b)+1.5, 8);
-        MID(m.deity||'', LX(s.deity.x)+0.5, LY(s.deity.b)+1.5, 7);
-        MID(m.homeland||'', LX(s.homeland.x)+0.5, LY(s.homeland.b)+1.5, 7);
-        MID(m.race||'', LX(s.race.x)+0.5, LY(s.race.b)+1.5, 8);
-        CEN(m.size||'', LX(s.size.x), s.size.w, LY(s.size.b)+1.5, 7);
-        CEN(m.gender||'', LX(s.gender.x), s.gender.w, LY(s.gender.b)+1.5, 7);
-        CEN(String(m.age||''), LX(s.age.x), s.age.w, LY(s.age.b)+1.5, 7);
-        CEN(m.height||'', LX(s.height.x), s.height.w, LY(s.height.b)+1.5, 7);
-        CEN(m.weight||'', LX(s.weight.x), s.weight.w, LY(s.weight.b)+1.5, 7);
-        MID(m.hair||'', LX(s.hair.x)+0.5, LY(s.hair.b)+1.5, 7);
-        MID(m.eyes||'', LX(s.eyes.x)+0.5, LY(s.eyes.b)+1.5, 7);
+        CEN(m.name||'', LX(s.name.x), s.name.w, LY(s.name.b)-3, 12);
+        CEN(m.alignment||'', LX(s.alignment.x), s.alignment.w, LY(s.alignment.b)-1.5, 8);
+        MID(state.meta?.name||'', LX(s.player.x)+0.5, LY(s.player.b)-1.5, 8);
+        CEN((m.class||'')+' '+(m.level||''), LX(s.classLvl.x), s.classLvl.w, LY(s.classLvl.b)-1.5, 8);
+        MID(m.deity||'', LX(s.deity.x)+0.5, LY(s.deity.b)-1.5, 7);
+        MID(m.homeland||'', LX(s.homeland.x)+0.5, LY(s.homeland.b)-1.5, 7);
+        MID(m.race||'', LX(s.race.x)+0.5, LY(s.race.b)-1.5, 8);
+        CEN(m.size||'', LX(s.size.x), s.size.w, LY(s.size.b)-1.5, 7);
+        CEN(m.gender||'', LX(s.gender.x), s.gender.w, LY(s.gender.b)-1.5, 7);
+        CEN(String(m.age||''), LX(s.age.x), s.age.w, LY(s.age.b)-1.5, 7);
+        CEN(m.height||'', LX(s.height.x), s.height.w, LY(s.height.b)-1.5, 7);
+        CEN(m.weight||'', LX(s.weight.x), s.weight.w, LY(s.weight.b)-1.5, 7);
+        MID(m.hair||'', LX(s.hair.x)+0.5, LY(s.hair.b)-1.5, 7);
+        MID(m.eyes||'', LX(s.eyes.x)+0.5, LY(s.eyes.b)-1.5, 7);
 
         // ── HP ──
-        CEN(String(hp.max||0), LX(s.hpTotal.x), s.hpTotal.w, LY(s.hpTotal.b)+2, 11);
-        MID(String(cbt.dr||'—'), LX(s.hpDR.x)+0.3, LY(s.hpDR.b)+2, 8);
-        CEN(String(hp.current||0), LX(s.hpCurrent.x), s.hpCurrent.w, LY(s.hpCurrent.b)+2, 10);
-        CEN(String(hp.nonlethal||0), LX(s.hpNonlethal.x), s.hpNonlethal.w, LY(s.hpNonlethal.b)+2, 10);
+        CEN(String(hp.max||0), LX(s.hpTotal.x), s.hpTotal.w, LY(s.hpTotal.b)-2, 11);
+        MID(String(cbt.dr||'—'), LX(s.hpDR.x)+0.3, LY(s.hpDR.b)-2, 8);
+        CEN(String(hp.current||0), LX(s.hpCurrent.x), s.hpCurrent.w, LY(s.hpCurrent.b)-2, 10);
+        CEN(String(hp.nonlethal||0), LX(s.hpNonlethal.x), s.hpNonlethal.w, LY(s.hpNonlethal.b)-2, 10);
 
         // ── Speed ──
         const spd = cbt.speed||{};
-        CEN(spd.ground||'', LX(s.speed.x), s.speed.w, LY(s.speed.b)+1.5, 8);
-        CEN(spd.armor||'', LX(s.speedArmor.x), s.speedArmor.w, LY(s.speedArmor.b)+1.5, 8);
-        CEN(spd.fly||'', LX(s.speedFly.x), s.speedFly.w, LY(s.speedFly.b)+1.5, 7);
-        CEN(spd.swim||'', LX(s.speedSwim.x), s.speedSwim.w, LY(s.speedSwim.b)+1.5, 7);
-        CEN(spd.climb||'', LX(s.speedClimb.x), s.speedClimb.w, LY(s.speedClimb.b)+1.5, 7);
-        CEN(spd.burrow||'', LX(s.speedBurrow.x), s.speedBurrow.w, LY(s.speedBurrow.b)+1.5, 7);
+        CEN(spd.ground||'', LX(s.speed.x), s.speed.w, LY(s.speed.b)-1.5, 8);
+        CEN(spd.armor||'', LX(s.speedArmor.x), s.speedArmor.w, LY(s.speedArmor.b)-1.5, 8);
+        CEN(spd.fly||'', LX(s.speedFly.x), s.speedFly.w, LY(s.speedFly.b)-1.5, 7);
+        CEN(spd.swim||'', LX(s.speedSwim.x), s.speedSwim.w, LY(s.speedSwim.b)-1.5, 7);
+        CEN(spd.climb||'', LX(s.speedClimb.x), s.speedClimb.w, LY(s.speedClimb.b)-1.5, 7);
+        CEN(spd.burrow||'', LX(s.speedBurrow.x), s.speedBurrow.w, LY(s.speedBurrow.b)-1.5, 7);
 
         // ── Ability Scores ──
         const abKeys = ['str','dex','con','int','wis','cha'];
@@ -2491,27 +2491,27 @@
           const a = ab[k]||{};
           const b = abBottoms[i];
           const modStr = (a.mod>=0?'+':'')+(a.mod||0);
-          CEN(String(a.base||10), LX(11.5), 3, LY(b)+2, 11);
-          CEN(modStr, LX(16), 3, LY(b)+2.5, 10);
+          CEN(String(a.base||10), LX(11.5), 3, LY(b)-2, 11);
+          CEN(modStr, LX(16), 3, LY(b)-2.5, 10);
         });
 
         // ── Initiative ──
         const initTotal = cbt.initiative?.total ?? ((ab.dex?.mod||0)+(cbt.initiative?.misc||0));
-        CEN(String(initTotal), LX(s.init.x), 3, LY(s.init.b)+1.5, 9);
-        CEN(String(ab.dex?.mod||0), LX(s.initDex.x), 3, LY(s.initDex.b)+1.5, 8);
-        CEN(String(cbt.initiative?.misc||0), LX(s.initMisc.x), 3, LY(s.initMisc.b)+1.5, 8);
+        CEN(String(initTotal), LX(s.init.x), 3, LY(s.init.b)-1.5, 9);
+        CEN(String(ab.dex?.mod||0), LX(s.initDex.x), 3, LY(s.initDex.b)-1.5, 8);
+        CEN(String(cbt.initiative?.misc||0), LX(s.initMisc.x), 3, LY(s.initMisc.b)-1.5, 8);
 
         // ── AC ──
-        CEN(String(ac.total||10), LX(s.acTotal.x), 3, LY(s.acTotal.b)+2, 11);
-        CEN(String(ac.armor||0), LX(s.acArmor.x), 3, LY(s.acArmor.b)+2, 8);
-        CEN(String(ac.shield||0), LX(s.acShield.x), 3, LY(s.acShield.b)+2, 8);
-        CEN(String(ac.dex||0), LX(s.acDex.x), 3, LY(s.acDex.b)+2, 8);
-        CEN(String(ac.size||0), LX(s.acSize.x), 3, LY(s.acSize.b)+2, 8);
-        CEN(String(ac.natural||0), LX(s.acNatural.x), 3, LY(s.acNatural.b)+2, 8);
-        CEN(String(ac.deflection||0), LX(s.acDeflection.x), 3, LY(s.acDeflection.b)+2, 8);
-        CEN(String(ac.misc||0), LX(s.acMisc.x), 3, LY(s.acMisc.b)+2, 8);
-        CEN(String(ac.touch||10), LX(s.acTouch.x), 3, LY(s.acTouch.b)+2, 9);
-        CEN(String(ac.flatFooted||10), LX(s.acFlat.x), 3, LY(s.acFlat.b)+2, 9);
+        CEN(String(ac.total||10), LX(s.acTotal.x), 3, LY(s.acTotal.b)-2, 11);
+        CEN(String(ac.armor||0), LX(s.acArmor.x), 3, LY(s.acArmor.b)-2, 8);
+        CEN(String(ac.shield||0), LX(s.acShield.x), 3, LY(s.acShield.b)-2, 8);
+        CEN(String(ac.dex||0), LX(s.acDex.x), 3, LY(s.acDex.b)-2, 8);
+        CEN(String(ac.size||0), LX(s.acSize.x), 3, LY(s.acSize.b)-2, 8);
+        CEN(String(ac.natural||0), LX(s.acNatural.x), 3, LY(s.acNatural.b)-2, 8);
+        CEN(String(ac.deflection||0), LX(s.acDeflection.x), 3, LY(s.acDeflection.b)-2, 8);
+        CEN(String(ac.misc||0), LX(s.acMisc.x), 3, LY(s.acMisc.b)-2, 8);
+        CEN(String(ac.touch||10), LX(s.acTouch.x), 3, LY(s.acTouch.b)-2, 9);
+        CEN(String(ac.flatFooted||10), LX(s.acFlat.x), 3, LY(s.acFlat.b)-2, 9);
 
         // ── Saving Throws ──
         const svDefs = [
@@ -2524,32 +2524,32 @@
           const abMod = (state.abilityScores[ab]||{}).mod||0;
           const total = (s.base||0)+abMod+(s.resistance||0)+(s.misc||0);
           const y = LY(b);
-          CEN(String(total), LX(17.3), 3, y+2, 10);
-          CEN(String(s.base||0), LX(21.9), 3, y+2, 8);
-          CEN(String(abMod), LX(26.5), 3, y+2, 8);
-          CEN(String(s.resistance||0), LX(31.2), 3, y+2, 8);
-          CEN(String(s.misc||0), LX(35.8), 3, y+2, 8);
-          MID(String(s.temp||''), LX(40.2)+0.3, y+2, 7);
+          CEN(String(total), LX(17.3), 3, y-2, 10);
+          CEN(String(s.base||0), LX(21.9), 3, y-2, 8);
+          CEN(String(abMod), LX(26.5), 3, y-2, 8);
+          CEN(String(s.resistance||0), LX(31.2), 3, y-2, 8);
+          CEN(String(s.misc||0), LX(35.8), 3, y-2, 8);
+          MID(String(s.temp||''), LX(40.2)+0.3, y-2, 7);
         });
 
         // ── BAB / SR ──
         const bab = cbt.bab?.value || 0;
-        CEN('+'+(bab>=0?'':'')+bab, LX(s.bab.x), s.bab.w, LY(s.bab.b)+2, 10);
-        CEN(String(cbt.sr||'—'), LX(s.sr.x), 3, LY(s.sr.b)+2, 9);
+        CEN('+'+(bab>=0?'':'')+bab, LX(s.bab.x), s.bab.w, LY(s.bab.b)-2, 10);
+        CEN(String(cbt.sr||'—'), LX(s.sr.x), 3, LY(s.sr.b)-2, 9);
 
         // ── CMB / CMD ──
         const cmbTot = cbt.cmb?.total ?? (bab + (ab.str?.mod||0) + (Number(cbt.cmb?.size)||0) + (cbt.cmb?.misc||0));
-        CEN(String(cmbTot), LX(s.cmbTotal.x), s.cmbTotal.w, LY(s.cmbTotal.b)+2, 9);
-        CEN(String(bab), LX(s.cmdBab.x), 3, LY(s.cmbTotal.b)+2, 8);
-        CEN(String(ab.str?.mod||0), LX(s.cmbStr.x), 3, LY(s.cmbTotal.b)+2, 8);
-        CEN(String(Number(cbt.cmb?.size)||0), LX(s.cmbSize.x), 3, LY(s.cmbSize.b)+2, 8);
+        CEN(String(cmbTot), LX(s.cmbTotal.x), s.cmbTotal.w, LY(s.cmbTotal.b)-2, 9);
+        CEN(String(bab), LX(s.cmdBab.x), 3, LY(s.cmbTotal.b)-2, 8);
+        CEN(String(ab.str?.mod||0), LX(s.cmbStr.x), 3, LY(s.cmbTotal.b)-2, 8);
+        CEN(String(Number(cbt.cmb?.size)||0), LX(s.cmbSize.x), 3, LY(s.cmbSize.b)-2, 8);
 
         const cmdTot = cbt.cmd?.total ?? (10 + bab + (ab.str?.mod||0) + (ab.dex?.mod||0) + (Number(cbt.cmd?.size)||0) + (cbt.cmd?.misc||0));
-        CEN(String(cmdTot), LX(20.8), 4, LY(48.1)+2, 9);
-        CEN(String(bab), LX(26.7), 3, LY(48.1)+2, 8);
-        CEN(String(ab.str?.mod||0), LX(31.7), 3, LY(48.1)+2, 8);
-        CEN(String(ab.dex?.mod||0), LX(36.7), 3, LY(48.1)+2, 8);
-        CEN(String(Number(cbt.cmd?.size)||0), LX(41.9), 3, LY(48.1)+2, 8);
+        CEN(String(cmdTot), LX(20.8), 4, LY(48.1)-2, 9);
+        CEN(String(bab), LX(26.7), 3, LY(48.1)-2, 8);
+        CEN(String(ab.str?.mod||0), LX(31.7), 3, LY(48.1)-2, 8);
+        CEN(String(ab.dex?.mod||0), LX(36.7), 3, LY(48.1)-2, 8);
+        CEN(String(Number(cbt.cmd?.size)||0), LX(41.9), 3, LY(48.1)-2, 8);
 
         // ── Weapons (5 rows, each row has name/atk/crit and type/range/ammo/dmg lines) ──
         const weapons = state.weapons || [];
@@ -2566,13 +2566,13 @@
           if(i >= 5) return;
           const yName = LY(wBottoms[i*2]);
           const yDmg = LY(wBottoms[i*2+1]);
-          MID(w.name||'', LX(wNameX)+0.5, yName+1.5, 8);
-          MID(w.attackBonus||'', LX(wAtkX)+0.5, yName+1.5, 8);
-          CEN((w.critRange||'')+(w.critMult?'/x'+w.critMult:''), LX(wCritX), wCritW, yName+1.5, 8);
-          MID(w.type||'', LX(wTypeX)+0.5, yDmg+1.5, 7);
-          CEN(w.range||'', LX(wRangeX), wRangeW, yDmg+1.5, 7);
-          MID(w.ammunition||'', LX(wAmmoX)+0.5, yDmg+1.5, 7);
-          MID(w.damage||'', LX(wDmgX)+0.5, yDmg+1.5, 8);
+          MID(w.name||'', LX(wNameX)+0.5, yName-1.5, 8);
+          MID(w.attackBonus||'', LX(wAtkX)+0.5, yName-1.5, 8);
+          CEN((w.critRange||'')+(w.critMult?'/x'+w.critMult:''), LX(wCritX), wCritW, yName-1.5, 8);
+          MID(w.type||'', LX(wTypeX)+0.5, yDmg-1.5, 7);
+          CEN(w.range||'', LX(wRangeX), wRangeW, yDmg-1.5, 7);
+          MID(w.ammunition||'', LX(wAmmoX)+0.5, yDmg-1.5, 7);
+          MID(w.damage||'', LX(wDmgX)+0.5, yDmg-1.5, 8);
         });
 
         // ── Skills ──
@@ -2590,11 +2590,11 @@
           const misc = (d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
           const tot = (d.ranks||0)+cs+am+misc;
           const y = LY(b);
-          MID(label, LX(52.2)+2, y+2, isSub?6.5:7);
-          MID(abKey.toUpperCase(), LX(79.9)+0.3, y+2, 6);
-          CEN(tot>=0?'+'+tot:tot, LX(71.8), 3.4, y+2, 7);
-          CEN(String(d.ranks||0), LX(85.1), 3.4, y+2, 7);
-          CEN(misc?String(misc):'—', LX(90.3), 3.4, y+2, 6.5);
+          MID(label, LX(52.2)+2, y-2, isSub?6.5:7);
+          MID(abKey.toUpperCase(), LX(79.9)+0.3, y-2, 6);
+          CEN(tot>=0?'+'+tot:tot, LX(71.8), 3.4, y-2, 7);
+          CEN(String(d.ranks||0), LX(85.1), 3.4, y-2, 7);
+          CEN(misc?String(misc):'—', LX(90.3), 3.4, y-2, 6.5);
         }
 
         SKILL_DEFS.forEach((sd, i)=>{
@@ -2624,13 +2624,13 @@
         armor.forEach((a, i)=>{
           if(i >= 5) return;
           const y = LY(acItemBottoms[i]);
-          MID(a.name||'', LX(6.3)+0.5, y+2, 7);
-          CEN(String(a.acBonus??''), LX(25), 4.1, y+2, 7);
-          CEN(a.type||'', LX(30.5), 6.6, y+2, 6.5);
-          CEN(String(a.checkPenalty??''), LX(38.5), 6.7, y+2, 7);
-          CEN(String(a.arcaneFail??'')+'%', LX(46.8), 5.9, y+2, 7);
-          CEN(String(a.weight??''), LX(54.1), 4.8, y+2, 7);
-          MID(a.properties||'', LX(60.4)+0.5, y+2, 6.5);
+          MID(a.name||'', LX(6.3)+0.5, y-2, 7);
+          CEN(String(a.acBonus??''), LX(25), 4.1, y-2, 7);
+          CEN(a.type||'', LX(30.5), 6.6, y-2, 6.5);
+          CEN(String(a.checkPenalty??''), LX(38.5), 6.7, y-2, 7);
+          CEN(String(a.arcaneFail??'')+'%', LX(46.8), 5.9, y-2, 7);
+          CEN(String(a.weight??''), LX(54.1), 4.8, y-2, 7);
+          MID(a.properties||'', LX(60.4)+0.5, y-2, 6.5);
         });
 
         // ── Gear ──
@@ -2639,32 +2639,32 @@
         gearItems.forEach((item, i)=>{
           if(i >= gearBottoms.length) return;
           const y = LY(gearBottoms[i]);
-          MID(item.name||'', LX(6.1)+0.5, y+2, 6.5);
+          MID(item.name||'', LX(6.1)+0.5, y-2, 6.5);
           const totalW = (Number(item.qty)||0) * (Number(item.weightPerUnit)||0);
-          CEN(totalW?String(totalW):'', LX(25), 2.4, y+2, 6.5);
+          CEN(totalW?String(totalW):'', LX(25), 2.4, y-2, 6.5);
         });
 
         // ── Money ──
         const cur = state.inventory?.currency||{};
         const moneyBottoms = { cp:12.1, sp:10.3, gp:8.5, pp:6.7 };
-        CEN(String(cur.copper||0), LX(9.1), 17.6, LY(moneyBottoms.cp)+2, 8);
-        CEN(String(cur.silver||0), LX(9.1), 17.6, LY(moneyBottoms.sp)+2, 8);
-        CEN(String(cur.gold||0), LX(9.1), 17.6, LY(moneyBottoms.gp)+2, 8);
-        CEN(String(cur.platinum||0), LX(9.1), 17.6, LY(moneyBottoms.pp)+2, 8);
+        CEN(String(cur.copper||0), LX(9.1), 17.6, LY(moneyBottoms.cp)-2, 8);
+        CEN(String(cur.silver||0), LX(9.1), 17.6, LY(moneyBottoms.sp)-2, 8);
+        CEN(String(cur.gold||0), LX(9.1), 17.6, LY(moneyBottoms.gp)-2, 8);
+        CEN(String(cur.platinum||0), LX(9.1), 17.6, LY(moneyBottoms.pp)-2, 8);
 
         // ── Carrying Capacity ──
         const cap = state.inventory?.carryingCapacity||{};
         const cw = state.inventory?.carriedWeight||0;
-        CEN(String(cap.light||0), LX(11.8), 3.1, LY(21.5)+2, 8);
-        CEN(String(cap.medium||0), LX(11.8), 3.1, LY(19.2)+2, 8);
-        CEN(String(cap.heavy||0), LX(11.8), 3.1, LY(16.9)+2, 8);
-        CEN(String(state.inventory?.liftOverHead||cap.heavy||0), LX(23.6), 3.1, LY(21.5)+2, 8);
-        CEN(String(state.inventory?.liftOffGround||(cap.heavy||0)*2), LX(23.6), 3.1, LY(19.2)+2, 8);
-        CEN(String(state.inventory?.pushDrag||(cap.heavy||0)*5), LX(23.6), 3.1, LY(16.9)+2, 8);
+        CEN(String(cap.light||0), LX(11.8), 3.1, LY(21.5)-2, 8);
+        CEN(String(cap.medium||0), LX(11.8), 3.1, LY(19.2)-2, 8);
+        CEN(String(cap.heavy||0), LX(11.8), 3.1, LY(16.9)-2, 8);
+        CEN(String(state.inventory?.liftOverHead||cap.heavy||0), LX(23.6), 3.1, LY(21.5)-2, 8);
+        CEN(String(state.inventory?.liftOffGround||(cap.heavy||0)*2), LX(23.6), 3.1, LY(19.2)-2, 8);
+        CEN(String(state.inventory?.pushDrag||(cap.heavy||0)*5), LX(23.6), 3.1, LY(16.9)-2, 8);
 
         // ── XP ──
-        CEN(String(m.xp||0), LX(30.8), 24.5, LY(6.4)+2, 8);
-        CEN(String(m.nextLevel||'—'), LX(57.3), 10.1, LY(6.4)+2, 8);
+        CEN(String(m.xp||0), LX(30.8), 24.5, LY(6.4)-2, 8);
+        CEN(String(m.nextLevel||'—'), LX(57.3), 10.1, LY(6.4)-2, 8);
 
         // ── Feats & Special Abilities (middle column) ──
         const ff = state.featsAndFeatures||{};
@@ -2672,7 +2672,7 @@
         const featBottoms = [72.8, 70.9, 69, 67.2, 65.3, 63.4, 61.6, 59.7, 57.8, 55.9, 54.1, 52.2,
           46.7, 44.9, 43, 41.1, 39.3, 37.4, 35.5, 33.6, 31.8, 29.9, 28, 26.1, 24.2, 22.4, 20.5, 18.7, 16.8, 14.9, 13.1, 11.1];
         allFeats.forEach((f, i)=>{
-          if(i < featBottoms.length) MID(f.name||'', LX(29.7)+0.5, LY(featBottoms[i])+1.5, 6);
+          if(i < featBottoms.length) MID(f.name||'', LX(29.7)+0.5, LY(featBottoms[i])-1.5, 6);
         });
 
         // ── Spells (right side) ──
@@ -2686,10 +2686,10 @@
               const list = set.spells[lvl];
               if(!list?.length) return;
               const y = LY(spellLevelBottoms[li]);
-              CEN(String(list.length||0), LX(71.4), 3, y+2, 8);
-              CEN(set.saveDC?.[li]||'—', LX(76.35), 3, y+2, 8);
-              CEN(String(set.perDay?.[li]||0), LX(86.62), 3, y+2, 8);
-              CEN(String(set.bonus?.[li]||0), LX(91.85), 3, y+2, 8);
+              CEN(String(list.length||0), LX(71.4), 3, y-2, 8);
+              CEN(set.saveDC?.[li]||'—', LX(76.35), 3, y-2, 8);
+              CEN(String(set.perDay?.[li]||0), LX(86.62), 3, y-2, 8);
+              CEN(String(set.bonus?.[li]||0), LX(91.85), 3, y-2, 8);
             });
           });
         }
