@@ -3456,6 +3456,11 @@
       return (currentLang === 'ru' && spell.name_ru) ? spell.name_ru : spell.name;
     }
 
+    function spellField(spell, field) {
+      const ruField = field + '_ru';
+      return (currentLang === 'ru' && spell[ruField]) ? spell[ruField] : (spell[field] || '—');
+    }
+
     function filterSpellBrowser() {
       if (!spellDatabase) return;
       const search = (document.getElementById('spellBrowserSearch').value || '').toLowerCase();
@@ -3495,24 +3500,24 @@
             <div class="spell-browser-item-header">
               <span class="spell-name">${spellDisplayName(spell)}</span>
               <span class="spell-level">Lv${spell.level}</span>
-              <span class="spell-school">${spell.school}${descriptors}</span>
+              <span class="spell-school">${spellField(spell, 'school')}${descriptors}</span>
             </div>
             <div class="spell-browser-item-body">
               <div class="spell-meta">
-                <span><strong data-i18n="lbl_casting_time">Casting Time:</strong> ${spell.castingTime || '—'}</span>
-                <span><strong data-i18n="lbl_range">Range:</strong> ${spell.range || '—'}</span>
-                <span><strong data-i18n="lbl_components">Components:</strong> ${spell.components || '—'}</span>
-                <span><strong data-i18n="lbl_duration">Duration:</strong> ${spell.duration || '—'}</span>
-                ${spell.area ? `<span><strong data-i18n="lbl_area">Area:</strong> ${spell.area}</span>` : ''}
-                ${spell.effect ? `<span><strong data-i18n="lbl_effect">Effect:</strong> ${spell.effect}</span>` : ''}
-                ${spell.targets ? `<span><strong data-i18n="lbl_targets">Targets:</strong> ${spell.targets}</span>` : ''}
-                <span><strong data-i18n="lbl_save">Save:</strong> ${spell.save || '—'}</span>
-                <span><strong data-i18n="lbl_resistance">SR:</strong> ${spell.resistance || '—'}</span>
+                <span><strong data-i18n="lbl_casting_time">Casting Time:</strong> ${spellField(spell, 'castingTime')}</span>
+                <span><strong data-i18n="lbl_range">Range:</strong> ${spellField(spell, 'range')}</span>
+                <span><strong data-i18n="lbl_components">Components:</strong> ${spellField(spell, 'components')}</span>
+                <span><strong data-i18n="lbl_duration">Duration:</strong> ${spellField(spell, 'duration')}</span>
+                ${spell.area || spell.area_ru ? `<span><strong data-i18n="lbl_area">Area:</strong> ${spellField(spell, 'area')}</span>` : ''}
+                ${spell.effect || spell.effect_ru ? `<span><strong data-i18n="lbl_effect">Effect:</strong> ${spellField(spell, 'effect')}</span>` : ''}
+                ${spell.targets || spell.targets_ru ? `<span><strong data-i18n="lbl_targets">Targets:</strong> ${spellField(spell, 'targets')}</span>` : ''}
+                <span><strong data-i18n="lbl_save">Save:</strong> ${spellField(spell, 'save')}</span>
+                <span><strong data-i18n="lbl_resistance">SR:</strong> ${spellField(spell, 'resistance')}</span>
               </div>
               <div><strong data-i18n="lbl_classes">Classes:</strong> ${classList}</div>
-              ${spell.material ? `<div><strong data-i18n="lbl_material">Material:</strong> ${spell.material}</div>` : ''}
-              ${spell.focus ? `<div><strong data-i18n="lbl_focus">Focus:</strong> ${spell.focus}</div>` : ''}
-              <div class="spell-desc">${spell.description || ''}</div>
+              ${spell.material || spell.material_ru ? `<div><strong data-i18n="lbl_material">Material:</strong> ${spellField(spell, 'material')}</div>` : ''}
+              ${spell.focus || spell.focus_ru ? `<div><strong data-i18n="lbl_focus">Focus:</strong> ${spellField(spell, 'focus')}</div>` : ''}
+              <div class="spell-desc">${spellField(spell, 'description')}</div>
               <button class="spell-add-btn" onclick="event.stopPropagation(); showSpellLevelPicker(${i})" data-i18n="btn_add_to_list">Add to spell list</button>
               <div class="spell-level-picker" id="slp-${i}">
                 <span style="color:#8b6914;font-size:12px;" data-i18n="lbl_add_to_level">Add to Level:</span>
@@ -3546,19 +3551,23 @@
 
       if (!set.spells[level]) set.spells[level] = [];
 
+      const f = (field, fallback) => {
+        const ruField = field + '_ru';
+        return (currentLang === 'ru' && spell[ruField]) ? spell[ruField] : (spell[field] || fallback || '');
+      };
       const description = [
-        spell.school + (spell.descriptors && spell.descriptors.length ? ` [${spell.descriptors.join(', ')}]` : ''),
-        spell.castingTime ? `Casting: ${spell.castingTime}` : '',
-        spell.range ? `Range: ${spell.range}` : '',
-        spell.components ? `Components: ${spell.components}` : '',
-        spell.duration ? `Duration: ${spell.duration}` : '',
-        spell.area ? `Area: ${spell.area}` : '',
-        spell.effect ? `Effect: ${spell.effect}` : '',
-        spell.targets ? `Targets: ${spell.targets}` : '',
-        spell.save ? `Save: ${spell.save}` : '',
-        spell.resistance ? `SR: ${spell.resistance}` : '',
+        f('school') + (spell.descriptors && spell.descriptors.length ? ` [${spell.descriptors.join(', ')}]` : ''),
+        spell.castingTime ? `${currentLang === 'ru' ? 'Сотворение' : 'Casting'}: ${f('castingTime')}` : '',
+        spell.range ? `${currentLang === 'ru' ? 'Дальность' : 'Range'}: ${f('range')}` : '',
+        spell.components ? `${currentLang === 'ru' ? 'Компоненты' : 'Components'}: ${f('components')}` : '',
+        spell.duration ? `${currentLang === 'ru' ? 'Длительность' : 'Duration'}: ${f('duration')}` : '',
+        spell.area ? `${currentLang === 'ru' ? 'Область' : 'Area'}: ${f('area')}` : '',
+        spell.effect ? `${currentLang === 'ru' ? 'Эффект' : 'Effect'}: ${f('effect')}` : '',
+        spell.targets ? `${currentLang === 'ru' ? 'Цели' : 'Targets'}: ${f('targets')}` : '',
+        spell.save ? `${currentLang === 'ru' ? 'Спасбросок' : 'Save'}: ${f('save')}` : '',
+        spell.resistance ? `${currentLang === 'ru' ? 'Сопр. закл.' : 'SR'}: ${f('resistance')}` : '',
         '',
-        spell.description || ''
+        f('description')
       ].filter(Boolean).join('\n');
 
       set.spells[level].push({
