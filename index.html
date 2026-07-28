@@ -136,19 +136,18 @@
 
     /* Input styling */
     input, select, textarea {
-      background: rgba(210, 190, 150, 0.18);
-      border: 1px solid #3a2a15;
-      border-bottom: 2px solid #6b4c1e;
-      border-top: 1px solid #2a1c0e;
-      color: #3a2a15;
+      background: #f0e0b0;
+      border: 1px solid #8b6914;
+      border-bottom: 2px solid #a07820;
+      border-top: 1px solid #6b4c1e;
+      color: #2a1c0e;
       font-family: Georgia, serif;
       font-size: 14px;
       padding: 6px 8px;
       border-radius: 3px;
       box-shadow:
-        inset 0 2px 4px rgba(0, 0, 0, 0.3),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.08),
-        0 1px 0 rgba(255, 255, 255, 0.03);
+        inset 0 1px 3px rgba(0, 0, 0, 0.15),
+        0 1px 0 rgba(255, 255, 255, 0.05);
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
@@ -157,10 +156,9 @@
       border-color: #c9a84c;
       border-bottom-color: #c9a84c;
       box-shadow:
-        inset 0 2px 4px rgba(0, 0, 0, 0.3),
-        inset 0 -1px 0 rgba(201, 168, 76, 0.15),
-        0 0 12px rgba(201, 168, 76, 0.3),
-        0 0 4px rgba(201, 168, 76, 0.2);
+        inset 0 1px 3px rgba(0, 0, 0, 0.15),
+        0 0 8px rgba(201, 168, 76, 0.4),
+        0 0 3px rgba(201, 168, 76, 0.3);
     }
 
     input[type="checkbox"] {
@@ -199,19 +197,22 @@
     }
 
     input[type="number"] {
-      background: rgba(0, 0, 0, 0.45);
+      background: #3a2a15;
       color: #f0e0b0;
+      border-color: #6b4c1e;
     }
 
     input[type="file"], input[type="hidden"] {
       background: transparent;
+      border: none;
+      box-shadow: none;
     }
 
     textarea {
-      border: 1px solid #5a421e;
+      border: 1px solid #8b6914;
       resize: vertical;
       width: 100%;
-      color: #3a2a15;
+      color: #2a1c0e;
     }
 
     input[type="text"], input:not([type]) {
@@ -256,8 +257,8 @@
     }
     .comment-area textarea {
       width: 100%; font-size: 12px; min-height: 40px;
-      background: rgba(0,0,0,0.2); border: 1px solid #3a2a15;
-      color: #c9a84c; padding: 4px 6px; border-radius: 2px;
+      background: #f0e0b0; border: 1px solid #8b6914;
+      color: #2a1c0e; padding: 4px 6px; border-radius: 2px;
     }
     .field-group.comment-open .comment-area { display: block; }
     td.comment-open .comment-area { display: block; }
@@ -271,6 +272,26 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
     .skill-comment-wrap.comment-open .comment-area { display: block; }
+    .item-card {
+      border: 1px solid #3a2a15;
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: rgba(0,0,0,0.12);
+      position: relative;
+    }
+    .item-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .item-card-header > label,
+    .item-card-header > span {
+      color: #c9a84c;
+      font-size: 11px;
+      white-space: nowrap;
+    }
 
     /* Button styling */
     button, .btn {
@@ -484,7 +505,7 @@
       }
       #portraitPreview {
         width: 160px !important;
-        height: 200px !important;
+        min-height: 200px !important;
       }
     }
   </style>
@@ -600,11 +621,11 @@
   <!-- Tab Panels -->
   <div class="content-wrapper">
   <div id="tab-main" class="tab-panel active">
-    <div style="display:flex;gap:15px;align-items:flex-start;">
-      <div class="panel" style="flex-shrink:0;text-align:center;padding:12px;">
+    <div style="display:flex;gap:15px;align-items:stretch;">
+      <div class="panel" style="flex-shrink:0;text-align:center;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;">
         <div class="field-group" style="display:inline-block;">
           <label class="field-label" data-i18n="lbl_portrait">Portrait</label>
-          <div id="portraitPreview" style="width:200px;height:260px;border:2px dashed #5a421e;border-radius:4px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="document.getElementById('portraitInput').click()">
+          <div id="portraitPreview" style="width:200px;min-height:260px;border:2px dashed #5a421e;border-radius:4px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);cursor:pointer;flex:1;" onclick="document.getElementById('portraitInput').click()">
             <span style="color:#6b5020;font-size:12px;" data-i18n="lbl_no_photo">No photo</span>
           </div>
           <input type="file" id="portraitInput" accept="image/*" style="display:none;" onchange="handlePortraitUpload(event)">
@@ -938,28 +959,14 @@
     <!-- Weapons -->
     <div class="panel">
       <div class="panel-title" data-i18n="panel_weapons">Weapons</div>
-      <table id="weaponsTable">
-        <thead>
-          <tr>
-            <th data-i18n="th_name">Name</th><th data-i18n="th_damage">Damage</th><th data-i18n="th_atk_bonus">Atk Bonus</th><th data-i18n="th_crit">Crit</th><th data-i18n="th_type">Type</th><th data-i18n="th_hand">Hand</th><th data-i18n="th_range">Range</th><th data-i18n="th_notes">Notes</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="weaponsBody"></tbody>
-      </table>
+      <div id="weaponsBody"></div>
       <button onclick="addWeapon()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_weapon">+ Add Weapon</button>
     </div>
 
     <!-- Armor -->
     <div class="panel">
       <div class="panel-title" data-i18n="panel_armor">Armor</div>
-      <table id="armorTable">
-        <thead>
-          <tr>
-            <th data-i18n="th_eq">Eq</th><th data-i18n="th_name">Name</th><th data-i18n="th_ac_bonus">AC Bonus</th><th data-i18n="th_enh">Enh</th><th data-i18n="th_type">Type</th><th data-i18n="th_heavy">Heavy?</th><th data-i18n="th_max_dex">Max Dex</th><th data-i18n="th_check_pen">Check Pen</th><th data-i18n="th_arcane_fail">Arcane Fail</th><th data-i18n="th_notes">Notes</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="armorBody"></tbody>
-      </table>
+      <div id="armorBody"></div>
       <button onclick="addArmor()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_armor">+ Add Armor</button>
     </div>
 
@@ -1222,18 +1229,10 @@
       </div>
     </div>
 
-    <!-- Inventory Table -->
+    <!-- Inventory -->
     <div class="panel">
       <div class="panel-title" data-i18n="panel_inventory">Inventory</div>
-      <table id="inventoryTable">
-        <thead>
-          <tr>
-            <th data-i18n="th_qty">Qty</th><th data-i18n="th_item">Item</th><th data-i18n="th_value_unit">Value/unit (gp)</th><th data-i18n="th_weight_unit">Weight/unit (lbs)</th>
-            <th data-i18n="th_total_value">Total Value</th><th data-i18n="th_total_weight">Total Weight</th><th data-i18n="th_location">Location</th><th data-i18n="th_notes">Notes</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="inventoryBody"></tbody>
-      </table>
+      <div id="inventoryBody"></div>
       <button onclick="addInventoryItem()" style="margin-top:8px;background:#6b4c1e;color:#e8d5a3;border:none;padding:4px 12px;cursor:pointer;" data-i18n="btn_add_item">+ Add Item</button>
     </div>
 
@@ -1987,6 +1986,11 @@
       if (el) el.classList.toggle('comment-open');
     }
 
+    function toggleItemComment(type, index) {
+      const el = document.getElementById('comment-' + type + '-' + index);
+      if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
     function selectCharacter(id) {
       currentCharId = id;
       const loaded = loadFromStorage(id);
@@ -2390,7 +2394,7 @@
           clone.addEventListener('change', handler);
         }
 
-        if (clone.type !== 'checkbox' && clone.type !== 'hidden' && clone.type !== 'file' && clone.tagName !== 'TEXTAREA' && !clone.classList.contains('comment-toggle') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput') && !clone.closest('table') && !clone.closest('#spellSets')) {
+        if (clone.type !== 'checkbox' && clone.type !== 'hidden' && clone.type !== 'file' && clone.tagName !== 'TEXTAREA' && !clone.classList.contains('comment-toggle') && !clone.closest('#portraitPreview') && !clone.closest('#portraitInput') && !clone.closest('table') && !clone.closest('#spellSets') && !clone.closest('.item-card')) {
           const parent = clone.parentNode;
           const existingWrap = clone.closest('.comment-wrap');
           if (!existingWrap) {
@@ -2701,23 +2705,39 @@
     }
 
     function renderInventoryTable() {
-      const tbody = document.getElementById('inventoryBody');
-      if (!tbody) return;
+      const container = document.getElementById('inventoryBody');
+      if (!container) return;
       if (!state.inventory.items) state.inventory.items = [];
 
-      tbody.innerHTML = state.inventory.items.map((item, i) => {
+      container.innerHTML = state.inventory.items.map((item, i) => {
+        const commentText = (state.comments && state.comments['inventory.' + i]) || '';
         return `
-          <tr>
-            <td><input type="number" data-bind="inventory.items.${i}.qty" style="width:50px" min="0"></td>
-            <td><input type="text" data-bind="inventory.items.${i}.name" style="width:120px"></td>
-            <td><input type="number" data-bind="inventory.items.${i}.valuePerUnit" style="width:70px" step="0.01"></td>
-            <td><input type="number" data-bind="inventory.items.${i}.weightPerUnit" style="width:70px" step="0.1"></td>
-            <td class="derived" data-display="inventory.items.${i}.totalValue"></td>
-            <td class="derived" data-display="inventory.items.${i}.totalWeight"></td>
-            <td><input type="text" data-bind="inventory.items.${i}.location" style="width:100px"></td>
-            <td><input type="text" data-bind="inventory.items.${i}.notes" style="width:80px"></td>
-            <td><button onclick="removeInventoryItem(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
-          </tr>
+          <div class="item-card">
+            <div class="item-card-header">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_qty">Qty</span></label>
+              <input type="number" data-bind="inventory.items.${i}.qty" style="width:50px;" min="0">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_item">Item</span></label>
+              <input type="text" data-bind="inventory.items.${i}.name" placeholder="Item name" style="flex:2;min-width:120px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_value_unit">Val</span></label>
+              <input type="number" data-bind="inventory.items.${i}.valuePerUnit" style="width:70px;" step="0.01">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_weight_unit">Wt</span></label>
+              <input type="number" data-bind="inventory.items.${i}.weightPerUnit" style="width:60px;" step="0.1">
+              <button onclick="removeInventoryItem(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;padding:2px 6px;">\u00d7</button>
+            </div>
+            <div class="item-card-header" style="margin-top:4px;">
+              <label style="color:#c9a84c;font-size:11px;">Total:</label>
+              <span class="derived" data-display="inventory.items.${i}.totalValue" style="min-width:50px;"></span>
+              <span class="derived" data-display="inventory.items.${i}.totalWeight" style="min-width:50px;"></span>
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_location">Loc</span></label>
+              <input type="text" data-bind="inventory.items.${i}.location" placeholder="Location" style="flex:1;min-width:80px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_notes">Notes</span></label>
+              <input type="text" data-bind="inventory.items.${i}.notes" placeholder="Notes" style="flex:1;min-width:80px;">
+              <button class="comment-toggle" type="button" onclick="toggleItemComment('inventory',${i})">\uD83D\uDCAC</button>
+            </div>
+            <div class="comment-area" id="comment-inventory-${i}" style="position:relative;margin-top:4px;display:none;">
+              <textarea placeholder="Comment..." oninput="if(!state.comments)state.comments={};state.comments['inventory.${i}']=this.value;saveToStorage();">${commentText}</textarea>
+            </div>
+          </div>
         `;
       }).join('');
 
@@ -2948,23 +2968,41 @@
     // WEAPONS TABLE
     // ============================================
     function renderWeaponsTable() {
-      const tbody = document.getElementById('weaponsBody');
-      if (!tbody) return;
+      const container = document.getElementById('weaponsBody');
+      if (!container) return;
       if (!state.weapons) state.weapons = [];
-      tbody.innerHTML = state.weapons.map((w, i) => `
-        <tr>
-          <td><input type="text" data-bind="weapons.${i}.name" style="width:100px"></td>
-          <td><input type="text" data-bind="weapons.${i}.damage" style="width:60px"></td>
-          <td><input type="text" data-bind="weapons.${i}.attackBonus" style="width:50px"></td>
-          <td><input type="text" data-bind="weapons.${i}.critRange" style="width:50px"></td>
-          <td><input type="text" data-bind="weapons.${i}.critMult" style="width:40px"></td>
-          <td><select data-bind="weapons.${i}.type"><option value="M" data-i18n="type_melee">Melee</option><option value="R" data-i18n="type_ranged">Ranged</option></select></td>
-          <td><input type="text" data-bind="weapons.${i}.hand" style="width:50px"></td>
-          <td><input type="text" data-bind="weapons.${i}.range" style="width:50px"></td>
-          <td><input type="text" data-bind="weapons.${i}.notes" style="width:80px"></td>
-          <td><button onclick="removeWeapon(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
-        </tr>
-      `).join('');
+      container.innerHTML = state.weapons.map((w, i) => {
+        const commentText = (state.comments && state.comments['weapon.' + i]) || '';
+        return `
+          <div class="item-card">
+            <div class="item-card-header">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_name">Name</span></label>
+              <input type="text" data-bind="weapons.${i}.name" placeholder="Name" style="flex:2;min-width:100px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_damage">Dmg</span></label>
+              <input type="text" data-bind="weapons.${i}.damage" placeholder="2d6" style="width:60px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_atk_bonus">Atk</span></label>
+              <input type="text" data-bind="weapons.${i}.attackBonus" placeholder="+5" style="width:50px;">
+              <select data-bind="weapons.${i}.type" style="width:70px;"><option value="M" data-i18n="type_melee">Melee</option><option value="R" data-i18n="type_ranged">Ranged</option></select>
+              <button onclick="removeWeapon(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;padding:2px 6px;">\u00d7</button>
+            </div>
+            <div class="item-card-header" style="margin-top:4px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_crit">Crit</span></label>
+              <input type="text" data-bind="weapons.${i}.critRange" placeholder="19-20" style="width:60px;">
+              <input type="text" data-bind="weapons.${i}.critMult" placeholder="x2" style="width:40px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_hand">Hand</span></label>
+              <input type="text" data-bind="weapons.${i}.hand" style="width:50px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_range">Range</span></label>
+              <input type="text" data-bind="weapons.${i}.range" style="width:50px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_notes">Notes</span></label>
+              <input type="text" data-bind="weapons.${i}.notes" placeholder="Notes" style="flex:1;min-width:80px;">
+              <button class="comment-toggle" type="button" onclick="toggleItemComment('weapon',${i})">\uD83D\uDCAC</button>
+            </div>
+            <div class="comment-area" id="comment-weapon-${i}" style="position:relative;margin-top:4px;display:none;">
+              <textarea placeholder="Comment..." oninput="if(!state.comments)state.comments={};state.comments['weapon.${i}']=this.value;saveToStorage();">${commentText}</textarea>
+            </div>
+          </div>
+        `;
+      }).join('');
       bindInputs();
     }
 
@@ -2986,24 +3024,42 @@
     // ARMOR TABLE
     // ============================================
     function renderArmorTable() {
-      const tbody = document.getElementById('armorBody');
-      if (!tbody) return;
+      const container = document.getElementById('armorBody');
+      if (!container) return;
       if (!state.armor) state.armor = [];
-      tbody.innerHTML = state.armor.map((a, i) => `
-        <tr>
-          <td><input type="checkbox" data-bind="armor.${i}.equipped" onchange="onArmorToggle()"></td>
-          <td><input type="text" data-bind="armor.${i}.name" style="width:100px"></td>
-          <td><input type="number" data-bind="armor.${i}.acBonus" style="width:50px"></td>
-          <td><input type="number" data-bind="armor.${i}.enhBonus" style="width:50px"></td>
-          <td><select data-bind="armor.${i}.type"><option value="A" data-i18n="type_armor">Armor</option><option value="S" data-i18n="type_shield">Shield</option><option value="N" data-i18n="type_natural">Natural</option><option value="D" data-i18n="type_deflection">Deflection</option></select></td>
-          <td><input type="checkbox" data-bind="armor.${i}.heavy"></td>
-          <td><input type="number" data-bind="armor.${i}.maxDex" style="width:50px"></td>
-          <td><input type="number" data-bind="armor.${i}.checkPenalty" style="width:50px"></td>
-          <td><input type="number" data-bind="armor.${i}.arcaneFail" style="width:50px"></td>
-          <td><input type="text" data-bind="armor.${i}.notes" style="width:80px"></td>
-          <td><button onclick="removeArmor(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;">×</button></td>
-        </tr>
-      `).join('');
+      container.innerHTML = state.armor.map((a, i) => {
+        const commentText = (state.comments && state.comments['armor.' + i]) || '';
+        return `
+          <div class="item-card">
+            <div class="item-card-header">
+              <input type="checkbox" data-bind="armor.${i}.equipped" onchange="onArmorToggle()">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_name">Name</span></label>
+              <input type="text" data-bind="armor.${i}.name" placeholder="Name" style="flex:2;min-width:100px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_ac_bonus">AC</span></label>
+              <input type="number" data-bind="armor.${i}.acBonus" style="width:45px;" min="0">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_enh">Enh</span></label>
+              <input type="number" data-bind="armor.${i}.enhBonus" style="width:45px;" min="0">
+              <select data-bind="armor.${i}.type" style="width:80px;"><option value="A" data-i18n="type_armor">Armor</option><option value="S" data-i18n="type_shield">Shield</option><option value="N" data-i18n="type_natural">Natural</option><option value="D" data-i18n="type_deflection">Deflection</option></select>
+              <button onclick="removeArmor(${i})" style="background:#8b1a1a;color:#e8d5a3;border:none;cursor:pointer;padding:2px 6px;">\u00d7</button>
+            </div>
+            <div class="item-card-header" style="margin-top:4px;">
+              <input type="checkbox" data-bind="armor.${i}.heavy">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_max_dex">MaxDex</span></label>
+              <input type="number" data-bind="armor.${i}.maxDex" style="width:45px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_check_pen">Pen</span></label>
+              <input type="number" data-bind="armor.${i}.checkPenalty" style="width:45px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_arcane_fail">ArcFail</span></label>
+              <input type="number" data-bind="armor.${i}.arcaneFail" style="width:45px;">
+              <label style="color:#c9a84c;font-size:11px;"><span data-i18n="th_notes">Notes</span></label>
+              <input type="text" data-bind="armor.${i}.notes" placeholder="Notes" style="flex:1;min-width:80px;">
+              <button class="comment-toggle" type="button" onclick="toggleItemComment('armor',${i})">\uD83D\uDCAC</button>
+            </div>
+            <div class="comment-area" id="comment-armor-${i}" style="position:relative;margin-top:4px;display:none;">
+              <textarea placeholder="Comment..." oninput="if(!state.comments)state.comments={};state.comments['armor.${i}']=this.value;saveToStorage();">${commentText}</textarea>
+            </div>
+          </div>
+        `;
+      }).join('');
       bindInputs();
     }
 
