@@ -2360,327 +2360,544 @@
       input.click();
     }
 
-    let _pdfFont = null;
-
-    async function _loadPdfFont() {
-      if (_pdfFont) return _pdfFont;
-      const url = 'https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io@main/hinted/ttf/NotoSans/NotoSans-Regular.ttf';
+    function exportPDF() {
       try {
-        const resp = await fetch(url);
-        const buf = await resp.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        let bin = '';
-        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-        const b64 = btoa(bin);
-        _pdfFont = { name: 'NotoSans', b64 };
-        return _pdfFont;
-      } catch (e) {
-        return null;
-      }
-    }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'letter');
+        const PW = doc.internal.pageSize.getWidth();
+        const PH = doc.internal.pageSize.getHeight();
+        const L = 6, T = 5, W = PW - L - 6;
+        let Y = T, page = 1;
 
-    function _pdfText(doc, text, x, y, opts) {
-      const size = opts?.size || 8;
-      doc.setFontSize(size);
-      doc.text(String(text || ''), x, y, { align: opts?.align || 'left' });
-    }
-
-    function _pdfRect(doc, x, y, w, h) {
-      doc.setDrawColor(0);
-      doc.setLineWidth(0.3);
-      doc.rect(x, y, w, h);
-    }
-
-    function _pdfCell(doc, text, x, y, w, h, opts) {
-      _pdfRect(doc, x, y, w, h);
-      const fs = opts?.size || 7;
-      const bx = x + 1;
-      const by = y + (opts?.center ? h / 2 + fs / 3 : h - 2);
-      doc.setFontSize(fs);
-      doc.text(String(text || ''), bx, by);
-    }
-
-    async function exportPDF() {
-      const { jsPDF } = window.jspdf || jspdf;
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
-
-      const fontInfo = await _loadPdfFont();
-      if (fontInfo) {
-        doc.addFileToVFS('NotoSans-Regular.ttf', fontInfo.b64);
-        doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
-        doc.setFont('NotoSans');
-      }
-
-      const pgW = doc.internal.pageSize.getWidth();
-      const pgH = doc.internal.pageSize.getHeight();
-      const L = 10, R = pgW - 10;
-      const T = (t, x, y, opts) => _pdfText(doc, t, x, y, opts);
-      const RECT = (x, y, w, h) => _pdfRect(doc, x, y, w, h);
-      const CELL = (t, x, y, w, h, o) => _pdfCell(doc, t, x, y, w, h, o);
-
-      let y = L;
-
-      // ═══ HEADER ═══
-      const m = state.main || {};
-      T(m.name || '', L, y + 4, { size: 16 });
-      T('Pathfinder 1e Character Sheet', R, y + 4, { size: 8, align: 'right' });
-      y += 8;
-
-      const rowH = 5.5;
-      const colW = (R - L) / 4;
-
-      const hdrFields = [
-        ['Class & Level', `${m.class || ''} ${m.level || ''}`],
-        ['Race', m.race || ''],
-        ['Alignment', m.alignment || ''],
-        ['Deity', m.deity || ''],
-      ];
-      hdrFields.forEach(([lbl, val], i) => {
-        const cx = L + i * colW;
-        RECT(cx, y, colW, rowH);
-        T(lbl, cx + 1, y + 3, { size: 6 });
-        T(val || '', cx + 1, y + rowH - 1, { size: 7 });
-      });
-      y += rowH + 1;
-
-      const miscLabels = ['XP', 'XP Next', 'Gender', 'Age', 'Height', 'Weight', 'Eyes', 'Hair', 'Skin'];
-      const miscVals = [m.xp, m.xpNext, m.gender, m.age, m.height, m.weight, m.eyes, m.hair, m.skin];
-      const mcW = (R - L) / miscLabels.length;
-      miscLabels.forEach((lbl, i) => {
-        const cx = L + i * mcW;
-        RECT(cx, y, mcW, rowH);
-        T(lbl, cx + 1, y + 3, { size: 5 });
-        T(String(miscVals[i] ?? ''), cx + 1, y + rowH - 1, { size: 6 });
-      });
-      y += rowH + 3;
-
-      // ═══ ABILITY SCORES ═══
-      const ab = state.abilityScores || {};
-      const abNames = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
-      const abFull = { str: 'Strength', dex: 'Dexterity', con: 'Constitution', int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma' };
-      const abKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-      const abW = (R - L) / 6;
-
-      const asY = y;
-      T('ABILITY SCORES', L, y, { size: 8 });
-      y += 4;
-
-      abKeys.forEach((k, i) => {
-        const cx = L + i * abW;
-        const a = ab[k] || {};
-        RECT(cx, y, abW - 0.5, 28);
-        const midX = cx + (abW - 0.5) / 2;
-        T(abNames[k], midX, y + 3.5, { size: 7, align: 'center' });
-        T(String(a.base || 10), midX, y + 10, { size: 12, align: 'center' });
-        T('(' + (a.mod >= 0 ? '+' : '') + (a.mod || 0) + ')', midX, y + 16, { size: 7, align: 'center' });
-        T(abFull[k], midX, y + 25, { size: 5, align: 'center' });
-      });
-      const abBottomY = y + 31;
-
-      // ═══ COMBAT ═══
-      const c = state.combat || {};
-      const hp = c.hp || {};
-      const ac = c.ac || {};
-      const sv = c.saves || {};
-
-      // HP (left column, starts below abilities)
-      y = abBottomY;
-      const hpX = L;
-      T('HIT POINTS', hpX, y, { size: 7 });
-      y += 3.5;
-      const hpBlock = [
-        'Max HP: ' + (hp.max || 0),
-        'Current: ' + (hp.current || 0),
-        'Temp: ' + (hp.temp || 0),
-        'Nonlethal: ' + (hp.nonlethal || 0),
-      ];
-      hpBlock.forEach((l, i) => CELL(l, hpX, y + i * 5.5, (R - L) / 3, 5, { size: 6 }));
-      y += hpBlock.length * 5.5 + 1;
-      T('DR: ' + (c.dr || '-') + '  SR: ' + (c.sr || '-'), hpX, y, { size: 6 });
-      T('Fast Heal: ' + (c.fastHealing || '-'), hpX + 65, y, { size: 6 });
-      y = abBottomY; // reset for right column
-
-      // AC + Saves + CMB (right 2/3)
-      const rightX = L + (R - L) / 3 + 3;
-      const rW = R - rightX;
-
-      T('ARMOR CLASS', rightX, y, { size: 7 });
-      y += 3.5;
-      const acList = [
-        ['Total', ac.total || 10, 'Touch', ac.touch || 10, 'Flat-Footed', ac.flatFooted || 10],
-        ['Armor', ac.armor || 0, 'Shield', ac.shield || 0, 'Natural', ac.natural || 0],
-        ['Dex', ac.dex || 0, 'Size', ac.size || 0, 'Deflection', ac.deflection || 0],
-        ['Dodge', ac.dodge || 0, 'Misc', ac.misc || 0, '', ''],
-      ];
-      const acCW = rW / 3;
-      acList.forEach(row => {
-        for (let i = 0; i < row.length; i += 2) {
-          if (!row[i]) continue;
-          T(row[i] + ': ' + row[i + 1], rightX + (i / 2) * acCW + 1, y, { size: 6 });
+        function TXT(t, x, y, o) {
+          doc.setFontSize(o?.s || 7);
+          const txt = String(t ?? '');
+          if (o?.c) doc.text(txt, x, y, { align: 'center' });
+          else if (o?.r) doc.text(txt, x, y, { align: 'right' });
+          else doc.text(txt, x, y);
         }
-        y += 4;
-      });
-      y += 1;
+        function BOX(x, y, w, h, lw) { doc.setLineWidth(lw || 0.2); doc.rect(x, y, w, h); }
+        function CELL(t, x, y, w, h, o) { BOX(x, y, w, h, o?.lw); TXT(t, x + (o?.c ? w/2 : 0.5), y + h - 1, o); }
+        function FILL(x, y, w, h, c) { doc.setFillColor(c || 0); doc.rect(x, y, w, h, 'F'); }
+        function NEWP() { if (Y > PH - 18) { doc.addPage(); Y = T; page++; } }
 
-      T('INIT: ' + (c.initiative?.total || 0) + '  (Dex: ' + (c.initiative?.dexMod || 0) + ', Misc: ' + (c.initiative?.misc || 0) + ')', rightX, y, { size: 6 });
-      y += 4;
+        const m = state.main || {};
+        const cbt = state.combat || {};
+        const hp = cbt.hp || {};
+        const ac = cbt.ac || {};
+        const sv = cbt.saves || {};
+        const ab = state.abilityScores || {};
+        const abKeys = ['str','dex','con','int','wis','cha'];
+        const abNames = ['STR','DEX','CON','INT','WIS','CHA'];
+        const abFull = ['Strength','Dexterity','Constitution','Intelligence','Wisdom','Charisma'];
 
-      if (c.bab) {
-        T('BAB: ' + (c.bab.value || 0), rightX, y, { size: 6 });
-        if (c.bab.meleeAttacks?.length) T('Melee: ' + c.bab.meleeAttacks.join(' / '), rightX + 30, y, { size: 6 });
-        y += 4;
-        if (c.bab.rangedAttacks?.length) {
-          T('Ranged: ' + c.bab.rangedAttacks.join(' / '), rightX, y, { size: 6 });
-          y += 4;
-        }
-      }
-      y += 1;
+        // ═══════════════════════════════════════════════════
+        // PAGE 1: HEADER
+        // ═══════════════════════════════════════════════════
+        const portW = 42, portH = 48;
+        const portX = PW - 6 - portW;
+        const hdrX = portX - 2;
+        const hdrW = hdrX - L;
 
-      T('SAVES', rightX, y, { size: 7 });
-      y += 3.5;
-      const saveMap = [
-        { k: 'fort', n: 'FORT', abMod: 'conMod' },
-        { k: 'ref', n: 'REF', abMod: 'dexMod' },
-        { k: 'will', n: 'WILL', abMod: 'wisMod' },
-      ];
-      saveMap.forEach(({ k, n, abMod }) => {
-        const s = sv[k] || {};
-        const abilityMod = s[abMod] || 0;
-        const total = (s.base || 0) + abilityMod + (s.resistance || 0) + (s.misc || 0);
-        T(`${n}: ${total}  [Base ${s.base} | Ab ${abilityMod} | Res ${s.resistance} | Misc ${s.misc}]`, rightX, y, { size: 5.5 });
-        y += 3.5;
-      });
-      y += 2;
+        // Title row
+        TXT('Pathfinder 1e Character Sheet', L, Y + 3.5, { s: 7 });
+        TXT(`Page ${page}`, PW-6, Y+3.5, { s: 6, r: true });
+        Y += 5;
 
-      const cmb = c.cmb || {};
-      const cmd = c.cmd || {};
-      T(`CMB: ${cmb.total || 0}  CMD: ${cmd.total || 0}`, rightX, y, { size: 6 });
-      y += 4;
-      const sp = c.speed || {};
-      T(`Speed: ${sp.ground || 30}ft  Climb: ${sp.climb || 0}ft  Swim: ${sp.swim || 0}ft  Fly: ${sp.fly || 0}ft`, rightX, y, { size: 5.5 });
-      y += 6;
+        // Name + Portrait in one row
+        BOX(L, Y, hdrW, 8, 0.4);
+        TXT('CHARACTER NAME', L+0.5, Y+2, { s: 4.5 });
+        TXT(String(m.name||''), L+1, Y+6.5, { s: 10 });
+        BOX(portX, Y, portW, portH, 0.4);
+        TXT('PORTRAIT', portX+portW/2, Y+portH/2+1, { s: 5, c: true });
+        Y += 9;
 
-      // ═══ SKILLS ═══
-      y = Math.max(y, abBottomY + 50);
-
-      T('SKILLS', L, y, { size: 8 });
-      y += 4;
-
-      const skillTableW = R - L;
-      const skillColW = [10, 7, 5, skillTableW - 10 - 7 - 5 - 12, 12];
-      const skillCols = ['Total', 'Ranks', 'CS', 'Skill', 'Ab Mod'];
-
-      // Header
-      let sx = L;
-      skillCols.forEach((c, i) => {
-        CELL(c, sx, y, skillColW[i], 4.5, { size: 6, center: true });
-        sx += skillColW[i];
-      });
-      y += 5;
-
-      SKILL_DEFS.forEach(sd => {
-        if (y > pgH - 12) { doc.addPage(); y = L + 5; }
-        const data = state.skills[sd.key] || { ranks: 0, classSkill: false };
-        const abMod = (state.abilityScores[sd.ability] || {}).mod || 0;
-        const csBonus = (data.classSkill && data.ranks > 0) ? 3 : 0;
-        const total = (data.ranks || 0) + csBonus + abMod + (data.competence || 0) + (data.circumstance || 0) + (data.feat || 0) + (data.race || 0) + (data.misc || 0);
-        const i18nKey = 'skill_' + sd.key;
-        const skillName = (i18n[currentLang] && i18n[currentLang][i18nKey]) || sd.name;
-
-        sx = L;
-        CELL(total, sx, y, skillColW[0], 4, { size: 6.5, center: true }); sx += skillColW[0];
-        CELL(data.ranks || 0, sx, y, skillColW[1], 4, { size: 6.5, center: true }); sx += skillColW[1];
-        CELL(data.classSkill ? 'Y' : '', sx, y, skillColW[2], 4, { size: 6.5, center: true }); sx += skillColW[2];
-        T(skillName, sx + 1, y + 3, { size: 6 }); sx += skillColW[3];
-        T('(' + sd.ability.toUpperCase() + ')', sx + 1, y + 3, { size: 5 });
-        y += 4.2;
-      });
-      y += 4;
-
-      // ═══ WEAPONS ═══
-      if (state.weapons?.length) {
-        T('WEAPONS', L, y, { size: 8 });
-        y += 4;
-        const wColW = [45, 18, 22, 18, 10, 15, R - L - 128];
-        const wHdr = ['Name', 'Attack', 'Damage', 'Crit', 'Type', 'Range', 'Notes'];
-        sx = L;
-        wHdr.forEach((c, i) => { CELL(c, sx, y, wColW[i], 5, { size: 6 }); sx += wColW[i]; });
-        y += 5.5;
-        state.weapons.forEach(w => {
-          if (y > pgH - 15) { doc.addPage(); y = L + 5; }
-          sx = L;
-          const vals = [w.name, w.attackBonus, w.damage, (w.critRange || '') + (w.critMult ? '/x' + w.critMult : ''), w.type, w.range, w.notes];
-          vals.forEach((v, i) => { CELL(v || '', sx, y, wColW[i], 5, { size: 6 }); sx += wColW[i]; });
-          y += 5.5;
+        // Info fields - row 1
+        const iw = hdrW / 5;
+        const ih = 5.5;
+        [
+          ['CLASS / LEVEL', `${m.class||''} ${m.level||''}`],
+          ['RACE', m.race||''],
+          ['ALIGNMENT', m.alignment||''],
+          ['DEITY', m.deity||''],
+          ['PLAYER', state.meta?.name||'']
+        ].forEach(([l,v],i)=>{
+          CELL(l, L+i*iw, Y, iw, ih, { s: 4.5, lw: 0.3 });
+          TXT(v||'', L+i*iw+0.5, Y+ih-1, { s: 5.5 });
         });
-        y += 3;
-      }
+        Y += ih;
 
-      // ═══ SPELLS ═══
-      if (state.spells?.length) {
-        T('SPELLS', L, y, { size: 8 });
-        y += 4;
-        state.spells.forEach(set => {
-          if (!set.spells) return;
-          Object.keys(set.spells).forEach(lvl => {
-            const list = set.spells[lvl];
-            if (!list?.length) return;
-            if (y > pgH - 15) { doc.addPage(); y = L + 5; }
-            T((set.casterClass || '') + ' Level ' + lvl, L, y, { size: 7 });
-            y += 3.5;
-            list.forEach(sp => {
-              if (y > pgH - 10) { doc.addPage(); y = L + 5; }
-              T('• ' + (sp.name || '(unnamed)'), L + 2, y, { size: 6 });
-              y += 4.5;
-            });
-            y += 2;
+        // Info fields - row 2
+        const iw2 = hdrW / 4;
+        [
+          ['XP', m.xp||0],
+          ['HOMELAND', m.homeland||''],
+          ['GENDER', m.gender||''],
+          ['AGE', m.age||'']
+        ].forEach(([l,v],i)=>{
+          CELL(l, L+i*iw2, Y, iw2, ih, { s: 4.5, lw: 0.3 });
+          TXT(String(v||''), L+i*iw2+0.5, Y+ih-1, { s: 5.5 });
+        });
+        Y += ih + 1;
+
+        // Info fields - row 3
+        const iw3 = hdrW / 4;
+        [
+          ['SIZE', m.size||''],
+          ['HEIGHT', m.height||''],
+          ['WEIGHT', m.weight||''],
+          ['HAIR / EYES', ((m.hair||'')+' / '+(m.eyes||'')).replace(/^ \/ /,'').replace(/\/ $/,'')]
+        ].forEach(([l,v],i)=>{
+          CELL(l, L+i*iw3, Y, iw3, ih, { s: 4.5, lw: 0.3 });
+          TXT(String(v||''), L+i*iw3+0.5, Y+ih-1, { s: 5.5 });
+        });
+        Y += ih + 2;
+
+        // ═══════════════════════════════════════════════════
+        // PAGE 1: ABILITY SCORES (left column)
+        // ═══════════════════════════════════════════════════
+        const abX = L, abW2 = 30;
+        const combatX = abX + abW2 + 1;
+        const combatW = hdrW - abW2 - 1;
+        const skillsX = hdrX + 1;
+        const skillsW = portX - hdrX - 1;
+
+        // Draw ability score boxes - vertical stack on far left
+        const abH2 = 17;
+        const abStartY = Y;
+
+        const abTopY = Y;
+
+        abKeys.forEach((k,i)=>{
+          const a = ab[k]||{};
+          const ay = Y + i * (abH2 + 1.5);
+          const mod = (a.mod>=0?'+':'')+(a.mod||0);
+
+          // Outer box
+          BOX(abX, ay, abW2, abH2, 0.4);
+
+          // Ability name bar at top
+          FILL(abX, ay, abW2, 4, 180);
+          TXT(abNames[i], abX+abW2/2, ay+3, { s: 5.5, c: true });
+
+          // Score (large number)
+          TXT(String(a.base||10), abX+abW2/2, ay+10, { s: 11, c: true });
+
+          // Modifier box inset
+          const modBoxW = 14, modBoxH = 6;
+          const modBoxX = abX + abW2 - modBoxW - 1.5;
+          const modBoxY = ay + abH2 - modBoxH - 1;
+          BOX(modBoxX, modBoxY, modBoxW, modBoxH, 0.3);
+          TXT(mod, modBoxX+modBoxW/2, modBoxY+4.5, { s: 7, c: true });
+        });
+
+        Y = abStartY;
+
+        // ═══════════════════════════════════════════════════
+        // PAGE 1: COMBAT STATS (middle column)
+        // ═══════════════════════════════════════════════════
+        // Section border around combat stats
+        const cbtTop = Y;
+        const cbtH = abKeys.length * (abH2 + 1.5) + 2; // same height as abilities
+
+        // HP section box
+        const hpBoxW = combatW * 0.48;
+        const hpX = combatX;
+        BOX(combatX, Y, combatW, cbtH, 0.5);
+
+        // HP
+        TXT('HIT POINTS', combatX+1, Y+2.5, { s: 5 });
+        const hpRows = [['Max', hp.max||0], ['Current', hp.current||0], ['Temp', hp.temp||0], ['Nonlethal', hp.nonlethal||0]];
+        hpRows.forEach(([l,v],i)=>{
+          CELL(l, combatX+1, Y+3.5+i*4.5, 14, 4, { s: 4.5 });
+          TXT(String(v||''), combatX+16, Y+7+i*4.5, { s: 5.5 });
+        });
+
+        // AC section
+        const acY = Y;
+        const acX = combatX + combatW * 0.5;
+        TXT('ARMOR CLASS', acX+1, acY+2.5, { s: 5 });
+
+        const acRows = [
+          ['Total', ac.total||10, 'Touch', ac.touch||10, 'Flat-Footed', ac.flatFooted||10],
+          ['Armor', ac.armor||0, 'Shield', ac.shield||0, 'Natural', ac.natural||0],
+          ['Dex', ac.dex||0, 'Size', ac.size||0, 'Deflect', ac.deflection||0],
+          ['Dodge', ac.dodge||0, 'Misc', ac.misc||0]
+        ];
+        const acColW = (combatW * 0.5 - 2) / 3;
+        acRows.forEach((row,ri)=>{
+          for(let ci=0; ci<3; ci++){
+            const l = row[ci*2], v = row[ci*2+1];
+            if(l === undefined) continue;
+            CELL(l, acX+1+ci*acColW, acY+3.5+ri*4.5, acColW-0.5, 4, { s: 4 });
+            TXT(String(v??''), acX+1+ci*acColW+acColW/2, acY+7+ri*4.5, { s: 5, c: true });
+          }
+        });
+
+        // Touch / Flat-Footed
+        const tffY = acY+3.5+acRows.length*4.5+0.5;
+        CELL('TOUCH', acX+1, tffY, acColW*1.5-0.3, 4, { s: 4 });
+        TXT(String(ac.touch||10), acX+1+acColW*0.75, tffY+3, { s: 5.5, c: true });
+        CELL('FLAT-FOOTED', acX+1+acColW*1.5, tffY, acColW*1.5-0.3, 4, { s: 4 });
+        TXT(String(ac.flatFooted||10), acX+1+acColW*2.25, tffY+3, { s: 5.5, c: true });
+
+        // Saving Throws
+        const svY = tffY + 5;
+        TXT('SAVING THROWS', combatX+1, svY+2.5, { s: 5 });
+        const svRows = [
+          {k:'fort', n:'FORTITUDE', ab:'con'},
+          {k:'ref', n:'REFLEX', ab:'dex'},
+          {k:'will', n:'WILL', ab:'wis'}
+        ];
+        svRows.forEach(({k,n,ab},ri)=>{
+          const s = sv[k]||{};
+          const abMod = (state.abilityScores[ab]||{}).mod||0;
+          const total = (s.base||0)+abMod+(s.resistance||0)+(s.misc||0);
+          const sy = svY + 3.5 + ri*5.5;
+
+          // Save name + total (big box)
+          CELL(n.substring(0,4), combatX+1, sy, 13, 5, { s: 4.5, c: true });
+          TXT(String(total), combatX+15, sy+4, { s: 7 });
+
+          // Base save, ability, magic, misc
+          let sx = combatX+22;
+          [['Base', s.base||0], [ab.toUpperCase(), abMod], ['Res', s.resistance||0], ['Misc', s.misc||0]].forEach(([l,v])=>{
+            CELL(l, sx, sy, 9, 5, { s: 3.5, c: true });
+            TXT(String(v??''), sx+4.5, sy+3.5, { s: 4.5, c: true });
+            sx += 9.5;
           });
         });
-      }
 
-      // ═══ FEATS & FEATURES ═══
-      const ff = state.featsAndFeatures || {};
-      const featItems = [...(ff.feats || []), ...(ff.classTalents || []), ...(ff.classFeatures || []), ...(ff.racialFeatures || [])];
-      if (featItems.length) {
-        if (y > pgH - 15) { doc.addPage(); y = L + 5; }
-        T('FEATS & FEATURES', L, y, { size: 8 });
-        y += 4;
-        featItems.forEach(f => {
-          if (y > pgH - 10) { doc.addPage(); y = L + 5; }
-          T('• ' + (f.name || '(unnamed)'), L + 2, y, { size: 6 });
-          y += 4.5;
+        // CMB / CMD / Initiative
+        const cmbY = svY + 3.5 + 3*5.5 + 2;
+        const bab = cbt.bab?.value || 0;
+        const cmb = cbt.cmb?.total || (bab + (ab.str?.mod||0));
+        const cmd = cbt.cmd?.total || (10 + bab + (ab.str?.mod||0) + (ab.dex?.mod||0));
+        const init = cbt.initiative?.total || (ab.dex?.mod||0);
+        const initMisc = cbt.initiative?.misc||0;
+        const sp = cbt.speed||{};
+
+        BOX(combatX+1, cmbY, combatW-2, 20, 0.3);
+        TXT('CMB: '+cmb+'  |  CMD: '+cmd, combatX+3, cmbY+2.5, { s: 5 });
+        TXT('BAB: +'+bab+'  |  Initiative: '+(init>=0?'+':'')+init+' (Dex '+(ab.dex?.mod||0)+' + Misc '+initMisc+')', combatX+3, cmbY+6, { s: 4.5 });
+        TXT('Speed: '+sp.ground+'ft  |  Climb: '+(sp.climb||'—')+'  Swim: '+(sp.swim||'—')+'  Fly: '+(sp.fly||'—'), combatX+3, cmbY+9.5, { s: 4.5 });
+        if(cbt.bab?.meleeString) TXT('Melee: '+cbt.bab.meleeString, combatX+3, cmbY+13, { s: 4.5 });
+        if(cbt.bab?.rangedString) TXT('Ranged: '+cbt.bab.rangedString, combatX+3, cmbY+16, { s: 4.5 });
+        TXT('DR: '+(cbt.dr||'—')+'  SR: '+(cbt.sr||'—')+'  Resist: '+(cbt.resist||'—'), combatX+3, cmbY+19, { s: 4.5 });
+
+        Y = cbtTop + cbtH + 1;
+
+        // ═══════════════════════════════════════════════════
+        // PAGE 1: SKILLS (right column, same height as abilities)
+        // ═══════════════════════════════════════════════════
+        const skTop = cbtTop + 1;
+        const skH = cbtH - 1;
+        BOX(skillsX, skTop, skillsW, skH, 0.5);
+
+        TXT('SKILLS', skillsX+skillsW/2, skTop+2.5, { s: 6, c: true });
+        const skY0 = skTop + 4;
+
+        // Skill column headers
+        const sCols = [
+          {x:0, w:7, l:'T'},
+          {x:7, w:skillsW-7-30, l:'Skill'},
+          {x:skillsW-30, w:8, l:'Ab'},
+          {x:skillsW-22, w:7, l:'Tot'},
+          {x:skillsW-15, w:7, l:'Rk'},
+          {x:skillsW-8, w:8, l:'Misc'}
+        ];
+        sCols.forEach(c=>{ CELL(c.l, skillsX+c.x, skY0, c.w, 3.5, { s: 4, c: true }); });
+
+        let sy = skY0 + 4;
+        const SKILL_COLS = [
+          (sd,d,am,cs,tot) => {
+            TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
+          },
+          (sd,d,am,cs,tot) => {
+            const sn = (i18n[currentLang]?.['skill_'+sd.key])||sd.name;
+            TXT(sn, skillsX+8, sy+2.5, { s: 5 });
+          },
+          (sd,d,am,cs,tot) => { TXT(sd.ability.toUpperCase(), skillsX+skillsW-29, sy+2.5, { s: 4.5 }); },
+          (sd,d,am,cs,tot) => { TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true }); },
+          (sd,d,am,cs,tot) => { TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true }); },
+          (sd,d,am,cs,tot) => {
+            const misc = (d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0)+cs;
+            TXT(misc?String(misc):'—', skillsX+skillsW-4, sy+2.5, { s: 5, c: true });
+          }
+        ];
+
+        function drawSkillRow(sd, alt) {
+          if(sy > skTop + skH - 10) return;
+          const d = state.skills[sd.key]||{ranks:0,classSkill:false};
+          const am = (state.abilityScores[sd.ability]||{}).mod||0;
+          const cs = (d.classSkill&&d.ranks>0)?3:0;
+          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
+          if(alt) FILL(skillsX, sy, skillsW, 3.8, 240);
+          SKILL_COLS.forEach(fn=>fn(sd,d,am,cs,tot));
+          sy += 3.8;
+        }
+
+        SKILL_DEFS.forEach((sd,i)=>{
+          if(sy > skTop + skH - 4) return;
+          drawSkillRow(sd, i%2===1);
         });
-        y += 2;
-      }
 
-      // ═══ INVENTORY ═══
-      if (state.inventory?.items?.length) {
-        if (y > pgH - 15) { doc.addPage(); y = L + 5; }
-        T('INVENTORY', L, y, { size: 8 });
-        y += 4;
-        const cur = state.inventory.currency || {};
-        T(`PP: ${cur.platinum || 0}  GP: ${cur.gold || 0}  SP: ${cur.silver || 0}  CP: ${cur.copper || 0}`, L, y, { size: 6 });
-        y += 4.5;
-        state.inventory.items.forEach(item => {
-          if (y > pgH - 10) { doc.addPage(); y = L + 5; }
-          T('• ' + (item.name || '') + (item.qty ? ' (x' + item.qty + ')' : ''), L + 2, y, { size: 6 });
-          y += 4.5;
+        // Knowledge skills
+        KNOWLEDGE_SKILLS.forEach(name=>{
+          if(sy > skTop + skH - 4) return;
+          const key = 'knowledge' + name.replace(/[^a-zA-Z]/g, '');
+          const d = state.skills[key]||{};
+          const am = (ab.int||{}).mod||0;
+          const cs = (d.classSkill&&d.ranks>0)?3:0;
+          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
+          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
+          TXT('Knowledge ('+name+')', skillsX+8, sy+2.5, { s: 4.5 });
+          TXT('INT', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
+          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
+          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
+          sy += 3.8;
         });
-      }
 
-      // ═══ BACKGROUND ═══
-      if (state.notes?.background) {
-        if (y > pgH - 10) { doc.addPage(); y = L + 5; }
-        T('BACKGROUND', L, y, { size: 8 });
-        y += 4;
-        doc.splitTextToSize(state.notes.background, R - L - 5).forEach(l => {
-          if (y > pgH - 10) { doc.addPage(); y = L + 5; }
-          T(l, L + 1, y, { size: 6 });
-          y += 3.5;
+        // Perform skills
+        PERFORM_SKILLS.forEach(name=>{
+          if(sy > skTop + skH - 4) return;
+          const key = 'perform' + name.replace(/[^a-zA-Z]/g, '');
+          const d = state.skills[key]||{};
+          const am = (ab.cha||{}).mod||0;
+          const cs = (d.classSkill&&d.ranks>0)?3:0;
+          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
+          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
+          TXT('Perform ('+name+')', skillsX+8, sy+2.5, { s: 4.5 });
+          TXT('CHA', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
+          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
+          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
+          sy += 3.8;
         });
-      }
 
-      doc.save((state.meta.name || 'character') + '.pdf');
+        // Craft/Profession at bottom of skills
+        Object.entries(state.skills||{}).filter(([k])=>k.startsWith('craft')).forEach(([key, d])=>{
+          if(sy > skTop + skH - 4) return;
+          const am = (ab.int||{}).mod||0;
+          const cs = (d.classSkill&&d.ranks>0)?3:0;
+          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
+          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
+          TXT('Craft', skillsX+8, sy+2.5, { s: 4.5 });
+          TXT('INT', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
+          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
+          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
+          sy += 3.8;
+        });
+        Object.entries(state.skills||{}).filter(([k])=>k.startsWith('profession')).forEach(([key, d])=>{
+          if(sy > skTop + skH - 4) return;
+          const am = (ab.wis||{}).mod||0;
+          const cs = (d.classSkill&&d.ranks>0)?3:0;
+          const tot = (d.ranks||0)+cs+am+(d.competence||0)+(d.circumstance||0)+(d.feat||0)+(d.race||0)+(d.misc||0);
+          TXT(d.classSkill?'+':'—', skillsX+3, sy+2, { s: 5, c: true });
+          TXT('Profession', skillsX+8, sy+2.5, { s: 4.5 });
+          TXT('WIS', skillsX+skillsW-29, sy+2.5, { s: 4.5 });
+          TXT(tot>=0?'+'+tot:tot, skillsX+skillsW-21, sy+2.5, { s: 5, c: true });
+          TXT(String(d.ranks||0), skillsX+skillsW-14, sy+2.5, { s: 5, c: true });
+          sy += 3.8;
+        });
+
+        // Languages
+        const lng = (state.notes?.languages||'');
+        if(lng){
+          if(sy > skTop + skH - 6) sy = skTop + skH - 8;
+          TXT('Languages: '+lng, skillsX+1, sy+2, { s: 4 });
+          sy += 3.5;
+        }
+
+        Y = sy + 2;
+
+        // ═══════════════════════════════════════════════════
+        // PAGE 1: WEAPONS + FEATS (bottom)
+        // ═══════════════════════════════════════════════════
+        const bottomY = Y;
+        const btmH = PH - Y - 8;
+
+        // Weapons (left 60% of bottom)
+        const weapW = W * 0.58;
+        const featX = L + weapW + 1;
+        const featW = W - weapW - 1;
+
+        if(state.weapons?.length){
+          BOX(L, bottomY, weapW, btmH, 0.5);
+          TXT('WEAPONS', L+weapW/2, bottomY+2.5, { s: 6, c: true });
+
+          const wCols = [
+            {x:0, w:weapW*0.28, l:'Name'},
+            {x:weapW*0.28, w:weapW*0.13, l:'Attack'},
+            {x:weapW*0.41, w:weapW*0.13, l:'Damage'},
+            {x:weapW*0.54, w:weapW*0.11, l:'Crit'},
+            {x:weapW*0.65, w:weapW*0.08, l:'Type'},
+            {x:weapW*0.73, w:weapW*0.08, l:'Range'},
+            {x:weapW*0.81, w:weapW*0.19, l:'Notes'}
+          ];
+          let wy = bottomY + 4;
+          wCols.forEach(c=>{ CELL(c.l, L+c.x, wy, c.w, 4, { s: 4.5, c: true }); });
+          wy += 4.5;
+
+          state.weapons.forEach((w,i)=>{
+            if(wy > bottomY+btmH-5) return;
+            const vals = [
+              w.name,
+              w.attackBonus,
+              w.damage,
+              (w.critRange||'')+(w.critMult?'/x'+w.critMult:''),
+              w.type,
+              w.range,
+              w.notes
+            ];
+            if(i%2===1) FILL(L, wy, weapW-0.5, 4.2, 240);
+            wCols.forEach((c,ci)=>{
+              TXT(String(vals[ci]??''), L+c.x+0.5, wy+3, { s: 4.5 });
+            });
+            wy += 4.2;
+          });
+
+          // Feats in right portion of bottom
+          const ff = state.featsAndFeatures||{};
+          const fi = [...(ff.feats||[]),...(ff.classTalents||[]),...(ff.classFeatures||[]),...(ff.racialFeatures||[])];
+          if(fi.length){
+            BOX(featX, bottomY, featW, btmH, 0.5);
+            TXT('FEATS & ABILITIES', featX+featW/2, bottomY+2.5, { s: 6, c: true });
+            let fy = bottomY + 4;
+            fi.forEach((f,i)=>{
+              if(fy > bottomY+btmH-4) return;
+              TXT('• '+(f.name||''), featX+1, fy+2.5, { s: 4.5 });
+              fy += 3.5;
+            });
+          }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // PAGE 2: ARMOR + INVENTORY (left) / SPELLS (right)
+        // ═══════════════════════════════════════════════════
+        doc.addPage(); Y = T; page++;
+
+        const p2ColL = L;
+        const p2ColW = W * 0.42;
+        const p2ColR = L + p2ColW + 2;
+        const p2ColRW = W - p2ColW - 2;
+
+        // ── LEFT COLUMN: Armor, Inventory, Currency, Capacity, XP ──
+        TXT('ARMOR & EQUIPMENT', p2ColL+p2ColW/2, Y, { s: 7, c: true }); Y += 4;
+
+        if(state.armor?.length){
+          const aCols = [
+            {x:0, w:p2ColW*0.3, l:'Name'},
+            {x:p2ColW*0.3, w:p2ColW*0.08, l:'AC'},
+            {x:p2ColW*0.38, w:p2ColW*0.08, l:'Enh'},
+            {x:p2ColW*0.46, w:p2ColW*0.1, l:'MaxDex'},
+            {x:p2ColW*0.56, w:p2ColW*0.1, l:'Check'},
+            {x:p2ColW*0.66, w:p2ColW*0.1, l:'Fail'},
+            {x:p2ColW*0.76, w:p2ColW*0.24, l:'Notes'}
+          ];
+          aCols.forEach(c=>{ CELL(c.l, p2ColL+c.x, Y, c.w, 4, { s: 4, c: true }); });
+          Y += 4.5;
+          state.armor.forEach((a,i)=>{
+            NEWP();
+            const vals = [a.name, a.acBonus, a.enh, a.maxDex, a.checkPenalty, a.arcaneFail, a.notes];
+            if(i%2===1) FILL(p2ColL, Y, p2ColW, 4, 240);
+            aCols.forEach((c,ci)=>{ TXT(String(vals[ci]??''), p2ColL+c.x+0.5, Y+3, { s: 4.5 }); });
+            Y += 4;
+          }); Y += 1;
+        }
+
+        // Inventory
+        if(state.inventory?.items?.length){
+          TXT('GEAR / INVENTORY', p2ColL+p2ColW/2, Y, { s: 6, c: true }); Y += 3.5;
+          const cur = state.inventory.currency||{};
+          TXT('PP: '+cur.platinum+'  GP: '+cur.gold+'  SP: '+cur.silver+'  CP: '+cur.copper, p2ColL+1, Y, { s: 4.5 }); Y += 3.5;
+
+          const iCols = [
+            {x:0, w:p2ColW*0.7, l:'Item'},
+            {x:p2ColW*0.7, w:p2ColW*0.12, l:'Qty'},
+            {x:p2ColW*0.82, w:p2ColW*0.18, l:'Weight'}
+          ];
+          iCols.forEach(c=>{ CELL(c.l, p2ColL+c.x, Y, c.w, 3.5, { s: 4, c: true }); });
+          Y += 4;
+          state.inventory.items.forEach((item,i)=>{
+            NEWP();
+            if(i%2===1) FILL(p2ColL, Y, p2ColW, 3.8, 240);
+            TXT(item.name||'', p2ColL+0.5, Y+2.5, { s: 4.5 });
+            TXT(String(item.qty||''), p2ColL+p2ColW*0.7+p2ColW*0.06, Y+2.5, { s: 4.5, c: true });
+            TXT(String(item.weightPerUnit||''), p2ColL+p2ColW*0.82+p2ColW*0.09, Y+2.5, { s: 4.5, c: true });
+            Y += 3.8;
+          }); Y += 1;
+        }
+
+        // Carrying capacity & XP
+        const capY = Y;
+        if(state.inventory?.carryingCapacity){
+          const cap = state.inventory.carryingCapacity;
+          const cw = state.inventory.carriedWeight||0;
+          BOX(p2ColL, capY, p2ColW, 25, 0.3);
+          TXT('CARRYING CAPACITY', p2ColL+p2ColW/2, capY+2.5, { s: 5, c: true });
+          TXT('Light: '+cap.light+'  Medium: '+cap.medium+'  Heavy: '+cap.heavy, p2ColL+1, capY+5.5, { s: 4.5 });
+          TXT('Carried: '+cw+' lbs  Encumbrance: '+(state.inventory.encumbrance||'Light'), p2ColL+1, capY+9, { s: 4.5 });
+          const lo = state.inventory.liftOverHead||cap.heavy;
+          const lg = state.inventory.liftOffGround||cap.heavy*2;
+          const pd = state.inventory.pushDrag||cap.heavy*5;
+          TXT('Lift Over Head: '+lo+' lbs', p2ColL+1, capY+12.5, { s: 4.5 });
+          TXT('Lift Off Ground: '+lg+' lbs', p2ColL+1, capY+16, { s: 4.5 });
+          TXT('Push/Drag: '+pd+' lbs', p2ColL+1, capY+19.5, { s: 4.5 });
+          TXT('XP: '+(m.xp||0)+'  Next: '+(m.nextLevel||'—'), p2ColL+1, capY+23, { s: 4.5 });
+          Y = capY + 26;
+        }
+
+        // ── RIGHT COLUMN: Spells ──
+        Y = T;
+        if(state.spells?.length){
+          BOX(p2ColR, Y, p2ColRW, PH - 20 - Y, 0.5);
+          TXT('SPELLS', p2ColR+p2ColRW/2, Y+2.5, { s: 7, c: true }); Y += 5;
+
+          state.spells.forEach(set=>{
+            if(!set.spells) return;
+            const casterInfo = (set.casterClass||'')+' (CL '+(set.casterLevel||'?')+', Conc '+(set.concentration||'?')+')';
+            TXT(casterInfo, p2ColR+1, Y, { s: 5 }); Y += 3.5;
+            const ability = set.ability||'int';
+
+            const spellLvls = Object.keys(set.spells).sort();
+            spellLvls.forEach((lvl, li)=>{
+              const list = set.spells[lvl]; if(!list?.length) return;
+              NEWP();
+              if(li%2===1) FILL(p2ColR+1, Y, p2ColRW-2, 3.5, 240);
+              TXT('Lv '+lvl+' ('+list.length+')', p2ColR+1, Y+2.5, { s: 5 });
+              Y += 4;
+              list.forEach((sp,i)=>{
+                NEWP();
+                if(Y > PH - 25) return;
+                TXT('• '+(sp.name||''), p2ColR+3, Y, { s: 4.5 });
+                Y += 3.2;
+              });
+              Y += 0.5;
+            });
+          });
+        } else {
+          TXT('No spells prepared', p2ColR+p2ColRW/2, Y+5, { s: 6, c: true });
+        }
+
+        // ── BOTTOM: Feats continued + Background ──
+        const botY = Math.max(Y, PH - 35);
+        Y = botY;
+        if(state.notes?.background){
+          NEWP();
+          TXT('BACKGROUND', L+W/2, Y, { s: 6, c: true }); Y += 3.5;
+          const lines = doc.splitTextToSize(state.notes.background, W-10);
+          lines.forEach(l=>{
+            NEWP();
+            TXT(l, L+2, Y, { s: 4.5 });
+            Y += 3.2;
+          });
+        }
+
+        doc.save((state.meta?.name||'character')+'.pdf');
+      } catch (e) {
+        console.error('PDF error', e);
+        alert('PDF export failed: '+e.message);
+      }
     }
 
     // ============================================
