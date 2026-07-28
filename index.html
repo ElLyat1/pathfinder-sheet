@@ -136,18 +136,19 @@
 
     /* Input styling */
     input, select, textarea {
-      background: #f0e0b0;
-      border: 1px solid #8b6914;
-      border-bottom: 2px solid #a07820;
-      border-top: 1px solid #6b4c1e;
-      color: #2a1c0e;
+      background: #3a2a15;
+      border: 1px solid #6b4c1e;
+      border-bottom: 2px solid #8b6914;
+      border-top: 1px solid #2a1c0e;
+      color: #f0e0b0;
       font-family: Georgia, serif;
       font-size: 14px;
       padding: 6px 8px;
       border-radius: 3px;
       box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.15),
-        0 1px 0 rgba(255, 255, 255, 0.05);
+        inset 0 2px 4px rgba(0, 0, 0, 0.4),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+        0 1px 0 rgba(255, 255, 255, 0.03);
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
@@ -156,9 +157,10 @@
       border-color: #c9a84c;
       border-bottom-color: #c9a84c;
       box-shadow:
-        inset 0 1px 3px rgba(0, 0, 0, 0.15),
-        0 0 8px rgba(201, 168, 76, 0.4),
-        0 0 3px rgba(201, 168, 76, 0.3);
+        inset 0 2px 4px rgba(0, 0, 0, 0.4),
+        inset 0 -1px 0 rgba(201, 168, 76, 0.15),
+        0 0 12px rgba(201, 168, 76, 0.3),
+        0 0 4px rgba(201, 168, 76, 0.2);
     }
 
     input[type="checkbox"] {
@@ -196,12 +198,6 @@
       box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 6px rgba(201, 168, 76, 0.4);
     }
 
-    input[type="number"] {
-      background: #3a2a15;
-      color: #f0e0b0;
-      border-color: #6b4c1e;
-    }
-
     input[type="file"], input[type="hidden"] {
       background: transparent;
       border: none;
@@ -209,10 +205,8 @@
     }
 
     textarea {
-      border: 1px solid #8b6914;
       resize: vertical;
       width: 100%;
-      color: #2a1c0e;
     }
 
     input[type="text"], input:not([type]) {
@@ -257,8 +251,8 @@
     }
     .comment-area textarea {
       width: 100%; font-size: 12px; min-height: 40px;
-      background: #f0e0b0; border: 1px solid #8b6914;
-      color: #2a1c0e; padding: 4px 6px; border-radius: 2px;
+      background: #3a2a15; border: 1px solid #6b4c1e;
+      color: #f0e0b0; padding: 4px 6px; border-radius: 2px;
     }
     .field-group.comment-open .comment-area { display: block; }
     td.comment-open .comment-area { display: block; }
@@ -2881,12 +2875,18 @@
       if (state.spells.length >= 3) return;
       state.spells.push(createSpellSet());
       renderAllDynamicTables();
+      bindInputs();
+      recalculate();
+      updateDerived();
       saveToStorage();
     }
 
     function removeSpellSet(index) {
       state.spells.splice(index, 1);
       renderAllDynamicTables();
+      bindInputs();
+      recalculate();
+      updateDerived();
       saveToStorage();
     }
 
@@ -2896,12 +2896,18 @@
       }
       state.spells[setIndex].spells[level].push({ name: '', expended: false, notes: '' });
       renderAllDynamicTables();
+      bindInputs();
+      recalculate();
+      updateDerived();
       saveToStorage();
     }
 
     function removeSpell(setIndex, level, spellIndex) {
       state.spells[setIndex].spells[level].splice(spellIndex, 1);
       renderAllDynamicTables();
+      bindInputs();
+      recalculate();
+      updateDerived();
       saveToStorage();
     }
 
@@ -3087,10 +3093,65 @@
     }
 
     // ============================================
+    // DICE ROLLER
+    // ============================================
+    const DICE_TYPES = [4, 6, 8, 10, 12, 20, 100];
+    const DICE_LABELS = { 4: 'd4', 6: 'd6', 8: 'd8', 10: 'd10', 12: 'd12', 20: 'd20', 100: 'd100' };
+    let diceMenuOpen = false;
+
+    function toggleDiceMenu() {
+      diceMenuOpen = !diceMenuOpen;
+      const menu = document.getElementById('diceMenu');
+      if (menu) menu.style.display = diceMenuOpen ? 'flex' : 'none';
+    }
+
+    function rollDie(sides) {
+      diceMenuOpen = false;
+      const menu = document.getElementById('diceMenu');
+      if (menu) menu.style.display = 'none';
+      const result = Math.floor(Math.random() * sides) + 1;
+      const popup = document.getElementById('dicePopup');
+      const popupText = document.getElementById('dicePopupText');
+      popupText.innerHTML = '<span style="font-size:48px;color:#c9a84c;font-family:\'Cinzel\',Georgia,serif;">' + result + '</span><br><span style="font-size:16px;color:#8b6914;">' + DICE_LABELS[sides] + '</span>';
+      popup.style.display = 'flex';
+      setTimeout(() => { popup.style.display = 'none'; }, 2000);
+    }
+
+    function closeDicePopup() {
+      document.getElementById('dicePopup').style.display = 'none';
+    }
+
+    // ============================================
     // INIT
     // ============================================
     loadCharacterList();
     applyLanguage();
+  </script>
+
+  <!-- Dice Roller Widget -->
+  <div id="diceWidget" style="position:fixed;bottom:20px;right:20px;z-index:1000;">
+    <div id="diceMenu" style="display:none;flex-direction:column;gap:4px;position:absolute;bottom:50px;right:0;background:#2a2018;border:2px solid #6b4c1e;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.6);">
+    </div>
+    <button onclick="toggleDiceMenu()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#5a421e,#3a2a10);border:2px solid #c9a84c;color:#c9a84c;font-size:22px;font-family:'Cinzel',Georgia,serif;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;" title="Dice Roller">d20</button>
+  </div>
+  <div id="dicePopup" onclick="closeDicePopup()" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;cursor:pointer;">
+    <div style="background:#2a2018;border:2px solid #c9a84c;border-radius:12px;padding:30px 50px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.8);" onclick="event.stopPropagation();">
+      <div id="dicePopupText"></div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const menu = document.getElementById('diceMenu');
+      DICE_TYPES.forEach(function(sides) {
+        var btn = document.createElement('button');
+        btn.textContent = DICE_LABELS[sides];
+        btn.style.cssText = 'background:linear-gradient(180deg,#5a421e,#3a2a10);color:#e8d5a3;border:1px solid #6b4c1e;padding:6px 14px;font-family:"Cinzel",Georgia,serif;font-size:14px;cursor:pointer;border-radius:4px;white-space:nowrap;';
+        btn.onmouseover = function() { btn.style.borderColor = '#c9a84c'; };
+        btn.onmouseout = function() { btn.style.borderColor = '#6b4c1e'; };
+        btn.onclick = function() { rollDie(sides); };
+        menu.appendChild(btn);
+      });
+    })();
   </script>
 </body>
 </html>
