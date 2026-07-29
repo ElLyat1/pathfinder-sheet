@@ -2404,8 +2404,8 @@
         }
         const FONT_URL = 'https://cdn.jsdelivr.net/gh/notofonts/notofonts.github.io@main/fonts/NotoSans/unhinted/ttf/NotoSans-Regular.ttf';
         const [bg1, bg2, fontData] = await Promise.all([
-          loadImg('https://lewisc64.github.io/Autosheet/images/page1.png'),
-          loadImg('https://lewisc64.github.io/Autosheet/images/page2.png'),
+          loadImg('./page1.png'),
+          loadImg('./page2.png'),
           loadFontB64(FONT_URL)
         ]);
         let hasFont = false;
