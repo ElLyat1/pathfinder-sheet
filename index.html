@@ -2428,6 +2428,7 @@
         const MID = (t, x, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x, y); };
         const RGT = (t, x, y, s) => { doc.setFontSize(s||8); doc.text(String(t??''), x, y, { align: 'right' }); };
 
+        if (!bg1) console.warn('bg1 failed to load — PDF will have no background');
         // ═══ PAGE 1 ═══
         if(bg1) doc.addImage(bg1, 'PNG', 0, 0, PW, PH);
 
