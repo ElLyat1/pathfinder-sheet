@@ -3737,6 +3737,7 @@
     // ============================================
     let spellDatabase = null;
     let currentSpellSetIndex = -1;
+    let filteredSpells = null;
 
     async function loadSpellDatabase() {
       if (spellDatabase) return spellDatabase;
@@ -3811,6 +3812,7 @@
         filtered = filtered.filter(s => s.school === school || (s.descriptors && s.descriptors.includes(school.toLowerCase())));
       }
 
+      filteredSpells = filtered;
       renderSpellBrowserList(filtered);
     }
 
@@ -3869,8 +3871,8 @@
     }
 
     function addSpellFromBrowser(spellIndex, level) {
-      if (currentSpellSetIndex < 0 || !spellDatabase) return;
-      const spell = spellDatabase[spellIndex];
+      if (currentSpellSetIndex < 0 || !spellDatabase || !filteredSpells) return;
+      const spell = filteredSpells[spellIndex];
       if (!spell) return;
 
       const set = state.spells[currentSpellSetIndex];
